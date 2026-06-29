@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/real-sound-v2.tsx" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
