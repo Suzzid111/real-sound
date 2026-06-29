@@ -1,642 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REAL Sound</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;background:#0D0B0F;color:#E8E2F0;min-height:100vh}
+nav{background:#1C1720;border-bottom:1px solid rgba(212,168,67,.2);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{color:#D4A843;font-size:18px;font-weight:bold;letter-spacing:.12em;cursor:pointer}
+.logo-sub{color:#7A6E8A;font-size:9px;letter-spacing:.2em}
+.nav-links{display:flex;gap:4px;flex-wrap:wrap}
+.nav-btn{background:transparent;border:none;color:#7A6E8A;padding:6px 12px;border-radius:20px;cursor:pointer;font-family:Georgia,serif;font-size:11px}
+.nav-btn.active{background:#D4A843;color:#0D0B0F;font-weight:bold}
+.wrap{max-width:980px;margin:0 auto;padding:28px 20px}
+.hero{text-align:center;padding:40px 0}
+.hero h1{font-size:42px;font-weight:normal;color:#F9F7FC;line-height:1.2;margin-bottom:16px}
+.hero p{color:#7A6E8A;font-size:15px;max-width:420px;margin:0 auto 28px;line-height:1.7}
+.btn-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{padding:12px 24px;border-radius:10px;font-family:Georgia,serif;font-weight:bold;font-size:14px;cursor:pointer;border:none;letter-spacing:.05em}
+.btn-gold{background:#D4A843;color:#0D0B0F}
+.btn-outline{background:transparent;color:#D4A843;border:1.5px solid #D4A843}
+.btn-ghost{background:#2E2438;color:#E8E2F0}
+.btn-teal{background:#4A9B8E;color:#fff}
+.btn-danger{background:#C4727A;color:#fff}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:36px 0}
+.stat{background:#1C1720;border-radius:16px;padding:20px;text-align:center;border:1px solid rgba(58,46,74,.27)}
+.stat-num{font-size:30px;font-weight:bold;color:#D4A843}
+.stat-label{font-size:11px;color:#7A6E8A;margin-top:4px;letter-spacing:.08em}
+.section-title{font-size:11px;letter-spacing:.2em;color:#D4A843;margin-bottom:14px}
+.grid6{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:32px}
+.grid-item{background:#1C1720;border-radius:12px;padding:16px 10px;text-align:center;border:1px solid rgba(58,46,74,.27);cursor:pointer}
+.grid-item:hover{border-color:#D4A843}
+.grid-icon{font-size:26px}
+.grid-label{font-size:12px;color:#E8E2F0;margin-top:8px}
+.healer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.healer-card{background:#1C1720;border-radius:16px;border:1px solid rgba(58,46,74,.27);overflow:hidden}
+.healer-card:hover{border-color:#D4A843}
+.healer-top{display:flex;gap:12px;align-items:center;padding:16px;border-bottom:1px solid rgba(58,46,74,.27)}
+.avatar{font-size:28px;background:#2E2438;border-radius:50%;width:46px;height:46px;display:flex;align-items:center;justify-content:center}
+.healer-name{font-weight:bold;color:#F9F7FC}
+.healer-loc{font-size:12px;color:#7A6E8A}
+.healer-body{padding:14px 16px}
+.badge-open{background:#1a3a1a;color:#6fcf6f;font-size:10px;padding:3px 8px;border-radius:8px}
+.badge-busy{background:#3a1a1a;color:#cf6f6f;font-size:10px;padding:3px 8px;border-radius:8px}
+.mod-tags{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}
+.mod-tag{background:rgba(74,155,142,.13);color:#4A9B8E;font-size:10px;padding:2px 7px;border-radius:6px}
+.card{background:#1C1720;border-radius:16px;padding:20px;border:1px solid rgba(58,46,74,.27);margin-bottom:14px}
+.card-gold{border-color:rgba(212,168,67,.4)}
+.pills{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.pill{background:transparent;border:1.5px solid rgba(58,46,74,.27);color:#7A6E8A;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px}
+.pill-gold{border-color:#D4A843;background:rgba(212,168,67,.13);color:#D4A843}
+.pill-teal{border-color:#4A9B8E;background:rgba(74,155,142,.13);color:#4A9B8E}
+.pill-rose{border-color:#C4727A;background:rgba(196,114,122,.13);color:#C4727A}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;letter-spacing:.12em;color:#D4A843;margin-bottom:5px}
+input,select,textarea{width:100%;background:#2E2438;border:1px solid rgba(58,46,74,.27);border-radius:8px;padding:10px 12px;color:#E8E2F0;font-size:14px;font-family:Georgia,serif;outline:none}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.review-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(58,46,74,.27);font-size:14px}
+.review-key{color:#7A6E8A;font-size:11px;letter-spacing:.08em}
+.disclaimer-box{background:#2E2438;border-radius:8px;padding:12px;margin:12px 0}
+.disclaimer-label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.disclaimer-text{font-size:11px;color:#7A6E8A;line-height:1.6}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.ptabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px}
+.ptab{background:#2E2438;border:none;color:#7A6E8A;padding:7px 13px;border-radius:20px;cursor:pointer;font-family:Georgia,serif;font-size:11px}
+.ptab.active{background:#D4A843;color:#0D0B0F;font-weight:bold}
+.booking-card{background:#1C1720;border-radius:12px;padding:16px;border:1px solid rgba(58,46,74,.27);margin-bottom:10px}
+.status-pending{background:#2E2438;color:#D4A843;font-size:11px;padding:3px 8px;border-radius:8px}
+.status-confirmed{background:#1a3a1a;color:#6fcf6f;font-size:11px;padding:3px 8px;border-radius:8px}
+.status-declined{background:#3a1a1a;color:#cf6f6f;font-size:11px;padding:3px 8px;border-radius:8px}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 24px;border-radius:24px;font-size:14px;font-weight:bold;z-index:9999;display:none;white-space:nowrap}
+.footer-disclaimer{background:#1C1720;border-top:1px solid rgba(58,46,74,.27);padding:20px 24px;margin-top:40px}
+.footer{border-top:1px solid rgba(212,168,67,.13);padding:20px;text-align:center;margin-top:0}
+.page{display:none}
+.page.active{display:block}
+.back-btn{background:none;border:none;color:#C4727A;cursor:pointer;font-family:Georgia,serif;font-size:13px;margin-bottom:16px;padding:0}
+.full-width{width:100%}
+.text-gold{color:#D4A843}
+.text-teal{color:#4A9B8E}
+.text-soft{color:#7A6E8A}
+.text-chalk{color:#F9F7FC}
+</style>
+</head>
+<body>
 
-const T = {
-void:"#0D0B0F", deep:"#1C1720", plum:"#2E2438",
-gold:"#D4A843", rose:"#C4727A", teal:"#4A9B8E",
-mist:"#E8E2F0", chalk:"#F9F7FC", soft:"#7A6E8A", border:"#3A2E4A44",
-};
+<div class="toast" id="toast"></div>
 
-const SEED = [
-{ id:"p1", name:"Luna Serrano", location:"Providence, RI", email:"luna@example.com", password:"luna123",
-instruments:["Crystal Bowls","Gong","Chimes"], venueTypes:["Yoga Studios","Corporate","Retreats"],
-modalities:["Sound Bath","Reiki"], rate:250, rating:4.9, reviews:38, available:true,
-bio:"Level 2 Reiki practitioner & certified sound healer with 6 years bringing deep healing to groups of all kinds.", avatar:"🌙" },
-{ id:"p2", name:"Marcus Bloom", location:"Boston, MA", email:"marcus@example.com", password:"marcus123",
-instruments:["Tibetan Bowls","Gong","Tuning Forks"], venueTypes:["Fight Studios","Corporate","Yoga Studios"],
-modalities:["Sound Bath","Breathwork"], rate:300, rating:4.8, reviews:52, available:true,
-bio:"Former athlete turned sound healer. Specializes in high-performance stress release — perfect for MMA gyms and corporate burnout.", avatar:"🔮" },
-{ id:"p3", name:"Celeste Mora", location:"Newport, RI", email:"celeste@example.com", password:"celeste123",
-instruments:["Crystal Bowls","Voice","Rain Drum"], venueTypes:["Yoga Studios","Retreats","Private Events"],
-modalities:["Sound Bath","Reiki","Meditation"], rate:200, rating:5.0, reviews:21, available:false,
-bio:"Trained in sacred sound ceremony traditions. Creates immersive, deeply spiritual experiences for intimate groups.", avatar:"✨" },
-{ id:"p4", name:"Jordan Wells", location:"Worcester, MA", email:"jordan@example.com", password:"jordan123",
-instruments:["Gong","Steel Tongue Drum","Chimes"], venueTypes:["Fight Studios","Corporate","Yoga Studios"],
-modalities:["Sound Bath","Breathwork"], rate:275, rating:4.7, reviews:44, available:true,
-bio:"Power-meets-peace. Jordan's gong work is especially impactful in masculine-energy spaces like boxing and BJJ gyms.", avatar:"⚡" },
+<nav>
+  <div onclick="showPage('home')" style="cursor:pointer">
+    <div class="logo">◉ REAL SOUND</div>
+    <div class="logo-sub">FIND · BOOK · HEAL</div>
+  </div>
+  <div class="nav-links">
+    <button class="nav-btn active" id="nav-home" onclick="showPage('home')">Home</button>
+    <button class="nav-btn" id="nav-find" onclick="showPage('find')">Find a Healer</button>
+    <button class="nav-btn" id="nav-join" onclick="showPage('join')">Join as Healer</button>
+    <button class="nav-btn" id="nav-login" onclick="showPage('login')">Healer Login</button>
+    <button class="nav-btn" id="nav-admin" onclick="showPage('admin')">⚙</button>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+<div class="wrap">
+  <div class="hero">
+    <div style="font-size:11px;letter-spacing:.3em;color:#C4727A;margin-bottom:14px">THE SOUND HEALING MARKETPLACE</div>
+    <h1>Real healers.<br><span class="text-gold">Real bookings.</span><br>Real peace.</h1>
+    <p>Connect your yoga studio, gym, or team with certified Sound Bath and Reiki practitioners. No middleman. No guesswork.</p>
+    <div class="btn-row">
+      <button class="btn btn-gold" onclick="showPage('find')">Find a Healer →</button>
+      <button class="btn btn-outline" onclick="showPage('join')">I'm a Practitioner</button>
+    </div>
+  </div>
+  <div class="stats" id="home-stats"></div>
+  <div class="section-title">WHAT WE OFFER</div>
+  <div class="grid6">
+    <div class="grid-item" onclick="filterMod('Sound Bath');showPage('find')"><div class="grid-icon">🎵</div><div class="grid-label">Sound Bath</div></div>
+    <div class="grid-item" onclick="filterMod('Reiki');showPage('find')"><div class="grid-icon">🙌</div><div class="grid-label">Reiki</div></div>
+    <div class="grid-item" onclick="filterMod('Breathwork');showPage('find')"><div class="grid-icon">🌬️</div><div class="grid-label">Breathwork</div></div>
+    <div class="grid-item" onclick="filterMod('Meditation');showPage('find')"><div class="grid-icon">🧘</div><div class="grid-label">Meditation</div></div>
+    <div class="grid-item" onclick="filterMod('Gong Bath');showPage('find')"><div class="grid-icon">🔔</div><div class="grid-label">Gong Bath</div></div>
+    <div class="grid-item" onclick="filterMod('Crystal Healing');showPage('find')"><div class="grid-icon">💎</div><div class="grid-label">Crystal Healing</div></div>
+  </div>
+  <div class="section-title">WHO IT'S FOR</div>
+  <div class="grid6">
+    <div class="grid-item" onclick="filterVenue('Yoga Studios');showPage('find')"><div class="grid-icon">🧘</div><div class="grid-label">Yoga Studios</div></div>
+    <div class="grid-item" onclick="filterVenue('Fight Studios');showPage('find')"><div class="grid-icon">🥊</div><div class="grid-label">Fight Studios</div></div>
+    <div class="grid-item" onclick="filterVenue('Corporate');showPage('find')"><div class="grid-icon">🏢</div><div class="grid-label">Corporate</div></div>
+    <div class="grid-item" onclick="filterVenue('Retreats');showPage('find')"><div class="grid-icon">🌿</div><div class="grid-label">Retreats</div></div>
+    <div class="grid-item" onclick="filterVenue('Private Events');showPage('find')"><div class="grid-icon">🎉</div><div class="grid-label">Private Events</div></div>
+    <div class="grid-item"><div class="grid-icon">🏨</div><div class="grid-label">Hotels & Spas</div></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div class="section-title" style="margin:0">FEATURED HEALERS</div>
+    <span style="color:#C4727A;cursor:pointer;font-size:13px" onclick="showPage('find')">See all →</span>
+  </div>
+  <div class="healer-grid" id="featured"></div>
+</div>
+</div>
+
+<!-- FIND -->
+<div id="page-find" class="page">
+<div class="wrap">
+  <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px">Find a Healer</h2>
+  <p class="text-soft" style="margin-bottom:16px;font-size:14px">Browse verified practitioners and send a booking request.</p>
+  <div class="pills" id="venue-pills"></div>
+  <div class="pills" id="mod-pills"></div>
+  <div class="healer-grid" id="healer-list"></div>
+</div>
+</div>
+
+<!-- BOOKING -->
+<div id="page-booking" class="page">
+<div class="wrap" style="max-width:520px">
+  <button class="back-btn" onclick="showPage('find')">← Back</button>
+  <div class="card card-gold" id="bk-healer" style="display:flex;gap:14px;align-items:center;margin-bottom:20px"></div>
+  <div id="bk-step1"></div>
+  <div id="bk-step2" style="display:none"></div>
+  <div id="bk-step3" style="display:none"></div>
+</div>
+</div>
+
+<!-- JOIN -->
+<div id="page-join" class="page">
+<div class="wrap" style="max-width:520px">
+  <div id="join0">
+    <div style="text-align:center;padding-top:20px">
+      <div style="font-size:52px;margin-bottom:16px">🎵</div>
+      <h2 style="font-weight:normal;font-size:26px;margin-bottom:10px">Share your gift. <span class="text-gold">Get booked.</span></h2>
+      <p class="text-soft" style="max-width:400px;margin:0 auto 28px;line-height:1.7;font-size:14px">REAL Sound connects you with yoga studios, gyms, and companies. Keep 85% of every booking.</p>
+      <button class="btn btn-gold" onclick="showJoin(1)" style="padding:13px 32px;font-size:15px">Create My Profile →</button>
+      <div style="margin-top:14px"><span class="text-soft" style="font-size:13px">Already listed? </span><span class="text-gold" style="cursor:pointer;font-size:13px" onclick="showPage('login')">Log in →</span></div>
+    </div>
+  </div>
+  <div id="join1" style="display:none">
+    <div class="card">
+      <h3 style="font-weight:normal;font-size:20px;color:#F9F7FC;margin-bottom:4px">Create your healer profile</h3>
+      <p class="text-soft" style="font-size:13px;margin-bottom:20px">Venues will see this. Use your email and password to log back in.</p>
+      <div class="field"><label>YOUR NAME</label><input id="j-name" placeholder="e.g. Luna Serrano"></div>
+      <div class="field"><label>EMAIL</label><input id="j-email" type="email" placeholder="you@example.com"></div>
+      <div class="field"><label>PASSWORD</label><input id="j-password" type="password" placeholder="Create a password"></div>
+      <div class="field"><label>LOCATION</label><input id="j-location" placeholder="City, State"></div>
+      <div class="field"><label>SESSION RATE ($)</label><input id="j-rate" type="number" placeholder="e.g. 250"></div>
+      <div class="field"><label>MODALITIES</label><div class="pills" id="j-mods"></div></div>
+      <div class="field"><label>INSTRUMENTS</label><div class="pills" id="j-instr"></div></div>
+      <div class="field"><label>VENUE TYPES YOU SERVE</label><div class="pills" id="j-venues"></div></div>
+      <div class="field"><label>YOUR BIO</label><textarea id="j-bio" rows="4" placeholder="Tell venues about your practice…"></textarea></div>
+      <button class="btn btn-gold full-width" style="padding:14px;font-size:15px;margin-top:4px" onclick="submitJoin()">Create Profile →</button>
+    </div>
+  </div>
+  <div id="join2" style="display:none">
+    <div class="card card-gold" style="text-align:center;padding:36px">
+      <div style="font-size:52px;margin-bottom:16px">🌟</div>
+      <h2 class="text-gold" style="font-weight:normal;margin-bottom:10px">You're live!</h2>
+      <p class="text-soft" style="margin-bottom:24px;line-height:1.7;font-size:14px">Your profile is now visible to venues on REAL Sound.</p>
+      <button class="btn btn-teal" onclick="showPage('login')">Go to My Dashboard →</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- LOGIN -->
+<div id="page-login" class="page">
+<div class="wrap" style="max-width:380px;padding-top:60px">
+  <div id="login-form">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:40px;margin-bottom:12px">👤</div>
+      <h2 style="font-weight:normal;margin-bottom:6px">Healer Login</h2>
+      <p class="text-soft" style="font-size:13px">Access your dashboard, bookings and earnings.</p>
+    </div>
+    <div class="card">
+      <div class="field"><label>EMAIL</label><input id="p-email" type="email" placeholder="your@email.com"></div>
+      <div class="field"><label>PASSWORD</label><input id="p-password" type="password" placeholder="Your password"></div>
+      <div id="login-err" style="color:#C4727A;font-size:13px;margin-bottom:10px;display:none"></div>
+      <button class="btn btn-gold full-width" style="padding:13px;font-size:15px;margin-bottom:12px" onclick="doLogin()">Log In →</button>
+      <div style="text-align:center"><span class="text-soft" style="font-size:12px">Not listed? </span><span class="text-gold" style="cursor:pointer;font-size:12px" onclick="showPage('join')">Create a profile →</span></div>
+      <div style="border-top:1px solid rgba(58,46,74,.27);padding-top:12px;font-size:11px;color:#7A6E8A;text-align:center;margin-top:12px;line-height:1.6">Demo: luna@example.com / luna123</div>
+    </div>
+  </div>
+  <div id="dashboard" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <h2 style="font-weight:normal;color:#F9F7FC;margin:0" id="dash-name"></h2>
+        <div class="text-soft" style="font-size:13px">Healer Dashboard</div>
+      </div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <div class="ptabs">
+          <button class="ptab active" onclick="setPTab('overview',this)">📊 Overview</button>
+          <button class="ptab" onclick="setPTab('bookings',this)">📅 Bookings</button>
+          <button class="ptab" onclick="setPTab('earnings',this)">💰 Earnings</button>
+          <button class="ptab" onclick="setPTab('profile',this)">👤 Profile</button>
+        </div>
+        <button class="btn btn-ghost" style="font-size:11px;padding:7px 13px" onclick="doLogout()">Log out</button>
+      </div>
+    </div>
+    <div id="ptab-overview"></div>
+    <div id="ptab-bookings" style="display:none"></div>
+    <div id="ptab-earnings" style="display:none"></div>
+    <div id="ptab-profile" style="display:none"></div>
+  </div>
+</div>
+</div>
+
+<!-- ADMIN -->
+<div id="page-admin" class="page">
+<div class="wrap" style="max-width:500px;padding-top:60px">
+  <div id="admin-login" style="text-align:center">
+    <div style="font-size:36px;margin-bottom:16px">🔐</div>
+    <h3 style="color:#F9F7FC;font-weight:normal;margin-bottom:20px">Admin Access</h3>
+    <div class="field"><input id="admin-code" placeholder="Enter admin code" style="text-align:center"></div>
+    <button class="btn btn-gold full-width" style="margin-top:8px" onclick="checkAdmin()">Enter</button>
+    <p class="text-soft" style="font-size:12px;margin-top:14px">Code: REALSOUND</p>
+  </div>
+  <div id="admin-dash" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">
+      <h2 class="text-gold" style="font-weight:normal">⚙ Admin Dashboard</h2>
+      <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px" onclick="lockAdmin()">Lock</button>
+    </div>
+    <div class="dash-grid" id="admin-stats"></div>
+    <div class="section-title">ALL BOOKINGS</div>
+    <div id="admin-bookings"></div>
+    <div class="section-title" style="margin-top:24px">PRACTITIONERS</div>
+    <div id="admin-practitioners"></div>
+  </div>
+</div>
+</div>
+
+<div class="footer-disclaimer">
+  <div style="max-width:900px;margin:0 auto">
+    <div style="font-size:10px;letter-spacing:.15em;color:#D4A843;margin-bottom:8px">LEGAL DISCLAIMER</div>
+    <p style="font-size:11px;color:#7A6E8A;line-height:1.7">REAL Sound is an independent marketplace platform connecting independent sound healing and wellness practitioners with venues and organizations. REAL Sound does not employ, supervise, or control any practitioner. All practitioners are independent contractors. By using this platform all parties agree that REAL Sound bears no liability for any injury, loss, or damage arising from any session.</p>
+  </div>
+</div>
+<div class="footer">
+  <div class="text-gold" style="font-size:13px;letter-spacing:.12em">◉ REAL SOUND</div>
+  <div class="text-soft" style="font-size:11px;margin-top:4px">A REAL Golden Peace venture by Suzzanna</div>
+  <div class="text-soft" style="font-size:10px;margin-top:4px">© 2026 REAL Sound · All Rights Reserved</div>
+</div>
+
+<script>
+var SEED=[
+  {id:"p1",name:"Luna Serrano",location:"Providence, RI",email:"luna@example.com",password:"luna123",instruments:["Crystal Bowls","Gong","Chimes"],venueTypes:["Yoga Studios","Corporate","Retreats"],modalities:["Sound Bath","Reiki"],rate:250,rating:4.9,reviews:38,available:true,bio:"Level 2 Reiki practitioner and certified sound healer with 6 years bringing deep healing to groups of all kinds.",avatar:"🌙"},
+  {id:"p2",name:"Marcus Bloom",location:"Boston, MA",email:"marcus@example.com",password:"marcus123",instruments:["Tibetan Bowls","Gong","Tuning Forks"],venueTypes:["Fight Studios","Corporate","Yoga Studios"],modalities:["Sound Bath","Breathwork"],rate:300,rating:4.8,reviews:52,available:true,bio:"Former athlete turned sound healer. Specializes in high-performance stress release — perfect for MMA gyms and corporate burnout.",avatar:"🔮"},
+  {id:"p3",name:"Celeste Mora",location:"Newport, RI",email:"celeste@example.com",password:"celeste123",instruments:["Crystal Bowls","Voice","Rain Drum"],venueTypes:["Yoga Studios","Retreats","Private Events"],modalities:["Sound Bath","Reiki","Meditation"],rate:200,rating:5.0,reviews:21,available:false,bio:"Trained in sacred sound ceremony traditions. Creates immersive, deeply spiritual experiences for intimate groups.",avatar:"✨"},
+  {id:"p4",name:"Jordan Wells",location:"Worcester, MA",email:"jordan@example.com",password:"jordan123",instruments:["Gong","Steel Tongue Drum","Chimes"],venueTypes:["Fight Studios","Corporate","Yoga Studios"],modalities:["Sound Bath","Breathwork"],rate:275,rating:4.7,reviews:44,available:true,bio:"Power-meets-peace. Jordan's gong work is especially impactful in masculine-energy spaces like boxing and BJJ gyms.",avatar:"⚡"}
 ];
+var VENUES=["All","Yoga Studios","Fight Studios","Corporate","Retreats","Private Events"];
+var MODS=["Sound Bath","Reiki","Breathwork","Meditation","Gong Bath","Crystal Healing"];
+var INSTR=["Crystal Bowls","Gong","Tibetan Bowls","Tuning Forks","Chimes","Voice","Steel Tongue Drum","Rain Drum","Drums"];
 
-const VENUE_TYPES = ["All","Yoga Studios","Fight Studios","Corporate","Retreats","Private Events"];
-const MODALITIES = ["Sound Bath","Reiki","Breathwork","Meditation","Gong Bath","Crystal Healing"];
-const INSTRUMENTS = ["Crystal Bowls","Gong","Tibetan Bowls","Tuning Forks","Chimes","Voice","Steel Tongue Drum","Rain Drum","Drums"];
+function lsGet(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 
-function Stars({ n }) {
-return <span style={{color:T.gold,fontSize:12}}>{"★".repeat(Math.floor(n))}{"☆".repeat(5-Math.floor(n))}</span>;
+var P=lsGet("rs:p",SEED);
+var B=lsGet("rs:b",[]);
+var vFilter="All",mFilter="All",selP=null,curUser=null;
+var jMods=[],jInstr=[],jVenues=[];
+
+function toast(msg,bg){var t=document.getElementById("toast");t.textContent=msg;t.style.background=bg||"#D4A843";t.style.color=bg?"#fff":"#0D0B0F";t.style.display="block";setTimeout(function(){t.style.display="none";},3000);}
+
+function showPage(p){
+  document.querySelectorAll(".page").forEach(function(el){el.classList.remove("active");});
+  document.querySelectorAll(".nav-btn").forEach(function(el){el.classList.remove("active");});
+  var pg=document.getElementById("page-"+p);
+  if(pg)pg.classList.add("active");
+  var nb=document.getElementById("nav-"+p);
+  if(!nb)nb=document.getElementById("nav-login");
+  if(nb)nb.classList.add("active");
+  if(p==="home")renderHome();
+  if(p==="find")renderFind();
+  if(p==="join")renderJoinPills();
+  if(p==="login")renderLogin();
+  if(p==="admin"){document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
 }
 
-function Pill({ children, on, color, onClick }) {
-const c = color||T.gold;
-return <button onClick={onClick} style={{padding:"6px 12px",borderRadius:8,fontFamily:"Georgia,serif",fontSize:12,cursor:"pointer",border:`1.5px solid ${on?c:T.border}`,background:on?c+"22":"transparent",color:on?c:T.soft}}>{children}</button>;
+function stars(n){return "★".repeat(Math.floor(n))+"☆".repeat(5-Math.floor(n));}
+
+function filterVenue(v){vFilter=v;}
+function filterMod(m){mFilter=m;}
+
+function renderHome(){
+  document.getElementById("home-stats").innerHTML='<div class="stat"><div class="stat-num">'+P.length+'</div><div class="stat-label">Verified healers</div></div><div class="stat"><div class="stat-num">'+B.length+'</div><div class="stat-label">Sessions booked</div></div><div class="stat"><div class="stat-num">15%</div><div class="stat-label">Platform fee only</div></div>';
+  var avail=P.filter(function(p){return p.available;}).slice(0,3);
+  document.getElementById("featured").innerHTML=avail.map(function(p){return healerCard(p,true);}).join("");
 }
 
-function Btn({ children, onClick, variant="primary", disabled, full, style={} }) {
-const B = {primary:{background:T.gold,color:T.void,border:"none"},secondary:{background:"transparent",color:T.gold,border:`1.5px solid ${T.gold}`},ghost:{background:T.plum,color:T.mist,border:"none"},danger:{background:T.rose,color:"#fff",border:"none"},teal:{background:T.teal,color:"#fff",border:"none"}};
-return <button onClick={onClick} disabled={disabled} style={{...B[variant],padding:"10px 20px",borderRadius:10,fontSize:13,cursor:disabled?"not-allowed":"pointer",opacity:disabled?0.5:1,fontFamily:"Georgia,serif",letterSpacing:"0.05em",fontWeight:"bold",width:full?"100%":"auto",...style}}>{children}</button>;
+function healerCard(p,mini){
+  var tags=p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("");
+  if(mini)return '<div class="healer-card" onclick="openBooking(\''+p.id+'\')"><div class="healer-top"><div class="avatar">'+p.avatar+'</div><div><div class="healer-name">'+p.name+'</div><div class="healer-loc">'+p.location+'</div></div><div style="margin-left:auto;color:#D4A843;font-weight:bold">$'+p.rate+'</div></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><div style="font-size:13px;color:#7A6E8A;line-height:1.5">'+p.bio.slice(0,80)+'...</div></div></div>';
+  return '<div class="healer-card"><div class="healer-top"><div class="avatar">'+p.avatar+'</div><div style="flex:1"><div class="healer-name">'+p.name+'</div><div class="healer-loc">📍 '+p.location+'</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"● Open":"○ Busy")+'</span></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><p style="font-size:13px;color:#7A6E8A;margin:0 0 10px;line-height:1.5">'+p.bio+'</p><div style="display:flex;align-items:center;justify-content:space-between"><div><span style="font-size:20px;font-weight:bold;color:#F9F7FC">$'+p.rate+'</span><span class="text-soft" style="font-size:12px">/session</span><div style="color:#D4A843;font-size:12px;margin-top:2px">'+stars(p.rating)+' <span class="text-soft">('+p.reviews+')</span></div></div>'+(p.available?'<button class="btn btn-gold" onclick="openBooking(\''+p.id+'\')">Book →</button>':'<button class="btn btn-gold" disabled>Unavailable</button>')+'</div></div></div>';
 }
 
-function Inp({ label, ...p }) {
-return <div style={{display:"flex",flexDirection:"column",gap:5}}>{label&&<label style={{fontSize:11,letterSpacing:"0.12em",color:T.gold}}>{label}</label>}<input {...p} style={{background:T.plum,border:`1px solid ${T.border}`,borderRadius:8,padding:"10px 12px",color:T.mist,fontSize:14,fontFamily:"Georgia,serif",outline:"none",...p.style}}/></div>;
+function renderFind(){
+  document.getElementById("venue-pills").innerHTML=VENUES.map(function(v){return '<button class="pill'+(vFilter===v?" pill-gold":"")+'" onclick="vFilter=\''+v+'\';renderFind()">'+v+'</button>';}).join("");
+  document.getElementById("mod-pills").innerHTML=["All"].concat(MODS).map(function(m){return '<button class="pill'+(mFilter===m?" pill-teal":"")+'" onclick="mFilter=\''+m+'\';renderFind()">'+m+'</button>';}).join("");
+  var f=P.filter(function(p){return(vFilter==="All"||p.venueTypes.indexOf(vFilter)>-1)&&(mFilter==="All"||p.modalities.indexOf(mFilter)>-1);});
+  document.getElementById("healer-list").innerHTML=f.length?f.map(function(p){return healerCard(p,false);}).join(""):'<div style="text-align:center;padding:60px 0;color:#7A6E8A"><div style="font-size:40px;margin-bottom:12px">🔍</div>No practitioners found for this filter.</div>';
 }
 
-function TA({ label, ...p }) {
-return <div style={{display:"flex",flexDirection:"column",gap:5}}>{label&&<label style={{fontSize:11,letterSpacing:"0.12em",color:T.gold}}>{label}</label>}<textarea {...p} style={{background:T.plum,border:`1px solid ${T.border}`,borderRadius:8,padding:"10px 12px",color:T.mist,fontSize:14,fontFamily:"Georgia,serif",outline:"none",resize:"vertical",...p.style}}/></div>;
+function openBooking(id){
+  selP=P.find(function(p){return p.id===id;});
+  if(!selP)return;
+  document.getElementById("bk-healer").innerHTML='<div style="font-size:30px">'+selP.avatar+'</div><div style="flex:1"><div style="font-weight:bold;color:#F9F7FC">'+selP.name+'</div><div class="text-soft" style="font-size:12px">'+selP.location+'</div><div class="mod-tags" style="margin-top:4px">'+selP.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div style="text-align:right"><div style="font-size:20px;color:#D4A843;font-weight:bold">$'+selP.rate+'</div><div class="text-soft" style="font-size:11px">per session</div></div>';
+  document.getElementById("bk-step1").innerHTML='<div class="card"><h3 style="font-weight:normal;font-size:18px;color:#F9F7FC;margin-bottom:20px">Tell us about your event</h3><div class="field"><label>VENUE / COMPANY NAME</label><input id="b-venue" placeholder="e.g. Lotus Yoga Studio"></div><div class="field"><label>YOUR EMAIL</label><input id="b-email" type="email" placeholder="you@example.com"></div><div class="two-col"><div class="field"><label>DATE</label><input id="b-date" type="date"></div><div class="field"><label>TIME</label><input id="b-time" type="time"></div></div><div class="field"><label>VENUE TYPE</label><select id="b-vtype"><option value="">Select...</option>'+VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<option>'+v+'</option>';}).join("")+'</select></div><div class="field"><label>GROUP SIZE</label><input id="b-group" type="number" placeholder="e.g. 20"></div><div class="field"><label>NOTES FOR THE HEALER</label><textarea id="b-notes" rows="3" placeholder="Themes, intentions, special requests..."></textarea></div><button class="btn btn-gold full-width" style="padding:14px;font-size:15px" onclick="bkStep2()">Review Booking →</button></div>';
+  document.getElementById("bk-step1").style.display="block";
+  document.getElementById("bk-step2").style.display="none";
+  document.getElementById("bk-step3").style.display="none";
+  showPage("booking");
 }
 
-function Sel({ label, children, ...p }) {
-return <div style={{display:"flex",flexDirection:"column",gap:5}}>{label&&<label style={{fontSize:11,letterSpacing:"0.12em",color:T.gold}}>{label}</label>}<select {...p} style={{background:T.plum,border:`1px solid ${T.border}`,borderRadius:8,padding:"10px 12px",color:T.mist,fontSize:14,fontFamily:"Georgia,serif",outline:"none"}}>{children}</select></div>;
+function bkStep2(){
+  var v=document.getElementById("b-venue").value,e=document.getElementById("b-email").value,d=document.getElementById("b-date").value;
+  if(!v||!e||!d){toast("Please fill in required fields","#C4727A");return;}
+  var fee=selP.rate,pf=Math.round(fee*.15),tot=Math.round(fee*1.15);
+  var rows=[["Venue",v],["Date",d],["Time",document.getElementById("b-time").value||"—"],["Type",document.getElementById("b-vtype").value||"—"],["Group",document.getElementById("b-group").value?document.getElementById("b-group").value+" people":"—"],["Session fee","$"+fee],["Platform fee (15%)","$"+pf]];
+  document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#F9F7FC;margin-bottom:20px">Review your booking</h3>'+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#E8E2F0">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#D4A843"><span class="disclaimer-text">I understand that REAL Sound is a marketplace platform. REAL Sound is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Sound bears no liability for any injury or damage arising from this session.</span></label></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">Confirm and Request →</button></div></div>';
+  document.getElementById("bk-step1").style.display="none";
+  document.getElementById("bk-step2").style.display="block";
 }
 
-function Card({ children, gold, onClick, style={} }) {
-return <div onClick={onClick} style={{background:T.deep,borderRadius:16,padding:20,border:`1px solid ${gold?T.gold+"66":T.border}`,...style}}>{children}</div>;
+function bkStep1(){document.getElementById("bk-step1").style.display="block";document.getElementById("bk-step2").style.display="none";}
+
+function confirmBooking(){
+  if(!document.getElementById("b-agreed").checked){toast("Please agree to the terms","#C4727A");return;}
+  var bk={id:"b"+Date.now(),practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,fee:selP.rate,platformFee:Math.round(selP.rate*.15),total:Math.round(selP.rate*1.15),status:"pending",createdAt:new Date().toISOString()};
+  B.push(bk);lsSet("rs:b",B);
+  document.getElementById("bk-step2").style.display="none";
+  document.getElementById("bk-step3").innerHTML='<div class="card card-gold" style="text-align:center;padding:36px"><div style="font-size:52px;margin-bottom:16px">🔔</div><h2 class="text-gold" style="font-weight:normal;margin-bottom:10px">Request Sent!</h2><p class="text-soft" style="margin-bottom:24px;line-height:1.7;font-size:14px">'+selP.name+' will confirm within 24 hours.</p><button class="btn btn-outline" onclick="showPage(\'find\')">Back to healers</button></div>';
+  document.getElementById("bk-step3").style.display="block";
+  toast("Booking request sent! 🎵");
 }
 
-function Stat({ label, value, sub, color }) {
-return <Card style={{textAlign:"center",padding:"18px 12px"}}><div style={{fontSize:28,fontWeight:"bold",color:color||T.gold}}>{value}</div>{sub&&<div style={{fontSize:11,color:T.teal,marginTop:2}}>{sub}</div>}<div style={{fontSize:11,color:T.soft,letterSpacing:"0.08em",marginTop:4}}>{label}</div></Card>;
+function renderJoinPills(){
+  document.getElementById("j-mods").innerHTML=MODS.map(function(m){return '<button class="pill'+(jMods.indexOf(m)>-1?" pill-teal":"")+'" onclick="toggle(jMods,\''+m+'\',\'j-mods\',renderJoinPills)">'+m+'</button>';}).join("");
+  document.getElementById("j-instr").innerHTML=INSTR.map(function(i){return '<button class="pill'+(jInstr.indexOf(i)>-1?" pill-gold":"")+'" onclick="toggle(jInstr,\''+i+'\',\'j-instr\',renderJoinPills)">'+i+'</button>';}).join("");
+  document.getElementById("j-venues").innerHTML=VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<button class="pill'+(jVenues.indexOf(v)>-1?" pill-rose":"")+'" onclick="toggle(jVenues,\''+v+'\',\'j-venues\',renderJoinPills)">'+v+'</button>';}).join("");
 }
 
-function ModTag({ m }) {
-return <span style={{fontSize:10,padding:"2px 7px",borderRadius:6,background:T.teal+"22",color:T.teal}}>{m}</span>;
+function toggle(arr,val,el,cb){var i=arr.indexOf(val);if(i>-1)arr.splice(i,1);else arr.push(val);cb();}
+
+function showJoin(n){
+  document.getElementById("join0").style.display=n===0?"block":"none";
+  document.getElementById("join1").style.display=n===1?"block":"none";
+  document.getElementById("join2").style.display=n===2?"block":"none";
+  if(n===1)renderJoinPills();
 }
 
-function InstTag({ i }) {
-return <span style={{fontSize:11,padding:"3px 8px",borderRadius:6,background:T.plum,color:T.soft}}>{i}</span>;
+function submitJoin(){
+  var name=document.getElementById("j-name").value,email=document.getElementById("j-email").value,pass=document.getElementById("j-password").value,loc=document.getElementById("j-location").value,rate=document.getElementById("j-rate").value;
+  if(!name||!email||!pass||!loc||!rate){toast("Please fill all required fields","#C4727A");return;}
+  if(P.find(function(p){return p.email===email;})){toast("Email already registered","#C4727A");return;}
+  var avatars=["🌿","🎵","🌸","💫","🔔","🌀","🪬"];
+  var p={id:"p"+Date.now(),name:name,email:email,password:pass,location:loc,rate:parseInt(rate),instruments:jInstr.slice(),venueTypes:jVenues.slice(),modalities:jMods.slice(),bio:document.getElementById("j-bio").value,rating:5.0,reviews:0,available:true,avatar:avatars[Math.floor(Math.random()*avatars.length)]};
+  P.push(p);lsSet("rs:p",P);jMods=[];jInstr=[];jVenues=[];
+  toast("Welcome to REAL Sound! ✨");showJoin(2);
 }
 
-export default function RealSound() {
-const [tab,setTab] = useState("home");
-const [P,setP] = useState([]);
-const [B,setB] = useState([]);
-const [filter,setFilter] = useState("All");
-const [mFilter,setMFilter] = useState("All");
-const [sel,setSel] = useState(null);
-const [bStep,setBStep] = useState(0);
-const [bForm,setBForm] = useState({venueName:"",date:"",time:"",venueType:"",groupSize:"",notes:"",email:""});
-const [jForm,setJForm] = useState({name:"",location:"",email:"",password:"",rate:"",instruments:[],venueTypes:[],modalities:[],bio:"",instagram:""});
-const [jStep,setJStep] = useState(0);
-const [toast,setToast] = useState(null);
-const [adminView,setAV] = useState(false);
-const [adminIn,setAI] = useState("");
-const [pLogin,setPLogin] = useState({email:"",password:""});
-const [me,setMe] = useState(null);
-const [pTab,setPTab] = useState("dashboard");
-const [editing,setEditing] = useState(false);
-const [eForm,setEForm] = useState(null);
-const [loginErr,setLE] = useState("");
-const ADMIN="REALSOUND";
-
-useEffect(()=>{
-(async()=>{
-try {
-const ps=await window.storage.get("rs3:p");
-const bs=await window.storage.get("rs3:b");
-setP(ps?JSON.parse(ps.value):SEED);
-setB(bs?JSON.parse(bs.value):[]);
-} catch { setP(SEED); setB([]); }
-})();
-},[]);
-
-const sP=async(next)=>{try{await window.storage.set("rs3:p",JSON.stringify(next));}catch{}};
-const sB=async(next)=>{try{await window.storage.set("rs3:b",JSON.stringify(next));}catch{}};
-const toast2=(msg,color=T.gold)=>{setToast({msg,color});setTimeout(()=>setToast(null),3000);};
-const goTab=(t)=>{setTab(t);setSel(null);setBStep(0);setJStep(0);setAV(false);if(t!=="practitioner")setMe(null);};
-
-const filtered=P.filter(p=>(filter==="All"||p.venueTypes?.includes(filter))&&(mFilter==="All"||p.modalities?.includes(mFilter)));
-
-const submitBook=async()=>{
-const bk={id:"b"+Date.now(),practitionerId:sel.id,practitionerName:sel.name,...bForm,fee:sel.rate,platformFee:Math.round(sel.rate*0.15),total:Math.round(sel.rate*1.15),status:"pending",createdAt:new Date().toISOString()};
-const next=[...B,bk]; setB(next); await sB(next); setBStep(3); toast2("Booking request sent! 🎵");
-};
-
-const submitJoin=async()=>{
-if(P.find(x=>x.email===jForm.email)){toast2("Email already registered",T.rose);return;}
-const p={id:"p"+Date.now(),...jForm,rating:5.0,reviews:0,available:true,avatar:["🌿","🎵","🌸","💫","🔔","🌀","🪬"][Math.floor(Math.random()*7)]};
-const next=[...P,p]; setP(next); await sP(next); setJStep(2); toast2("Welcome to REAL Sound! ✨");
-};
-
-const doLogin=()=>{
-const p=P.find(x=>x.email===pLogin.email&&x.password===pLogin.password);
-if(p){setMe(p);setPTab("dashboard");setLE("");}else setLE("Email or password not recognised.");
-};
-
-const respond=async(id,status)=>{
-const next=B.map(b=>b.id===id?{...b,status}:b); setB(next); await sB(next);
-toast2(status==="confirmed"?"Booking confirmed ✓":"Booking declined",status==="confirmed"?T.teal:T.rose);
-};
-
-const saveEdit=async()=>{
-const next=P.map(p=>p.id===me.id?{...p,...eForm}:p);
-setP(next); await sP(next); setMe({...me,...eForm}); setEditing(false); toast2("Profile updated ✓");
-};
-
-const adminRespond=async(id,s)=>{const next=B.map(b=>b.id===id?{...b,status:s}:b);setB(next);await sB(next);};
-const removeP=async(id)=>{const next=P.filter(p=>p.id!==id);setP(next);await sP(next);};
-
-const myB = me?B.filter(b=>b.practitionerId===me.id):[];
-const myEarned = myB.filter(b=>b.status==="confirmed").reduce((s,b)=>s+b.fee,0);
-const myFees = myB.filter(b=>b.status==="confirmed").reduce((s,b)=>s+b.platformFee,0);
-const myPend = myB.filter(b=>b.status==="pending").length;
-const myConf = myB.filter(b=>b.status==="confirmed").length;
-
-const NAV=[{key:"home",label:"Home"},{key:"find",label:"Find a Healer"},{key:"join",label:"Join as Healer"},{key:"practitioner",label:"Healer Login"},{key:"admin",label:"⚙"}];
-const statusStyle=(s)=>({padding:"4px 10px",borderRadius:8,fontSize:11,background:s==="confirmed"?"#1a3a1a":s==="declined"?"#3a1a1a":T.plum,color:s==="confirmed"?"#6fcf6f":s==="declined"?"#cf6f6f":T.gold});
-
-return (
-<div style={{minHeight:"100vh",background:T.void,color:T.mist,fontFamily:"Georgia,serif"}}>
-
-{toast&&<div style={{position:"fixed",top:20,left:"50%",transform:"translateX(-50%)",background:toast.color,color:T.void,padding:"10px 24px",borderRadius:24,fontSize:14,fontWeight:"bold",zIndex:9999,boxShadow:"0 4px 20px rgba(0,0,0,0.4)",whiteSpace:"nowrap"}}>{toast.msg}</div>}
-
-{/* Nav */}
-<div style={{background:T.deep,borderBottom:`1px solid ${T.gold}33`,padding:"0 20px",position:"sticky",top:0,zIndex:100}}>
-<div style={{maxWidth:980,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:60}}>
-<div onClick={()=>goTab("home")} style={{cursor:"pointer"}}>
-<div style={{fontSize:18,fontWeight:"bold",color:T.gold,letterSpacing:"0.12em"}}>◉ REAL SOUND</div>
-<div style={{fontSize:9,color:T.soft,letterSpacing:"0.2em"}}>FIND · BOOK · HEAL</div>
-</div>
-<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-{NAV.map(n=>(
-<button key={n.key} onClick={()=>goTab(n.key)} style={{padding:"6px 13px",borderRadius:20,border:"none",cursor:"pointer",fontSize:11,fontFamily:"Georgia,serif",background:tab===n.key?T.gold:"transparent",color:tab===n.key?T.void:T.soft,fontWeight:tab===n.key?"bold":"normal"}}>
-{n.key==="practitioner"&&me?`👤 ${me.name.split(" ")[0]}`:n.label}
-</button>
-))}
-</div>
-</div>
-</div>
-
-<div style={{maxWidth:980,margin:"0 auto",padding:"28px 20px"}}>
-
-{/* HOME */}
-{tab==="home"&&(
-<div>
-<div style={{textAlign:"center",padding:"40px 0 44px"}}>
-<div style={{fontSize:11,letterSpacing:"0.3em",color:T.rose,marginBottom:14}}>THE SOUND HEALING MARKETPLACE</div>
-<h1 style={{fontSize:"clamp(28px,5vw,48px)",fontWeight:"normal",lineHeight:1.2,margin:"0 0 16px",color:T.chalk}}>Real healers.<br/><span style={{color:T.gold}}>Real bookings.</span><br/>Real peace.</h1>
-<p style={{color:T.soft,fontSize:15,maxWidth:420,margin:"0 auto 28px",lineHeight:1.7}}>Connect your yoga studio, gym, or team with certified Sound Bath and Reiki practitioners. No middleman. No guesswork.</p>
-<div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
-<Btn onClick={()=>goTab("find")} style={{padding:"13px 28px",fontSize:15}}>Find a Healer →</Btn>
-<Btn onClick={()=>goTab("join")} variant="secondary" style={{padding:"13px 28px",fontSize:15}}>I'm a Practitioner</Btn>
-</div>
-</div>
-
-<div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,marginBottom:44}}>
-{[[P.length,"Verified healers"],[B.length,"Sessions booked"],["15%","Platform fee only"]].map(([v,l])=><Stat key={l} value={v} label={l}/>)}
-</div>
-
-<div style={{marginBottom:36}}>
-<div style={{fontSize:11,letterSpacing:"0.2em",color:T.gold,textAlign:"center",marginBottom:14}}>WHAT WE OFFER</div>
-<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:10}}>
-{[["🎵","Sound Bath"],["🙌","Reiki"],["🌬️","Breathwork"],["🧘","Meditation"],["🔔","Gong Bath"],["💎","Crystal Healing"]].map(([icon,label])=>(
-<div key={label} onClick={()=>{goTab("find");setMFilter(label);}} style={{background:T.deep,borderRadius:12,padding:"16px 10px",textAlign:"center",border:`1px solid ${T.border}`,cursor:"pointer"}} onMouseEnter={e=>e.currentTarget.style.borderColor=T.teal} onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
-<div style={{fontSize:26}}>{icon}</div><div style={{fontSize:12,color:T.mist,marginTop:8}}>{label}</div>
-</div>
-))}
-</div>
-</div>
-
-<div style={{marginBottom:36}}>
-<div style={{fontSize:11,letterSpacing:"0.2em",color:T.gold,textAlign:"center",marginBottom:14}}>WHO IT'S FOR</div>
-<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:10}}>
-{[["🧘","Yoga Studios"],["🥊","Fight Studios"],["🏢","Corporate"],["🌿","Retreats"],["🎉","Private Events"],["🏨","Hotels & Spas"]].map(([icon,label])=>(
-<div key={label} onClick={()=>{goTab("find");setFilter(VENUE_TYPES.find(v=>label.includes(v.split(" ")[0]))||"All");}} style={{background:T.deep,borderRadius:12,padding:"16px 10px",textAlign:"center",border:`1px solid ${T.border}`,cursor:"pointer"}} onMouseEnter={e=>e.currentTarget.style.borderColor=T.gold} onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
-<div style={{fontSize:26}}>{icon}</div><div style={{fontSize:12,color:T.mist,marginTop:8}}>{label}</div>
-</div>
-))}
-</div>
-</div>
-
-<div>
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-<div style={{fontSize:11,letterSpacing:"0.2em",color:T.gold}}>FEATURED HEALERS</div>
-<span onClick={()=>goTab("find")} style={{fontSize:13,color:T.rose,cursor:"pointer"}}>See all →</span>
-</div>
-<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:14}}>
-{P.filter(p=>p.available).slice(0,3).map(p=>(
-<Card key={p.id} onClick={()=>{goTab("find");setSel(p);setBStep(1);}} style={{cursor:"pointer"}} onMouseEnter={e=>e.currentTarget.style.borderColor=T.gold} onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
-<div style={{display:"flex",gap:12,alignItems:"center",marginBottom:10}}>
-<div style={{fontSize:28,background:T.plum,borderRadius:"50%",width:46,height:46,display:"flex",alignItems:"center",justifyContent:"center"}}>{p.avatar}</div>
-<div><div style={{fontWeight:"bold",color:T.chalk}}>{p.name}</div><div style={{fontSize:12,color:T.soft}}>{p.location}</div></div>
-<div style={{marginLeft:"auto",color:T.gold,fontWeight:"bold"}}>${p.rate}</div>
-</div>
-<div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>{p.modalities?.map(m=><ModTag key={m} m={m}/>)}</div>
-<div style={{fontSize:13,color:T.soft,lineHeight:1.5}}>{p.bio?.slice(0,80)}…</div>
-</Card>
-))}
-</div>
-</div>
-</div>
-)}
-
-{/* FIND */}
-{tab==="find"&&!sel&&(
-<div>
-<h2 style={{margin:"0 0 6px",fontWeight:"normal",fontSize:24}}>Find a Healer</h2>
-<p style={{color:T.soft,margin:"0 0 16px",fontSize:14}}>Browse verified practitioners and send a booking request.</p>
-<div style={{display:"flex",gap:7,flexWrap:"wrap",marginBottom:8}}>{VENUE_TYPES.map(v=><Pill key={v} on={filter===v} onClick={()=>setFilter(v)}>{v}</Pill>)}</div>
-<div style={{display:"flex",gap:7,flexWrap:"wrap",marginBottom:22}}>{["All",...MODALITIES].map(m=><Pill key={m} on={mFilter===m} color={T.teal} onClick={()=>setMFilter(m)}>{m}</Pill>)}</div>
-{filtered.length===0&&<div style={{textAlign:"center",padding:"60px 0",color:T.soft}}><div style={{fontSize:40,marginBottom:12}}>🔍</div>No practitioners found for this filter.</div>}
-<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
-{filtered.map(p=>(
-<Card key={p.id} style={{transition:"border-color 0.2s"}} onMouseEnter={e=>e.currentTarget.style.borderColor=T.gold} onMouseLeave={e=>e.currentTarget.style.borderColor=T.border}>
-<div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12,paddingBottom:12,borderBottom:`1px solid ${T.border}`}}>
-<div style={{fontSize:28,background:T.plum,borderRadius:"50%",width:46,height:46,display:"flex",alignItems:"center",justifyContent:"center"}}>{p.avatar}</div>
-<div style={{flex:1}}><div style={{fontWeight:"bold",color:T.chalk}}>{p.name}</div><div style={{fontSize:12,color:T.soft}}>📍 {p.location}</div></div>
-<span style={{fontSize:10,padding:"3px 8px",borderRadius:8,background:p.available?"#1a3a1a":"#3a1a1a",color:p.available?"#6fcf6f":"#cf6f6f"}}>{p.available?"● Open":"○ Busy"}</span>
-</div>
-<div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>{p.modalities?.map(m=><ModTag key={m} m={m}/>)}</div>
-<p style={{fontSize:13,color:T.soft,margin:"0 0 10px",lineHeight:1.5}}>{p.bio}</p>
-<div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:14}}>{p.instruments?.map(i=><InstTag key={i} i={i}/>)}</div>
-<div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-<div><span style={{fontSize:20,fontWeight:"bold",color:T.chalk}}>${p.rate}</span><span style={{fontSize:12,color:T.soft}}>/session</span><div style={{marginTop:2}}><Stars n={p.rating}/> <span style={{fontSize:11,color:T.soft}}>({p.reviews})</span></div></div>
-<Btn onClick={()=>{setSel(p);setBStep(1);}} disabled={!p.available}>{p.available?"Book →":"Unavailable"}</Btn>
-</div>
-</Card>
-))}
-</div>
-</div>
-)}
-
-{/* BOOKING */}
-{tab==="find"&&sel&&(
-<div style={{maxWidth:520,margin:"0 auto"}}>
-<button onClick={()=>{setSel(null);setBStep(0);setBForm({venueName:"",date:"",time:"",venueType:"",groupSize:"",notes:"",email:""});}} style={{background:"none",border:"none",color:T.rose,cursor:"pointer",fontSize:13,marginBottom:20,fontFamily:"Georgia,serif"}}>← Back</button>
-<Card gold style={{display:"flex",gap:14,alignItems:"center",marginBottom:20}}>
-<div style={{fontSize:30}}>{sel.avatar}</div>
-<div style={{flex:1}}><div style={{fontWeight:"bold",color:T.chalk}}>{sel.name}</div><div style={{fontSize:12,color:T.soft}}>{sel.location}</div><div style={{display:"flex",gap:4,marginTop:4}}>{sel.modalities?.map(m=><ModTag key={m} m={m}/>)}</div></div>
-<div style={{textAlign:"right"}}><div style={{fontSize:20,color:T.gold,fontWeight:"bold"}}>${sel.rate}</div><div style={{fontSize:11,color:T.soft}}>per session</div></div>
-</Card>
-
-{bStep===1&&(
-<Card>
-<h3 style={{margin:"0 0 20px",color:T.chalk,fontWeight:"normal",fontSize:18}}>Tell us about your event</h3>
-<div style={{display:"flex",flexDirection:"column",gap:14}}>
-<Inp label="VENUE / COMPANY NAME" placeholder="e.g. Lotus Yoga Studio" value={bForm.venueName} onChange={e=>setBForm({...bForm,venueName:e.target.value})}/>
-<Inp label="YOUR EMAIL" type="email" placeholder="you@example.com" value={bForm.email} onChange={e=>setBForm({...bForm,email:e.target.value})}/>
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-<Inp label="DATE" type="date" value={bForm.date} onChange={e=>setBForm({...bForm,date:e.target.value})}/>
-<Inp label="TIME" type="time" value={bForm.time} onChange={e=>setBForm({...bForm,time:e.target.value})}/>
-</div>
-<Sel label="VENUE TYPE" value={bForm.venueType} onChange={e=>setBForm({...bForm,venueType:e.target.value})}>
-<option value="">Select...</option>{VENUE_TYPES.filter(v=>v!=="All").map(v=><option key={v}>{v}</option>)}
-</Sel>
-<Inp label="GROUP SIZE" type="number" placeholder="e.g. 20" value={bForm.groupSize} onChange={e=>setBForm({...bForm,groupSize:e.target.value})}/>
-<TA label="NOTES FOR THE HEALER" rows={3} placeholder="Themes, intentions, special requests…" value={bForm.notes} onChange={e=>setBForm({...bForm,notes:e.target.value})}/>
-<Btn onClick={()=>setBStep(2)} disabled={!bForm.venueName||!bForm.date||!bForm.email} full style={{padding:14,fontSize:15}}>Review Booking →</Btn>
-</div>
-</Card>
-)}
-
-{bStep===2&&(
-<Card>
-<h3 style={{margin:"0 0 20px",color:T.chalk,fontWeight:"normal"}}>Review your booking</h3>
-{[["Venue",bForm.venueName],["Date",bForm.date],["Time",bForm.time],["Type",bForm.venueType],["Group",bForm.groupSize?`${bForm.groupSize} people`:"—"],["Session fee",`$${sel.rate}`],["Platform fee (15%)",`$${Math.round(sel.rate*0.15)}`]].map(([k,v])=>(
-<div key={k} style={{display:"flex",justifyContent:"space-between",padding:"9px 0",borderBottom:`1px solid ${T.border}`,fontSize:14}}>
-<span style={{color:T.soft,fontSize:11,letterSpacing:"0.08em",alignSelf:"center"}}>{k.toUpperCase()}</span>
-<span style={{color:T.mist}}>{v}</span>
-</div>
-))}
-<div style={{display:"flex",justifyContent:"space-between",padding:"12px 0",fontSize:17,fontWeight:"bold"}}>
-<span style={{color:T.gold}}>TOTAL</span><span style={{color:T.gold}}>${Math.round(sel.rate*1.15)}</span>
-</div>
-<div style={{background:T.plum,borderRadius:8,padding:"12px 14px",margin:"12px 0"}}>
-<label style={{display:"flex",gap:10,alignItems:"flex-start",cursor:"pointer"}}>
-<input type="checkbox" style={{marginTop:3,accentColor:T.gold}} onChange={e=>setBForm({...bForm,agreed:e.target.checked})}/>
-<span style={{fontSize:11,color:T.soft,lineHeight:1.6}}>I understand that REAL Sound is a marketplace platform connecting independent practitioners with venues. REAL Sound is not responsible for the conduct, qualifications, or services of any practitioner. By confirming this booking I agree that REAL Sound bears no liability for any injury, loss, or damage arising from this session.</span>
-</label>
-</div>
-<div style={{display:"flex",gap:10,marginTop:8}}>
-<Btn onClick={()=>setBStep(1)} variant="ghost" style={{flex:1}}>Edit</Btn>
-<Btn onClick={submitBook} disabled={!bForm.agreed} style={{flex:2,padding:14,fontSize:15}}>Confirm & Request →</Btn>
-</div>
-</Card>
-)}
-
-{bStep===3&&(
-<Card gold style={{textAlign:"center",padding:36}}>
-<div style={{fontSize:52,marginBottom:16}}>🔔</div>
-<h2 style={{color:T.gold,margin:"0 0 10px",fontWeight:"normal"}}>Request Sent!</h2>
-<p style={{color:T.soft,fontSize:14,margin:"0 0 24px",lineHeight:1.7}}>{sel.name} will confirm within 24 hours.<br/>Check <strong style={{color:T.mist}}>{bForm.email}</strong> for updates.</p>
-<div style={{background:T.plum,borderRadius:10,padding:"14px 18px",textAlign:"left",marginBottom:22}}>
-{["Healer reviews and confirms your request","You'll receive a session prep guide","Payment releases only after the session","Leave a review to help the community"].map((s,i)=>(
-<div key={i} style={{display:"flex",gap:10,fontSize:13,color:T.soft,marginBottom:7}}><span style={{color:T.gold}}>✓</span>{s}</div>
-))}
-</div>
-<Btn onClick={()=>{setSel(null);setBStep(0);setBForm({venueName:"",date:"",time:"",venueType:"",groupSize:"",notes:"",email:""});}} variant="secondary">Back to healers</Btn>
-</Card>
-)}
-</div>
-)}
-
-{/* JOIN */}
-{tab==="join"&&(
-<div style={{maxWidth:520,margin:"0 auto"}}>
-{jStep===0&&(
-<div style={{textAlign:"center",paddingTop:20}}>
-<div style={{fontSize:52,marginBottom:16}}>🎵</div>
-<h2 style={{fontWeight:"normal",fontSize:26,margin:"0 0 10px"}}>Share your gift. <span style={{color:T.gold}}>Get booked.</span></h2>
-<p style={{color:T.soft,fontSize:14,maxWidth:400,margin:"0 auto 28px",lineHeight:1.7}}>REAL Sound connects you with yoga studios, gyms, and companies. Keep 85% of every booking. Log back in anytime to manage requests and track earnings.</p>
-<div style={{display:"grid",gap:12,marginBottom:28,textAlign:"left"}}>
-{[["🎯","Get found by venues","Studios and companies discover you — no cold outreach needed."],["💰","Keep 85% of every booking","We take 15% to run the platform. That's it."],["📊","Your own dashboard","Log in to accept bookings, track earnings, and update your profile."]].map(([icon,title,desc])=>(
-<Card key={title} style={{display:"flex",gap:14,alignItems:"flex-start"}}><div style={{fontSize:24}}>{icon}</div><div><div style={{fontWeight:"bold",color:T.chalk,marginBottom:3}}>{title}</div><div style={{fontSize:13,color:T.soft}}>{desc}</div></div></Card>
-))}
-</div>
-<Btn onClick={()=>setJStep(1)} style={{padding:"13px 32px",fontSize:15}}>Create My Profile →</Btn>
-<div style={{marginTop:14}}><span style={{color:T.soft,fontSize:13}}>Already listed? </span><span onClick={()=>goTab("practitioner")} style={{color:T.gold,fontSize:13,cursor:"pointer"}}>Log in →</span></div>
-</div>
-)}
-
-{jStep===1&&(
-<Card>
-<h3 style={{margin:"0 0 4px",color:T.chalk,fontWeight:"normal",fontSize:20}}>Create your healer profile</h3>
-<p style={{color:T.soft,fontSize:13,margin:"0 0 20px"}}>Venues will see this. You'll use your email & password to log back in.</p>
-<div style={{display:"flex",flexDirection:"column",gap:14}}>
-<Inp label="YOUR NAME" placeholder="e.g. Luna Serrano" value={jForm.name} onChange={e=>setJForm({...jForm,name:e.target.value})}/>
-<Inp label="EMAIL" type="email" placeholder="you@example.com" value={jForm.email} onChange={e=>setJForm({...jForm,email:e.target.value})}/>
-<Inp label="PASSWORD" type="password" placeholder="Create a password" value={jForm.password} onChange={e=>setJForm({...jForm,password:e.target.value})}/>
-<Inp label="LOCATION" placeholder="City, State" value={jForm.location} onChange={e=>setJForm({...jForm,location:e.target.value})}/>
-<Inp label="SESSION RATE ($)" type="number" placeholder="e.g. 250" value={jForm.rate} onChange={e=>setJForm({...jForm,rate:e.target.value})}/>
-<Inp label="INSTAGRAM (optional)" placeholder="@yourhandle" value={jForm.instagram} onChange={e=>setJForm({...jForm,instagram:e.target.value})}/>
-<div>
-<label style={{fontSize:11,letterSpacing:"0.12em",color:T.gold,display:"block",marginBottom:8}}>MODALITIES (what you offer)</label>
-<div style={{display:"flex",flexWrap:"wrap",gap:7}}>{MODALITIES.map(m=>{const on=jForm.modalities.includes(m);return<Pill key={m} on={on} color={T.teal} onClick={()=>setJForm({...jForm,modalities:on?jForm.modalities.filter(x=>x!==m):[...jForm.modalities,m]})}>{m}</Pill>;})}</div>
-</div>
-<div>
-<label style={{fontSize:11,letterSpacing:"0.12em",color:T.gold,display:"block",marginBottom:8}}>INSTRUMENTS</label>
-<div style={{display:"flex",flexWrap:"wrap",gap:7}}>{INSTRUMENTS.map(i=>{const on=jForm.instruments.includes(i);return<Pill key={i} on={on} onClick={()=>setJForm({...jForm,instruments:on?jForm.instruments.filter(x=>x!==i):[...jForm.instruments,i]})}>{i}</Pill>;})}</div>
-</div>
-<div>
-<label style={{fontSize:11,letterSpacing:"0.12em",color:T.gold,display:"block",marginBottom:8}}>VENUE TYPES YOU SERVE</label>
-<div style={{display:"flex",flexWrap:"wrap",gap:7}}>{VENUE_TYPES.filter(v=>v!=="All").map(vt=>{const on=jForm.venueTypes.includes(vt);return<Pill key={vt} on={on} color={T.rose} onClick={()=>setJForm({...jForm,venueTypes:on?jForm.venueTypes.filter(x=>x!==vt):[...jForm.venueTypes,vt]})}>{vt}</Pill>;})}</div>
-</div>
-<TA label="YOUR BIO" rows={4} placeholder="Tell venues about your practice, training, and the experience you create…" value={jForm.bio} onChange={e=>setJForm({...jForm,bio:e.target.value})}/>
-<Btn onClick={submitJoin} disabled={!jForm.name||!jForm.email||!jForm.password||!jForm.location||!jForm.rate} full style={{padding:14,fontSize:15}}>Create Profile →</Btn>
-</div>
-</Card>
-)}
-
-{jStep===2&&(
-<Card gold style={{textAlign:"center",padding:36}}>
-<div style={{fontSize:52,marginBottom:16}}>🌟</div>
-<h2 style={{color:T.gold,margin:"0 0 10px",fontWeight:"normal"}}>You're live!</h2>
-<p style={{color:T.soft,fontSize:14,margin:"0 0 24px",lineHeight:1.7}}>Your profile is now visible to venues on REAL Sound.<br/>Log in anytime to manage bookings and track earnings.</p>
-<div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
-<Btn onClick={()=>{goTab("practitioner");setJStep(0);}} variant="teal">Go to My Dashboard →</Btn>
-<Btn onClick={()=>{setJStep(0);setJForm({name:"",location:"",email:"",password:"",rate:"",instruments:[],venueTypes:[],modalities:[],bio:"",instagram:""}); }} variant="secondary">Add another</Btn>
-</div>
-</Card>
-)}
-</div>
-)}
-
-{/* PRACTITIONER LOGIN */}
-{tab==="practitioner"&&!me&&(
-<div style={{maxWidth:380,margin:"60px auto"}}>
-<div style={{textAlign:"center",marginBottom:24}}>
-<div style={{fontSize:40,marginBottom:12}}>👤</div>
-<h2 style={{fontWeight:"normal",margin:"0 0 6px"}}>Healer Login</h2>
-<p style={{color:T.soft,fontSize:13}}>Access your dashboard, bookings & earnings.</p>
-</div>
-<Card>
-<div style={{display:"flex",flexDirection:"column",gap:14}}>
-<Inp label="EMAIL" type="email" placeholder="your@email.com" value={pLogin.email} onChange={e=>{setPLogin({...pLogin,email:e.target.value});setLE("");}}/>
-<Inp label="PASSWORD" type="password" placeholder="Your password" value={pLogin.password} onChange={e=>{setPLogin({...pLogin,password:e.target.value});setLE("");}}/>
-{loginErr&&<div style={{color:T.rose,fontSize:13}}>{loginErr}</div>}
-<Btn onClick={doLogin} full style={{padding:13,fontSize:15}}>Log In →</Btn>
-<div style={{textAlign:"center",paddingTop:4}}><span style={{color:T.soft,fontSize:12}}>Not listed yet? </span><span onClick={()=>goTab("join")} style={{color:T.gold,fontSize:12,cursor:"pointer"}}>Create a profile →</span></div>
-<div style={{borderTop:`1px solid ${T.border}`,paddingTop:12,fontSize:11,color:T.soft,textAlign:"center",lineHeight:1.6}}>
-Demo logins:<br/>luna@example.com / luna123<br/>marcus@example.com / marcus123
-</div>
-</div>
-</Card>
-</div>
-)}
-
-{/* PRACTITIONER DASHBOARD */}
-{tab==="practitioner"&&me&&!editing&&(
-<div>
-<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20,flexWrap:"wrap",gap:10}}>
-<div><h2 style={{margin:0,fontWeight:"normal",color:T.chalk}}>{me.avatar} {me.name}</h2><div style={{fontSize:13,color:T.soft}}>Healer Dashboard</div></div>
-<div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
-{[["dashboard","📊 Overview"],["bookings","📅 Bookings"],["earnings","💰 Earnings"],["profile","👤 Profile"]].map(([k,l])=>(
-<button key={k} onClick={()=>setPTab(k)} style={{padding:"7px 13px",borderRadius:20,border:"none",cursor:"pointer",fontSize:11,fontFamily:"Georgia,serif",background:pTab===k?T.gold:T.plum,color:pTab===k?T.void:T.soft,fontWeight:pTab===k?"bold":"normal"}}>{l}</button>
-))}
-<Btn onClick={()=>{setMe(null);setPLogin({email:"",password:""});}} variant="ghost" style={{fontSize:11,padding:"7px 13px"}}>Log out</Btn>
-</div>
-</div>
-
-{pTab==="dashboard"&&(
-<div>
-<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:12,marginBottom:24}}>
-<Stat value={myPend} label="PENDING" color={T.gold}/>
-<Stat value={myConf} label="CONFIRMED" color={T.teal}/>
-<Stat value={`$${myEarned}`} label="EARNED" color={T.teal} sub={`Platform: $${myFees}`}/>
-<Stat value={myB.length} label="TOTAL BOOKINGS"/>
-</div>
-<div style={{fontSize:11,letterSpacing:"0.15em",color:T.gold,marginBottom:12}}>PENDING REQUESTS ({myPend})</div>
-{myPend===0&&<Card style={{textAlign:"center",color:T.soft,padding:28,marginBottom:20}}>No pending requests. Share your profile to get bookings!</Card>}
-{myB.filter(b=>b.status==="pending").map(b=>(
-<Card key={b.id} style={{marginBottom:12}}>
-<div style={{display:"flex",gap:14,alignItems:"flex-start",flexWrap:"wrap"}}>
-<div style={{flex:1,minWidth:180}}>
-<div style={{fontWeight:"bold",color:T.chalk,marginBottom:3}}>{b.venueName}</div>
-<div style={{fontSize:12,color:T.soft}}>{b.date} at {b.time} · {b.venueType} · {b.groupSize} people</div>
-{b.notes&&<div style={{fontSize:12,color:T.soft,marginTop:3,fontStyle:"italic"}}>"{b.notes}"</div>}
-<div style={{fontSize:13,color:T.teal,marginTop:4,fontWeight:"bold"}}>You earn: ${b.fee}</div>
-</div>
-<div style={{display:"flex",gap:8}}>
-<Btn onClick={()=>respond(b.id,"confirmed")} variant="teal" style={{padding:"8px 14px",fontSize:12}}>✓ Accept</Btn>
-<Btn onClick={()=>respond(b.id,"declined")} variant="danger" style={{padding:"8px 14px",fontSize:12}}>✗ Decline</Btn>
-</div>
-</div>
-</Card>
-))}
-</div>
-)}
-
-{pTab==="bookings"&&(
-<div>
-<div style={{fontSize:11,letterSpacing:"0.15em",color:T.gold,marginBottom:12}}>ALL BOOKINGS ({myB.length})</div>
-{myB.length===0&&<Card style={{textAlign:"center",color:T.soft,padding:28}}>No bookings yet.</Card>}
-{myB.map(b=>(
-<Card key={b.id} style={{marginBottom:12}}>
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:10}}>
-<div>
-<div style={{fontWeight:"bold",color:T.chalk,marginBottom:3}}>{b.venueName}</div>
-<div style={{fontSize:12,color:T.soft}}>{b.date} at {b.time} · {b.venueType}</div>
-<div style={{fontSize:12,color:T.soft}}>Group: {b.groupSize} · Contact: {b.email}</div>
-{b.notes&&<div style={{fontSize:12,color:T.soft,marginTop:3,fontStyle:"italic"}}>"{b.notes}"</div>}
-</div>
-<div style={{textAlign:"right"}}>
-<span style={statusStyle(b.status)}>{b.status}</span>
-<div style={{fontSize:13,color:T.teal,marginTop:6}}>${b.fee} your cut</div>
-</div>
-</div>
-{b.status==="pending"&&(
-<div style={{display:"flex",gap:8,marginTop:12,paddingTop:12,borderTop:`1px solid ${T.border}`}}>
-<Btn onClick={()=>respond(b.id,"confirmed")} variant="teal" style={{padding:"8px 14px",fontSize:12}}>✓ Accept</Btn>
-<Btn onClick={()=>respond(b.id,"declined")} variant="danger" style={{padding:"8px 14px",fontSize:12}}>✗ Decline</Btn>
-</div>
-)}
-</Card>
-))}
-</div>
-)}
-
-{pTab==="earnings"&&(
-<div>
-<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:12,marginBottom:24}}>
-<Stat value={`$${myEarned}`} label="TOTAL EARNED" color={T.teal}/>
-<Stat value={`$${myFees}`} label="PLATFORM FEES" color={T.soft}/>
-<Stat value={myConf} label="SESSIONS DONE" color={T.gold}/>
-<Stat value={myConf>0?`$${Math.round(myEarned/myConf)}`:"—"} label="AVG PER SESSION" color={T.gold}/>
-</div>
-<div style={{fontSize:11,letterSpacing:"0.15em",color:T.gold,marginBottom:12}}>CONFIRMED SESSIONS</div>
-{myB.filter(b=>b.status==="confirmed").length===0&&<Card style={{textAlign:"center",color:T.soft,padding:28}}>No confirmed sessions yet.</Card>}
-{myB.filter(b=>b.status==="confirmed").map(b=>(
-<Card key={b.id} style={{marginBottom:10,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
-<div><div style={{fontWeight:"bold",color:T.chalk}}>{b.venueName}</div><div style={{fontSize:12,color:T.soft}}>{b.date} · {b.venueType} · {b.groupSize} people</div></div>
-<div style={{textAlign:"right"}}><div style={{fontSize:18,color:T.teal,fontWeight:"bold"}}>${b.fee}</div><div style={{fontSize:11,color:T.soft}}>your earnings</div></div>
-</Card>
-))}
-</div>
-)}
-
-{pTab==="profile"&&(
-<div style={{maxWidth:520}}>
-<Card gold style={{marginBottom:16}}>
-<div style={{display:"flex",gap:14,alignItems:"center",marginBottom:14}}>
-<div style={{fontSize:38,background:T.plum,borderRadius:"50%",width:58,height:58,display:"flex",alignItems:"center",justifyContent:"center"}}>{me.avatar}</div>
-<div><div style={{fontWeight:"bold",fontSize:20,color:T.chalk}}>{me.name}</div><div style={{color:T.soft,fontSize:13}}>📍 {me.location}</div><div style={{color:T.gold,fontWeight:"bold",marginTop:2}}>${me.rate}/session</div></div>
-</div>
-<p style={{color:T.soft,fontSize:14,lineHeight:1.6,margin:"0 0 12px"}}>{me.bio}</p>
-<div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>{me.modalities?.map(m=><ModTag key={m} m={m}/>)}</div>
-<div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{me.instruments?.map(i=><InstTag key={i} i={i}/>)}</div>
-</Card>
-<Btn onClick={()=>{setEForm({...me});setEditing(true);}} full style={{padding:13,fontSize:15}}>✏️ Edit My Profile</Btn>
-</div>
-)}
-</div>
-)}
-
-{/* EDIT PROFILE */}
-{tab==="practitioner"&&me&&editing&&(
-<div style={{maxWidth:520,margin:"0 auto"}}>
-<button onClick={()=>setEditing(false)} style={{background:"none",border:"none",color:T.rose,cursor:"pointer",fontSize:13,marginBottom:20,fontFamily:"Georgia,serif"}}>← Cancel</button>
-<Card>
-<h3 style={{margin:"0 0 20px",color:T.chalk,fontWeight:"normal"}}>Edit Your Profile</h3>
-<div style={{display:"flex",flexDirection:"column",gap:14}}>
-<Inp label="NAME" value={eForm.name} onChange={e=>setEForm({...eForm,name:e.target.value})}/>
-<Inp label="LOCATION" value={eForm.location} onChange={e=>setEForm({...eForm,location:e.target.value})}/>
-<Inp label="SESSION RATE ($)" type="number" value={eForm.rate} onChange={e=>setEForm({...eForm,rate:e.target.value})}/>
-<Inp label="INSTAGRAM" value={eForm.instagram||""} onChange={e=>setEForm({...eForm,instagram:e.target.value})}/>
-<div>
-<label style={{fontSize:11,letterSpacing:"0.12em",color:T.gold,display:"block",marginBottom:8}}>MODALITIES</label>
-<div style={{display:"flex",flexWrap:"wrap",gap:7}}>{MODALITIES.map(m=>{const on=eForm.modalities?.includes(m);return<Pill key={m} on={on} color={T.teal} onClick={()=>setEForm({...eForm,modalities:on?eForm.modalities.filter(x=>x!==m):[...(eForm.modalities||[]),m]})}>{m}</Pill>;})}</div>
-</div>
-<div>
-<label style={{fontSize:11,letterSpacing:"0.12em",color:T.gold,display:"block",marginBottom:8}}>INSTRUMENTS</label>
-<div style={{display:"flex",flexWrap:"wrap",gap:7}}>{INSTRUMENTS.map(i=>{const on=eForm.instruments?.includes(i);return<Pill key={i} on={on} onClick={()=>setEForm({...eForm,instruments:on?eForm.instruments.filter(x=>x!==i):[...(eForm.instruments||[]),i]})}>{i}</Pill>;})}</div>
-</div>
-<div>
-<label style={{fontSize:11,letterSpacing:"0.12em",color:T.gold,display:"block",marginBottom:8}}>AVAILABILITY</label>
-<div style={{display:"flex",gap:10}}>
-<Pill on={eForm.available===true} color={T.teal} onClick={()=>setEForm({...eForm,available:true})}>● Available</Pill>
-<Pill on={eForm.available===false} color={T.rose} onClick={()=>setEForm({...eForm,available:false})}>○ Paused</Pill>
-</div>
-</div>
-<TA label="BIO" rows={4} value={eForm.bio} onChange={e=>setEForm({...eForm,bio:e.target.value})}/>
-<Btn onClick={saveEdit} full style={{padding:13,fontSize:15}}>Save Changes ✓</Btn>
-</div>
-</Card>
-</div>
-)}
-
-{/* ADMIN */}
-{tab==="admin"&&!adminView&&(
-<div style={{maxWidth:360,margin:"60px auto",textAlign:"center"}}>
-<div style={{fontSize:36,marginBottom:16}}>🔐</div>
-<h3 style={{color:T.chalk,fontWeight:"normal",marginBottom:20}}>Admin Access</h3>
-<Inp placeholder="Enter admin code" value={adminIn} onChange={e=>setAI(e.target.value)} style={{marginBottom:12,textAlign:"center"}}/>
-<Btn onClick={()=>{if(adminIn===ADMIN)setAV(true);else toast2("Incorrect code",T.rose);}} full>Enter</Btn>
-<p style={{color:T.soft,fontSize:12,marginTop:14}}>Code: REALSOUND</p>
-</div>
-)}
-
-{tab==="admin"&&adminView&&(
-<div>
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22}}>
-<h2 style={{margin:0,color:T.gold,fontWeight:"normal"}}>⚙ Admin Dashboard</h2>
-<Btn onClick={()=>setAV(false)} variant="ghost" style={{fontSize:12,padding:"6px 14px"}}>Lock</Btn>
-</div>
-<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:12,marginBottom:28}}>
-<Stat value={B.length} label="TOTAL BOOKINGS"/>
-<Stat value={B.filter(b=>b.status==="pending").length} label="PENDING" color={T.gold}/>
-<Stat value={B.filter(b=>b.status==="confirmed").length} label="CONFIRMED" color={T.teal}/>
-<Stat value={`$${B.filter(b=>b.status==="confirmed").reduce((s,b)=>s+b.platformFee,0)}`} label="YOUR REVENUE" color={T.teal}/>
-</div>
-<div style={{fontSize:11,letterSpacing:"0.15em",color:T.gold,marginBottom:12}}>ALL BOOKINGS</div>
-{B.length===0&&<div style={{color:T.soft,fontSize:14,marginBottom:24}}>No bookings yet.</div>}
-<div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:32}}>
-{B.map(b=>(
-<Card key={b.id} style={{display:"flex",gap:14,alignItems:"center",flexWrap:"wrap"}}>
-<div style={{flex:1,minWidth:180}}>
-<div style={{fontWeight:"bold",color:T.chalk,marginBottom:2}}>{b.venueName}</div>
-<div style={{fontSize:12,color:T.soft}}>{b.practitionerName} · {b.date} {b.time} · {b.venueType}</div>
-<div style={{fontSize:12,color:T.soft}}>Group: {b.groupSize} · Your cut: <span style={{color:T.teal}}>${b.platformFee}</span> · Total: ${b.total}</div>
-</div>
-<span style={statusStyle(b.status)}>{b.status}</span>
-{b.status==="pending"&&<div style={{display:"flex",gap:6}}><Btn onClick={()=>adminRespond(b.id,"confirmed")} style={{padding:"6px 12px",fontSize:12}}>✓</Btn><Btn onClick={()=>adminRespond(b.id,"declined")} variant="danger" style={{padding:"6px 12px",fontSize:12}}>✗</Btn></div>}
-</Card>
-))}
-</div>
-<div style={{fontSize:11,letterSpacing:"0.15em",color:T.gold,marginBottom:12}}>PRACTITIONERS ({P.length})</div>
-<div style={{display:"flex",flexDirection:"column",gap:10}}>
-{P.map(p=>(
-<Card key={p.id} style={{display:"flex",alignItems:"center",gap:14}}>
-<div style={{fontSize:22}}>{p.avatar}</div>
-<div style={{flex:1}}>
-<div style={{fontWeight:"bold",color:T.chalk}}>{p.name}</div>
-<div style={{fontSize:12,color:T.soft}}>{p.location} · ${p.rate}/session · {p.email}</div>
-<div style={{display:"flex",gap:5,marginTop:4,flexWrap:"wrap"}}>{p.modalities?.map(m=><ModTag key={m} m={m}/>)}</div>
-</div>
-<span style={{fontSize:11,padding:"3px 8px",borderRadius:8,background:p.available?"#1a3a1a":"#3a1a1a",color:p.available?"#6fcf6f":"#cf6f6f"}}>{p.available?"Active":"Paused"}</span>
-<Btn onClick={()=>removeP(p.id)} variant="danger" style={{padding:"6px 12px",fontSize:12}}>Remove</Btn>
-</Card>
-))}
-</div>
-</div>
-)}
-
-</div>
-
-{/* Disclaimer */}
-<div style={{background:T.deep,borderTop:`1px solid ${T.border}`,padding:"20px 24px",marginTop:40}}>
-<div style={{maxWidth:900,margin:"0 auto"}}>
-<div style={{fontSize:10,letterSpacing:"0.15em",color:T.gold,marginBottom:8}}>LEGAL DISCLAIMER</div>
-<p style={{fontSize:11,color:T.soft,lineHeight:1.7,margin:"0 0 12px"}}>
-REAL Sound is an independent marketplace platform that connects independent sound healing and wellness practitioners with venues and organizations seeking their services. REAL Sound does not employ, supervise, or control any practitioner listed on this platform. All practitioners are independent contractors solely responsible for the services they provide.
-</p>
-<p style={{fontSize:11,color:T.soft,lineHeight:1.7,margin:"0 0 12px"}}>
-REAL Sound makes no representations or warranties regarding the qualifications, certifications, conduct, or quality of any practitioner. By using this platform to book or list services, all parties agree that REAL Sound, its founder, and its affiliates bear no liability for any injury, loss, damage, or dispute arising from or related to any session, interaction, or transaction facilitated through this platform.
-</p>
-<p style={{fontSize:11,color:T.soft,lineHeight:1.7,margin:0}}>
-All bookings are made at the sole discretion and risk of the parties involved. Users are encouraged to verify practitioner credentials independently. By using REAL Sound you acknowledge and agree to these terms.
-</p>
-</div>
-</div>
-
-<div style={{borderTop:`1px solid ${T.gold}22`,padding:"20px",textAlign:"center"}}>
-<div style={{color:T.gold,fontSize:13,letterSpacing:"0.12em"}}>◉ REAL SOUND</div>
-<div style={{color:T.soft,fontSize:11,marginTop:4}}>A REAL Golden Peace venture by Suzzanna</div>
-<div style={{color:T.soft,fontSize:10,marginTop:4}}>© {new Date().getFullYear()} REAL Sound · All Rights Reserved</div>
-</div>
-</div>
-);
+function renderLogin(){
+  if(curUser){
+    document.getElementById("login-form").style.display="none";
+    document.getElementById("dashboard").style.display="block";
+    document.getElementById("dash-name").textContent=curUser.avatar+" "+curUser.name;
+    setPTab("overview",document.querySelector(".ptab"));
+  } else {
+    document.getElementById("login-form").style.display="block";
+    document.getElementById("dashboard").style.display="none";
+  }
 }
 
+function doLogin(){
+  var email=document.getElementById("p-email").value,pass=document.getElementById("p-password").value;
+  var p=P.find(function(x){return x.email===email&&x.password===pass;});
+  var err=document.getElementById("login-err");
+  if(p){curUser=p;err.style.display="none";renderLogin();}
+  else{err.textContent="Email or password not recognised.";err.style.display="block";}
+}
+
+function doLogout(){curUser=null;renderLogin();}
+
+function setPTab(tab,btn){
+  ["overview","bookings","earnings","profile"].forEach(function(t){document.getElementById("ptab-"+t).style.display=t===tab?"block":"none";});
+  document.querySelectorAll(".ptab").forEach(function(b){b.classList.remove("active");});
+  if(btn)btn.classList.add("active");
+  if(tab==="overview")renderOverview();
+  if(tab==="bookings")renderMyBookings();
+  if(tab==="earnings")renderEarnings();
+  if(tab==="profile")renderMyProfile();
+}
+
+function myB(){return B.filter(function(b){return b.practitionerId===curUser.id;});}
+function myEarned(){return myB().filter(function(b){return b.status==="confirmed";}).reduce(function(s,b){return s+b.fee;},0);}
+
+function renderOverview(){
+  var mb=myB(),pend=mb.filter(function(b){return b.status==="pending";}),conf=mb.filter(function(b){return b.status==="confirmed";});
+  document.getElementById("ptab-overview").innerHTML='<div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#D4A843">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#F9F7FC;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.date+' · '+b.venueType+' · '+b.groupSize+' people</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#7A6E8A;padding:28px">No pending requests yet.</div>');
+}
+
+function respond(id,status){
+  B=B.map(function(b){return b.id===id?Object.assign({},b,{status:status}):b;});
+  lsSet("rs:b",B);toast(status==="confirmed"?"Booking confirmed ✓":"Booking declined",status==="confirmed"?"#4A9B8E":"#C4727A");renderOverview();
+}
+
+function renderMyBookings(){
+  var mb=myB();
+  document.getElementById("ptab-bookings").innerHTML='<div class="section-title">ALL BOOKINGS ('+mb.length+')</div>'+(mb.length?mb.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#F9F7FC;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.date+' · '+b.venueType+'</div></div><div style="text-align:right"><span class="status-'+b.status+'">'+b.status+'</span><div class="text-teal" style="font-size:13px;margin-top:6px">$'+b.fee+' your cut</div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#7A6E8A;padding:28px">No bookings yet.</div>');
+}
+
+function renderEarnings(){
+  var conf=myB().filter(function(b){return b.status==="confirmed";});
+  var earned=conf.reduce(function(s,b){return s+b.fee;},0);
+  var fees=conf.reduce(function(s,b){return s+b.platformFee;},0);
+  document.getElementById("ptab-earnings").innerHTML='<div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+earned+'</div><div class="stat-label">TOTAL EARNED</div></div><div class="stat"><div class="stat-num" style="color:#7A6E8A">$'+fees+'</div><div class="stat-label">PLATFORM FEES</div></div><div class="stat"><div class="stat-num" style="color:#D4A843">'+conf.length+'</div><div class="stat-label">SESSIONS DONE</div></div></div><div class="section-title">CONFIRMED SESSIONS</div>'+(conf.length?conf.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#F9F7FC">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.date+' · '+b.venueType+'</div></div><div style="text-align:right"><div style="font-size:18px;color:#4A9B8E;font-weight:bold">$'+b.fee+'</div><div class="text-soft" style="font-size:11px">your earnings</div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#7A6E8A;padding:28px">No confirmed sessions yet.</div>');
+}
+
+function renderMyProfile(){
+  var p=curUser;
+  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px"><div style="font-size:38px;background:#2E2438;border-radius:50%;width:58px;height:58px;display:flex;align-items:center;justify-content:center">'+p.avatar+'</div><div><div style="font-weight:bold;font-size:20px;color:#F9F7FC">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">$'+p.rate+'/session</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div></div>';
+}
+
+function checkAdmin(){
+  if(document.getElementById("admin-code").value==="REALSOUND"){
+    document.getElementById("admin-login").style.display="none";
+    document.getElementById("admin-dash").style.display="block";
+    renderAdmin();
+  } else toast("Incorrect code","#C4727A");
+}
+
+function lockAdmin(){document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
+
+function renderAdmin(){
+  var conf=B.filter(function(b){return b.status==="confirmed";});
+  var rev=conf.reduce(function(s,b){return s+b.platformFee;},0);
+  document.getElementById("admin-stats").innerHTML='<div class="stat"><div class="stat-num">'+B.length+'</div><div class="stat-label">TOTAL BOOKINGS</div></div><div class="stat"><div class="stat-num" style="color:#D4A843">'+B.filter(function(b){return b.status==="pending";}).length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+rev+'</div><div class="stat-label">YOUR REVENUE</div></div>';
+  document.getElementById("admin-bookings").innerHTML=B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#F9F7FC;margin-bottom:2px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.practitionerName+' · '+b.date+' · '+b.venueType+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span></div></div><span class="status-'+b.status+'">'+b.status+'</span>'+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>';
+  document.getElementById("admin-practitioners").innerHTML=P.map(function(p){return '<div class="booking-card" style="display:flex;align-items:center;gap:14px"><div style="font-size:22px">'+p.avatar+'</div><div style="flex:1"><div style="font-weight:bold;color:#F9F7FC">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · $'+p.rate+'/session</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button></div>';}).join("");
+}
+
+function aRespond(id,s){B=B.map(function(b){return b.id===id?Object.assign({},b,{status:s}):b;});lsSet("rs:b",B);renderAdmin();}
+function removeP(id){P=P.filter(function(p){return p.id!==id;});lsSet("rs:p",P);renderAdmin();}
+
+renderHome();
+</script>
+</body>
+</html>
