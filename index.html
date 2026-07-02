@@ -4,84 +4,96 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REAL Sound</title>
-<script src="https://js.stripe.com/v3/"></script>
+<script src="https://js.stripe.com/v3/" defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Georgia,serif;background:#0D0B0F;color:#E8E2F0;min-height:100vh}
-nav{background:#1C1720;border-bottom:1px solid rgba(212,168,67,.2);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.logo{color:#D4A843;font-size:18px;font-weight:bold;letter-spacing:.12em;cursor:pointer}
-.logo-sub{color:#7A6E8A;font-size:9px;letter-spacing:.2em}
+body{font-family:Georgia,serif;background:#FAFAF8;color:#2A2030;min-height:100vh}
+nav{background:#fff;border-bottom:1px solid rgba(212,168,67,.18);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.logo{color:#B8902A;font-size:18px;font-weight:bold;letter-spacing:.12em;cursor:pointer}
+.logo-sub{color:#9A8FAA;font-size:9px;letter-spacing:.2em}
 .nav-links{display:flex;gap:4px;flex-wrap:wrap}
 .nav-btn{background:transparent;border:none;color:#7A6E8A;padding:6px 12px;border-radius:20px;cursor:pointer;font-family:Georgia,serif;font-size:11px}
-.nav-btn.active{background:#D4A843;color:#0D0B0F;font-weight:bold}
+.nav-btn.active{background:#B8902A;color:#fff;font-weight:bold}
 .wrap{max-width:980px;margin:0 auto;padding:28px 20px}
-.hero{text-align:center;padding:40px 0}
-.hero h1{font-size:42px;font-weight:normal;color:#F9F7FC;line-height:1.2;margin-bottom:16px}
+.hero{text-align:center;padding:60px 0 40px}
+.hero-gong{width:180px;height:200px;margin:0 auto 28px}
+.hero h1{font-size:42px;font-weight:normal;color:#1A1225;line-height:1.2;margin-bottom:16px}
 .hero p{color:#7A6E8A;font-size:15px;max-width:420px;margin:0 auto 28px;line-height:1.7}
 .btn-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 .btn{padding:12px 24px;border-radius:10px;font-family:Georgia,serif;font-weight:bold;font-size:14px;cursor:pointer;border:none;letter-spacing:.05em}
-.btn-gold{background:#D4A843;color:#0D0B0F}
-.btn-outline{background:transparent;color:#D4A843;border:1.5px solid #D4A843}
-.btn-ghost{background:#2E2438;color:#E8E2F0}
+.btn-gold{background:#B8902A;color:#fff}
+.btn-gold:hover{background:#A07820}
+.btn-outline{background:transparent;color:#B8902A;border:1.5px solid #B8902A}
+.btn-ghost{background:#F0EBF8;color:#2A2030}
 .btn-teal{background:#4A9B8E;color:#fff}
 .btn-danger{background:#C4727A;color:#fff}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:36px 0}
-.stat{background:#1C1720;border-radius:16px;padding:20px;text-align:center;border:1px solid rgba(58,46,74,.27)}
-.stat-num{font-size:30px;font-weight:bold;color:#D4A843}
-.stat-label{font-size:11px;color:#7A6E8A;margin-top:4px;letter-spacing:.08em}
-.section-title{font-size:11px;letter-spacing:.2em;color:#D4A843;margin-bottom:14px}
+.stat{background:#fff;border-radius:16px;padding:20px;text-align:center;border:1px solid rgba(212,168,67,.18);box-shadow:0 1px 6px rgba(0,0,0,.04)}
+.stat-num{font-size:30px;font-weight:bold;color:#B8902A}
+.stat-label{font-size:11px;color:#9A8FAA;margin-top:4px;letter-spacing:.08em}
+.section-title{font-size:11px;letter-spacing:.2em;color:#B8902A;margin-bottom:14px}
 .grid6{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:32px}
-.grid-item{background:#1C1720;border-radius:12px;padding:16px 10px;text-align:center;border:1px solid rgba(58,46,74,.27);cursor:pointer}
-.grid-item:hover{border-color:#D4A843}
+.grid-item{background:#fff;border-radius:12px;padding:16px 10px;text-align:center;border:1px solid rgba(212,168,67,.15);cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.grid-item:hover{border-color:#B8902A;box-shadow:0 2px 10px rgba(184,144,42,.12)}
 .grid-icon{font-size:26px}
-.grid-label{font-size:12px;color:#E8E2F0;margin-top:8px}
+.grid-label{font-size:12px;color:#2A2030;margin-top:8px}
 .healer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.healer-card{background:#1C1720;border-radius:16px;border:1px solid rgba(58,46,74,.27);overflow:hidden}
-.healer-card:hover{border-color:#D4A843}
-.healer-top{display:flex;gap:12px;align-items:center;padding:16px;border-bottom:1px solid rgba(58,46,74,.27)}
-.avatar{font-size:28px;background:#2E2438;border-radius:50%;width:46px;height:46px;display:flex;align-items:center;justify-content:center}
-.healer-name{font-weight:bold;color:#F9F7FC}
-.healer-loc{font-size:12px;color:#7A6E8A}
+.healer-card{background:#fff;border-radius:16px;border:1px solid rgba(212,168,67,.15);overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.04)}
+.healer-card:hover{border-color:#B8902A}
+.healer-top{display:flex;gap:12px;align-items:center;padding:16px;border-bottom:1px solid rgba(212,168,67,.1)}
+.avatar{font-size:28px;background:#FBF7EE;border-radius:50%;width:46px;height:46px;display:flex;align-items:center;justify-content:center}
+.healer-name{font-weight:bold;color:#1A1225}
+.healer-loc{font-size:12px;color:#9A8FAA}
 .healer-body{padding:14px 16px}
-.badge-open{background:#1a3a1a;color:#6fcf6f;font-size:10px;padding:3px 8px;border-radius:8px}
-.badge-busy{background:#3a1a1a;color:#cf6f6f;font-size:10px;padding:3px 8px;border-radius:8px}
+.badge-open{background:#e6f9ee;color:#2d8a50;font-size:10px;padding:3px 8px;border-radius:8px}
+.badge-busy{background:#fde8ea;color:#b84a52;font-size:10px;padding:3px 8px;border-radius:8px}
 .mod-tags{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}
-.mod-tag{background:rgba(74,155,142,.13);color:#4A9B8E;font-size:10px;padding:2px 7px;border-radius:6px}
-.card{background:#1C1720;border-radius:16px;padding:20px;border:1px solid rgba(58,46,74,.27);margin-bottom:14px}
-.card-gold{border-color:rgba(212,168,67,.4)}
+.mod-tag{background:rgba(74,155,142,.1);color:#3A8B7E;font-size:10px;padding:2px 7px;border-radius:6px}
+.card{background:#fff;border-radius:16px;padding:20px;border:1px solid rgba(212,168,67,.15);margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,.04)}
+.card-gold{border-color:rgba(184,144,42,.35)}
 .pills{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
-.pill{background:transparent;border:1.5px solid rgba(58,46,74,.27);color:#7A6E8A;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px}
-.pill-gold{border-color:#D4A843;background:rgba(212,168,67,.13);color:#D4A843}
-.pill-teal{border-color:#4A9B8E;background:rgba(74,155,142,.13);color:#4A9B8E}
-.pill-rose{border-color:#C4727A;background:rgba(196,114,122,.13);color:#C4727A}
+.pill{background:transparent;border:1.5px solid #E0D8F0;color:#7A6E8A;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Georgia,serif;font-size:12px}
+.pill:hover{border-color:#B8902A}
+.pill-gold{border-color:#B8902A;background:rgba(184,144,42,.1);color:#8A6A14}
+.pill-teal{border-color:#4A9B8E;background:rgba(74,155,142,.1);color:#3A8B7E}
+.pill-rose{border-color:#C4727A;background:rgba(196,114,122,.1);color:#A45560}
+.zip-search{display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+.zip-search input{max-width:160px;background:#fff;border:1.5px solid #E0D8F0;border-radius:8px;padding:9px 12px;color:#2A2030;font-size:14px;font-family:Georgia,serif;outline:none;width:auto}
+.zip-search input:focus{border-color:#B8902A}
+.zip-search .zbtn{background:#B8902A;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:Georgia,serif;font-size:13px;cursor:pointer;font-weight:bold}
+.zip-search .zclear{background:#F0EBF8;color:#7A6E8A;border:none;border-radius:8px;padding:9px 14px;font-family:Georgia,serif;font-size:13px;cursor:pointer}
 .field{margin-bottom:14px}
-.field label{display:block;font-size:11px;letter-spacing:.12em;color:#D4A843;margin-bottom:5px}
-input,select,textarea{width:100%;background:#2E2438;border:1px solid rgba(58,46,74,.27);border-radius:8px;padding:10px 12px;color:#E8E2F0;font-size:14px;font-family:Georgia,serif;outline:none}
+.field label{display:block;font-size:11px;letter-spacing:.12em;color:#B8902A;margin-bottom:5px}
+input,select,textarea{width:100%;background:#FAFAF8;border:1px solid #E0D8F0;border-radius:8px;padding:10px 12px;color:#2A2030;font-size:14px;font-family:Georgia,serif;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#B8902A}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.review-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(58,46,74,.27);font-size:14px}
-.review-key{color:#7A6E8A;font-size:11px;letter-spacing:.08em}
-.disclaimer-box{background:#2E2438;border-radius:8px;padding:12px;margin:12px 0}
+.review-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #F0EBF8;font-size:14px}
+.review-key{color:#9A8FAA;font-size:11px;letter-spacing:.08em}
+.disclaimer-box{background:#FBF7EE;border-radius:8px;padding:12px;margin:12px 0;border:1px solid rgba(184,144,42,.2)}
 .disclaimer-label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
 .disclaimer-text{font-size:11px;color:#7A6E8A;line-height:1.6}
 .dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:24px}
 .ptabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px}
-.ptab{background:#2E2438;border:none;color:#7A6E8A;padding:7px 13px;border-radius:20px;cursor:pointer;font-family:Georgia,serif;font-size:11px}
-.ptab.active{background:#D4A843;color:#0D0B0F;font-weight:bold}
-.booking-card{background:#1C1720;border-radius:12px;padding:16px;border:1px solid rgba(58,46,74,.27);margin-bottom:10px}
-.status-pending{background:#2E2438;color:#D4A843;font-size:11px;padding:3px 8px;border-radius:8px}
-.status-confirmed{background:#1a3a1a;color:#6fcf6f;font-size:11px;padding:3px 8px;border-radius:8px}
-.status-declined{background:#3a1a1a;color:#cf6f6f;font-size:11px;padding:3px 8px;border-radius:8px}
+.ptab{background:#F0EBF8;border:none;color:#7A6E8A;padding:7px 13px;border-radius:20px;cursor:pointer;font-family:Georgia,serif;font-size:11px}
+.ptab.active{background:#B8902A;color:#fff;font-weight:bold}
+.booking-card{background:#fff;border-radius:12px;padding:16px;border:1px solid #E0D8F0;margin-bottom:10px}
+.status-pending{background:#FBF7EE;color:#B8902A;font-size:11px;padding:3px 8px;border-radius:8px}
+.status-confirmed{background:#e6f9ee;color:#2d8a50;font-size:11px;padding:3px 8px;border-radius:8px}
+.status-declined{background:#fde8ea;color:#b84a52;font-size:11px;padding:3px 8px;border-radius:8px}
+.stripe-box{background:#F8F6FF;border:1px solid #E0D8F0;border-radius:8px;padding:14px;margin:12px 0}
+#card-element{background:#fff;border:1px solid #E0D8F0;border-radius:8px;padding:12px}
+#card-errors{color:#C4727A;font-size:12px;margin-top:6px;min-height:18px}
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 24px;border-radius:24px;font-size:14px;font-weight:bold;z-index:9999;display:none;white-space:nowrap}
-.footer-disclaimer{background:#1C1720;border-top:1px solid rgba(58,46,74,.27);padding:20px 24px;margin-top:40px}
-.footer{border-top:1px solid rgba(212,168,67,.13);padding:20px;text-align:center;margin-top:0}
+.footer-disclaimer{background:#fff;border-top:1px solid rgba(184,144,42,.12);padding:20px 24px;margin-top:40px}
+.footer{border-top:1px solid rgba(184,144,42,.12);padding:20px;text-align:center;margin-top:0;background:#fff}
 .page{display:none}
 .page.active{display:block}
 .back-btn{background:none;border:none;color:#C4727A;cursor:pointer;font-family:Georgia,serif;font-size:13px;margin-bottom:16px;padding:0}
 .full-width{width:100%}
-.text-gold{color:#D4A843}
+.text-gold{color:#B8902A}
 .text-teal{color:#4A9B8E}
-.text-soft{color:#7A6E8A}
-.text-chalk{color:#F9F7FC}
+.text-soft{color:#9A8FAA}
+.text-chalk{color:#1A1225}
 </style>
 </head>
 <body>
@@ -106,9 +118,23 @@ input,select,textarea{width:100%;background:#2E2438;border:1px solid rgba(58,46,
 <div id="page-home" class="page active">
 <div class="wrap">
   <div class="hero">
-    <div style="font-size:11px;letter-spacing:.3em;color:#C4727A;margin-bottom:14px">THE SOUND HEALING MARKETPLACE</div>
+    <div style="font-size:11px;letter-spacing:.3em;color:#C4727A;margin-bottom:18px">THE SOUND HEALING MARKETPLACE</div>
+    <svg class="hero-gong" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+      <line x1="100" y1="30" x2="60" y2="62" stroke="#C9A84C" stroke-width="3" stroke-linecap="round"/>
+      <line x1="100" y1="30" x2="140" y2="62" stroke="#C9A84C" stroke-width="3" stroke-linecap="round"/>
+      <line x1="86" y1="24" x2="114" y2="24" stroke="#C9A84C" stroke-width="3.5" stroke-linecap="round"/>
+      <circle cx="114" cy="24" r="3" fill="#C9A84C"/>
+      <circle cx="100" cy="134" r="80" fill="none" stroke="#C9A84C" stroke-width="4"/>
+      <circle cx="100" cy="134" r="70" fill="none" stroke="#D4A843" stroke-width="1.2" stroke-dasharray="4 3"/>
+      <circle cx="100" cy="134" r="54" fill="none" stroke="#C9A84C" stroke-width="2"/>
+      <circle cx="100" cy="134" r="36" fill="none" stroke="#D4A843" stroke-width="1.2"/>
+      <circle cx="100" cy="134" r="18" fill="none" stroke="#C9A84C" stroke-width="2.5"/>
+      <circle cx="100" cy="134" r="7" fill="#D4A843" opacity=".65"/>
+      <path d="M 16 134 Q 10 110 16 86" fill="none" stroke="#D4A843" stroke-width="1" opacity=".35"/>
+      <path d="M 184 134 Q 190 110 184 86" fill="none" stroke="#D4A843" stroke-width="1" opacity=".35"/>
+    </svg>
     <h1>Real healers.<br><span class="text-gold">Real bookings.</span><br>Real peace.</h1>
-    <p>Connect your yoga studio, gym, or team with certified Sound Bath and Reiki practitioners. No middleman. No guesswork.</p>
+    <p>Connect your yoga studio, gym, nursing home, or team with certified sound healing and wellness practitioners. No middleman. No guesswork.</p>
     <div class="btn-row">
       <button class="btn btn-gold" onclick="showPage('find')">Find a Healer →</button>
       <button class="btn btn-outline" onclick="showPage('join')">I'm a Practitioner</button>
@@ -117,19 +143,21 @@ input,select,textarea{width:100%;background:#2E2438;border:1px solid rgba(58,46,
   <div class="stats" id="home-stats"></div>
   <div class="section-title">WHAT WE OFFER</div>
   <div class="grid6">
-    <div class="grid-item" onclick="filterMod('Sound Bath');showPage('find')"><div class="grid-icon">🎵</div><div class="grid-label">Sound Bath</div></div>
-    <div class="grid-item" onclick="filterMod('Reiki');showPage('find')"><div class="grid-icon">🙌</div><div class="grid-label">Reiki</div></div>
+    <div class="grid-item" onclick="filterMod('Sound Bath & Gong Bath');showPage('find')"><div class="grid-icon">🎵</div><div class="grid-label">Sound Bath & Gong Bath</div></div>
+    <div class="grid-item" onclick="filterMod('Reiki & Crystal Healing');showPage('find')"><div class="grid-icon">🙌</div><div class="grid-label">Reiki & Crystal Healing</div></div>
     <div class="grid-item" onclick="filterMod('Breathwork');showPage('find')"><div class="grid-icon">🌬️</div><div class="grid-label">Breathwork</div></div>
     <div class="grid-item" onclick="filterMod('Meditation');showPage('find')"><div class="grid-icon">🧘</div><div class="grid-label">Meditation</div></div>
-    <div class="grid-item" onclick="filterMod('Gong Bath');showPage('find')"><div class="grid-icon">🔔</div><div class="grid-label">Gong Bath</div></div>
-    <div class="grid-item" onclick="filterMod('Crystal Healing');showPage('find')"><div class="grid-icon">💎</div><div class="grid-label">Crystal Healing</div></div>
+    <div class="grid-item" onclick="filterMod('Art Therapy');showPage('find')"><div class="grid-icon">🎨</div><div class="grid-label">Art Therapy</div></div>
+    <div class="grid-item" onclick="filterMod('Herbalist');showPage('find')"><div class="grid-icon">🌿</div><div class="grid-label">Herbalist</div></div>
+    <div class="grid-item" onclick="filterMod('Life Coach');showPage('find')"><div class="grid-icon">✨</div><div class="grid-label">Life Coach</div></div>
   </div>
   <div class="section-title">WHO IT'S FOR</div>
   <div class="grid6">
     <div class="grid-item" onclick="filterVenue('Yoga Studios');showPage('find')"><div class="grid-icon">🧘</div><div class="grid-label">Yoga Studios</div></div>
-    <div class="grid-item" onclick="filterVenue('Fight Studios');showPage('find')"><div class="grid-icon">🥊</div><div class="grid-label">Fight Studios</div></div>
+    <div class="grid-item" onclick="filterVenue('Martial Arts Studios');showPage('find')"><div class="grid-icon">🥊</div><div class="grid-label">Martial Arts Studios</div></div>
     <div class="grid-item" onclick="filterVenue('Corporate');showPage('find')"><div class="grid-icon">🏢</div><div class="grid-label">Corporate</div></div>
     <div class="grid-item" onclick="filterVenue('Retreats');showPage('find')"><div class="grid-icon">🌿</div><div class="grid-label">Retreats</div></div>
+    <div class="grid-item" onclick="filterVenue('Nursing Homes');showPage('find')"><div class="grid-icon">🏥</div><div class="grid-label">Nursing Homes</div></div>
     <div class="grid-item" onclick="filterVenue('Private Events');showPage('find')"><div class="grid-icon">🎉</div><div class="grid-label">Private Events</div></div>
     <div class="grid-item"><div class="grid-icon">🏨</div><div class="grid-label">Hotels & Spas</div></div>
   </div>
@@ -144,8 +172,14 @@ input,select,textarea{width:100%;background:#2E2438;border:1px solid rgba(58,46,
 <!-- FIND -->
 <div id="page-find" class="page">
 <div class="wrap">
-  <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px">Find a Healer</h2>
+  <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#1A1225">Find a Healer</h2>
   <p class="text-soft" style="margin-bottom:16px;font-size:14px">Browse verified practitioners and send a booking request.</p>
+  <div class="zip-search">
+    <input id="zip-input" placeholder="Enter ZIP code" maxlength="5" type="text"/>
+    <button class="zbtn" onclick="searchByZip()">Search ZIP</button>
+    <button class="zclear" onclick="clearZip()">Clear</button>
+  </div>
+  <div id="zip-msg" style="font-size:12px;color:#9A8FAA;margin-bottom:10px;display:none"></div>
   <div class="pills" id="venue-pills"></div>
   <div class="pills" id="mod-pills"></div>
   <div class="healer-grid" id="healer-list"></div>
@@ -169,20 +203,21 @@ input,select,textarea{width:100%;background:#2E2438;border:1px solid rgba(58,46,
   <div id="join0">
     <div style="text-align:center;padding-top:20px">
       <div style="font-size:52px;margin-bottom:16px">🎵</div>
-      <h2 style="font-weight:normal;font-size:26px;margin-bottom:10px">Share your gift. <span class="text-gold">Get booked.</span></h2>
-      <p class="text-soft" style="max-width:400px;margin:0 auto 28px;line-height:1.7;font-size:14px">REAL Sound connects you with yoga studios, gyms, and companies. Keep 85% of every booking.</p>
+      <h2 style="font-weight:normal;font-size:26px;margin-bottom:10px;color:#1A1225">Share your gift. <span class="text-gold">Get booked.</span></h2>
+      <p class="text-soft" style="max-width:400px;margin:0 auto 28px;line-height:1.7;font-size:14px">REAL Sound connects you with yoga studios, gyms, nursing homes, and companies. Keep 85% of every booking.</p>
       <button class="btn btn-gold" onclick="showJoin(1)" style="padding:13px 32px;font-size:15px">Create My Profile →</button>
       <div style="margin-top:14px"><span class="text-soft" style="font-size:13px">Already listed? </span><span class="text-gold" style="cursor:pointer;font-size:13px" onclick="showPage('login')">Log in →</span></div>
     </div>
   </div>
   <div id="join1" style="display:none">
     <div class="card">
-      <h3 style="font-weight:normal;font-size:20px;color:#F9F7FC;margin-bottom:4px">Create your healer profile</h3>
+      <h3 style="font-weight:normal;font-size:20px;color:#1A1225;margin-bottom:4px">Create your healer profile</h3>
       <p class="text-soft" style="font-size:13px;margin-bottom:20px">Venues will see this. Use your email and password to log back in.</p>
       <div class="field"><label>YOUR NAME</label><input id="j-name" placeholder="e.g. Luna Serrano"></div>
       <div class="field"><label>EMAIL</label><input id="j-email" type="email" placeholder="you@example.com"></div>
       <div class="field"><label>PASSWORD</label><input id="j-password" type="password" placeholder="Create a password"></div>
       <div class="field"><label>LOCATION</label><input id="j-location" placeholder="City, State"></div>
+      <div class="field"><label>ZIP CODE</label><input id="j-zip" placeholder="e.g. 02910" maxlength="5"></div>
       <div class="field"><label>SESSION RATE ($)</label><input id="j-rate" type="number" placeholder="e.g. 250"></div>
       <div class="field"><label>MODALITIES</label><div class="pills" id="j-mods"></div></div>
       <div class="field"><label>INSTRUMENTS</label><div class="pills" id="j-instr"></div></div>
@@ -208,7 +243,7 @@ input,select,textarea{width:100%;background:#2E2438;border:1px solid rgba(58,46,
   <div id="login-form">
     <div style="text-align:center;margin-bottom:24px">
       <div style="font-size:40px;margin-bottom:12px">👤</div>
-      <h2 style="font-weight:normal;margin-bottom:6px">Healer Login</h2>
+      <h2 style="font-weight:normal;margin-bottom:6px;color:#1A1225">Healer Login</h2>
       <p class="text-soft" style="font-size:13px">Access your dashboard, bookings and earnings.</p>
     </div>
     <div class="card">
@@ -217,13 +252,13 @@ input,select,textarea{width:100%;background:#2E2438;border:1px solid rgba(58,46,
       <div id="login-err" style="color:#C4727A;font-size:13px;margin-bottom:10px;display:none"></div>
       <button class="btn btn-gold full-width" style="padding:13px;font-size:15px;margin-bottom:12px" onclick="doLogin()">Log In →</button>
       <div style="text-align:center"><span class="text-soft" style="font-size:12px">Not listed? </span><span class="text-gold" style="cursor:pointer;font-size:12px" onclick="showPage('join')">Create a profile →</span></div>
-      <div style="border-top:1px solid rgba(58,46,74,.27);padding-top:12px;font-size:11px;color:#7A6E8A;text-align:center;margin-top:12px;line-height:1.6">Demo: luna@example.com / luna123</div>
+      <div style="border-top:1px solid #F0EBF8;padding-top:12px;font-size:11px;color:#9A8FAA;text-align:center;margin-top:12px;line-height:1.6">Demo: luna@example.com / luna123</div>
     </div>
   </div>
   <div id="dashboard" style="display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
       <div>
-        <h2 style="font-weight:normal;color:#F9F7FC;margin:0" id="dash-name"></h2>
+        <h2 style="font-weight:normal;color:#1A1225;margin:0" id="dash-name"></h2>
         <div class="text-soft" style="font-size:13px">Healer Dashboard</div>
       </div>
       <div style="display:flex;gap:7px;flex-wrap:wrap">
@@ -249,7 +284,7 @@ input,select,textarea{width:100%;background:#2E2438;border:1px solid rgba(58,46,
 <div class="wrap" style="max-width:500px;padding-top:60px">
   <div id="admin-login" style="text-align:center">
     <div style="font-size:36px;margin-bottom:16px">🔐</div>
-    <h3 style="color:#F9F7FC;font-weight:normal;margin-bottom:20px">Admin Access</h3>
+    <h3 style="color:#1A1225;font-weight:normal;margin-bottom:20px">Admin Access</h3>
     <div class="field"><input id="admin-code" placeholder="Enter admin code" style="text-align:center"></div>
     <button class="btn btn-gold full-width" style="margin-top:8px" onclick="checkAdmin()">Enter</button>
     <p class="text-soft" style="font-size:12px;margin-top:14px">Code: REALSOUND</p>
@@ -270,8 +305,8 @@ input,select,textarea{width:100%;background:#2E2438;border:1px solid rgba(58,46,
 
 <div class="footer-disclaimer">
   <div style="max-width:900px;margin:0 auto">
-    <div style="font-size:10px;letter-spacing:.15em;color:#D4A843;margin-bottom:8px">LEGAL DISCLAIMER</div>
-    <p style="font-size:11px;color:#7A6E8A;line-height:1.7">REAL Sound is an independent marketplace platform connecting independent sound healing and wellness practitioners with venues and organizations. REAL Sound does not employ, supervise, or control any practitioner. All practitioners are independent contractors. By using this platform all parties agree that REAL Sound bears no liability for any injury, loss, or damage arising from any session.</p>
+    <div style="font-size:10px;letter-spacing:.15em;color:#B8902A;margin-bottom:8px">LEGAL DISCLAIMER</div>
+    <p style="font-size:11px;color:#9A8FAA;line-height:1.7">REAL Sound is an independent marketplace platform connecting independent sound healing and wellness practitioners with venues and organizations. REAL Sound does not employ, supervise, or control any practitioner. All practitioners are independent contractors. By using this platform all parties agree that REAL Sound bears no liability for any injury, loss, or damage arising from any session.</p>
   </div>
 </div>
 <div class="footer">
@@ -281,39 +316,27 @@ input,select,textarea{width:100%;background:#2E2438;border:1px solid rgba(58,46,
 </div>
 
 <script>
+var STRIPE_KEY='pk_live_51TnlMs894Qiq0mRbZg2MOFCVWTJlMS2L9vREUi6ao75pjFApinQbgywlxOWppO7jXQ5OyEp7ZXXQt9kX6NkeOwPH00XfxPhdVa';
+var stripe=Stripe(STRIPE_KEY);
+var cardElement=null;
+var elements=null;
 
-var STRIPE_KEY = 'pk_live_51TnlMs894Qiq0mRbZg2MOFCVWTJlMS2L9vREUi6ao75pjFApinQbgywlxOWppO7jXQ5OyEp7ZXXQt9kX6NkeOwPH00XfxPhdVa';
-var stripe = Stripe(STRIPE_KEY);
-
-async function processPayment(amount, bookingId, venueName, practName) {
-  try {
-    // Create a payment intent via Stripe
-    // For now we show a payment modal using Stripe's hosted checkout
-    var response = await fetch('https://api.stripe.com/v1/payment_intents', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + STRIPE_KEY,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: 'amount=' + (amount * 100) + '&currency=usd&description=REAL+Sound+Booking:+' + encodeURIComponent(practName)
-    });
-    toast("Payment processing — Stripe connected! ✓", "#4A9B8E");
-    return true;
-  } catch(e) {
-    console.log('Payment note:', e);
-    return true;
-  }
+function initStripe(){
+  elements=stripe.elements();
+  cardElement=elements.create('card',{style:{base:{fontFamily:'Georgia,serif',fontSize:'14px',color:'#2A2030','::placeholder':{color:'#9A8FAA'}},invalid:{color:'#C4727A'}}});
 }
 
 var SEED=[
-  {id:"p1",name:"Luna Serrano",location:"Providence, RI",email:"luna@example.com",password:"luna123",instruments:["Crystal Bowls","Gong","Chimes"],venueTypes:["Yoga Studios","Corporate","Retreats"],modalities:["Sound Bath","Reiki"],rate:250,rating:4.9,reviews:38,available:true,bio:"Level 2 Reiki practitioner and certified sound healer with 6 years bringing deep healing to groups of all kinds.",avatar:"🌙"},
-  {id:"p2",name:"Marcus Bloom",location:"Boston, MA",email:"marcus@example.com",password:"marcus123",instruments:["Tibetan Bowls","Gong","Tuning Forks"],venueTypes:["Fight Studios","Corporate","Yoga Studios"],modalities:["Sound Bath","Breathwork"],rate:300,rating:4.8,reviews:52,available:true,bio:"Former athlete turned sound healer. Specializes in high-performance stress release — perfect for MMA gyms and corporate burnout.",avatar:"🔮"},
-  {id:"p3",name:"Celeste Mora",location:"Newport, RI",email:"celeste@example.com",password:"celeste123",instruments:["Crystal Bowls","Voice","Rain Drum"],venueTypes:["Yoga Studios","Retreats","Private Events"],modalities:["Sound Bath","Reiki","Meditation"],rate:200,rating:5.0,reviews:21,available:false,bio:"Trained in sacred sound ceremony traditions. Creates immersive, deeply spiritual experiences for intimate groups.",avatar:"✨"},
-  {id:"p4",name:"Jordan Wells",location:"Worcester, MA",email:"jordan@example.com",password:"jordan123",instruments:["Gong","Steel Tongue Drum","Chimes"],venueTypes:["Fight Studios","Corporate","Yoga Studios"],modalities:["Sound Bath","Breathwork"],rate:275,rating:4.7,reviews:44,available:true,bio:"Power-meets-peace. Jordan's gong work is especially impactful in masculine-energy spaces like boxing and BJJ gyms.",avatar:"⚡"}
+  {id:"p1",name:"Luna Serrano",location:"Providence, RI",zip:"02903",email:"luna@example.com",password:"luna123",instruments:["Crystal Bowls","Gong","Chimes"],venueTypes:["Yoga Studios","Corporate","Retreats","Nursing Homes"],modalities:["Sound Bath & Gong Bath","Reiki & Crystal Healing"],rate:250,rating:4.9,reviews:38,available:true,bio:"Level 2 Reiki practitioner and certified sound healer with 6 years bringing deep healing to groups of all kinds.",avatar:"🌙"},
+  {id:"p2",name:"Marcus Bloom",location:"Boston, MA",zip:"02101",email:"marcus@example.com",password:"marcus123",instruments:["Tibetan Bowls","Gong","Tuning Forks"],venueTypes:["Martial Arts Studios","Corporate","Yoga Studios"],modalities:["Sound Bath & Gong Bath","Breathwork"],rate:300,rating:4.8,reviews:52,available:true,bio:"Former athlete turned sound healer. Specializes in high-performance stress release — perfect for MMA gyms and corporate burnout.",avatar:"🔮"},
+  {id:"p3",name:"Celeste Mora",location:"Newport, RI",zip:"02840",email:"celeste@example.com",password:"celeste123",instruments:["Crystal Bowls","Voice","Rain Drum"],venueTypes:["Yoga Studios","Retreats","Private Events","Nursing Homes"],modalities:["Sound Bath & Gong Bath","Reiki & Crystal Healing","Meditation"],rate:200,rating:5.0,reviews:21,available:false,bio:"Trained in sacred sound ceremony traditions. Creates immersive, deeply spiritual experiences for intimate groups.",avatar:"✨"},
+  {id:"p4",name:"Jordan Wells",location:"Worcester, MA",zip:"01601",email:"jordan@example.com",password:"jordan123",instruments:["Gong","Steel Tongue Drum","Chimes"],venueTypes:["Martial Arts Studios","Corporate","Yoga Studios"],modalities:["Sound Bath & Gong Bath","Breathwork"],rate:275,rating:4.7,reviews:44,available:true,bio:"Power-meets-peace. Jordan's gong work is especially impactful in masculine-energy spaces like boxing and BJJ gyms.",avatar:"⚡"}
 ];
-var VENUES=["All","Yoga Studios","Fight Studios","Corporate","Retreats","Private Events"];
-var MODS=["Sound Bath","Reiki","Breathwork","Meditation","Gong Bath","Crystal Healing"];
+
+var VENUES=["All","Yoga Studios","Martial Arts Studios","Corporate","Retreats","Nursing Homes","Private Events","Hotels & Spas"];
+var MODS=["Sound Bath & Gong Bath","Reiki & Crystal Healing","Breathwork","Meditation","Art Therapy","Herbalist","Life Coach"];
 var INSTR=["Crystal Bowls","Gong","Tibetan Bowls","Tuning Forks","Chimes","Voice","Steel Tongue Drum","Rain Drum","Drums"];
+var zipFilter="";
 
 function lsGet(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
@@ -323,7 +346,7 @@ var B=lsGet("rs:b",[]);
 var vFilter="All",mFilter="All",selP=null,curUser=null;
 var jMods=[],jInstr=[],jVenues=[];
 
-function toast(msg,bg){var t=document.getElementById("toast");t.textContent=msg;t.style.background=bg||"#D4A843";t.style.color=bg?"#fff":"#0D0B0F";t.style.display="block";setTimeout(function(){t.style.display="none";},3000);}
+function toast(msg,bg){var t=document.getElementById("toast");t.textContent=msg;t.style.background=bg||"#B8902A";t.style.color="#fff";t.style.display="block";setTimeout(function(){t.style.display="none";},3200);}
 
 function showPage(p){
   document.querySelectorAll(".page").forEach(function(el){el.classList.remove("active");});
@@ -341,9 +364,24 @@ function showPage(p){
 }
 
 function stars(n){return "★".repeat(Math.floor(n))+"☆".repeat(5-Math.floor(n));}
-
 function filterVenue(v){vFilter=v;}
 function filterMod(m){mFilter=m;}
+
+function searchByZip(){
+  var z=document.getElementById("zip-input").value.trim();
+  if(z.length<5){toast("Please enter a 5-digit ZIP code","#C4727A");return;}
+  zipFilter=z;
+  var msg=document.getElementById("zip-msg");
+  msg.style.display="block";
+  msg.textContent="Showing practitioners near ZIP "+z;
+  renderFind();
+}
+function clearZip(){
+  zipFilter="";
+  document.getElementById("zip-input").value="";
+  document.getElementById("zip-msg").style.display="none";
+  renderFind();
+}
 
 function renderHome(){
   document.getElementById("home-stats").innerHTML='<div class="stat"><div class="stat-num">'+P.length+'</div><div class="stat-label">Verified healers</div></div><div class="stat"><div class="stat-num">'+B.length+'</div><div class="stat-label">Sessions booked</div></div><div class="stat"><div class="stat-num">15%</div><div class="stat-label">Platform fee only</div></div>';
@@ -353,22 +391,27 @@ function renderHome(){
 
 function healerCard(p,mini){
   var tags=p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("");
-  if(mini)return '<div class="healer-card" onclick="openBooking(\''+p.id+'\')"><div class="healer-top"><div class="avatar">'+p.avatar+'</div><div><div class="healer-name">'+p.name+'</div><div class="healer-loc">'+p.location+'</div></div><div style="margin-left:auto;color:#D4A843;font-weight:bold">$'+p.rate+'</div></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><div style="font-size:13px;color:#7A6E8A;line-height:1.5">'+p.bio.slice(0,80)+'...</div></div></div>';
-  return '<div class="healer-card"><div class="healer-top"><div class="avatar">'+p.avatar+'</div><div style="flex:1"><div class="healer-name">'+p.name+'</div><div class="healer-loc">📍 '+p.location+'</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"● Open":"○ Busy")+'</span></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><p style="font-size:13px;color:#7A6E8A;margin:0 0 10px;line-height:1.5">'+p.bio+'</p><div style="display:flex;align-items:center;justify-content:space-between"><div><span style="font-size:20px;font-weight:bold;color:#F9F7FC">$'+p.rate+'</span><span class="text-soft" style="font-size:12px">/session</span><div style="color:#D4A843;font-size:12px;margin-top:2px">'+stars(p.rating)+' <span class="text-soft">('+p.reviews+')</span></div></div>'+(p.available?'<button class="btn btn-gold" onclick="openBooking(\''+p.id+'\')">Book →</button>':'<button class="btn btn-gold" disabled>Unavailable</button>')+'</div></div></div>';
+  if(mini)return '<div class="healer-card" onclick="openBooking(\''+p.id+'\')"><div class="healer-top"><div class="avatar">'+p.avatar+'</div><div><div class="healer-name">'+p.name+'</div><div class="healer-loc">'+p.location+'</div></div><div style="margin-left:auto;color:#B8902A;font-weight:bold">$'+p.rate+'</div></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><div style="font-size:13px;color:#9A8FAA;line-height:1.5">'+p.bio.slice(0,80)+'...</div></div></div>';
+  return '<div class="healer-card"><div class="healer-top"><div class="avatar">'+p.avatar+'</div><div style="flex:1"><div class="healer-name">'+p.name+'</div><div class="healer-loc">📍 '+p.location+'</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"● Open":"○ Busy")+'</span></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><p style="font-size:13px;color:#9A8FAA;margin:0 0 10px;line-height:1.5">'+p.bio+'</p><div style="display:flex;align-items:center;justify-content:space-between"><div><span style="font-size:20px;font-weight:bold;color:#1A1225">$'+p.rate+'</span><span class="text-soft" style="font-size:12px">/session</span><div style="color:#B8902A;font-size:12px;margin-top:2px">'+stars(p.rating)+' <span class="text-soft">('+p.reviews+')</span></div></div>'+(p.available?'<button class="btn btn-gold" onclick="openBooking(\''+p.id+'\')">Book →</button>':'<button class="btn btn-ghost" disabled>Unavailable</button>')+'</div></div></div>';
 }
 
 function renderFind(){
   document.getElementById("venue-pills").innerHTML=VENUES.map(function(v){return '<button class="pill'+(vFilter===v?" pill-gold":"")+'" onclick="vFilter=\''+v+'\';renderFind()">'+v+'</button>';}).join("");
   document.getElementById("mod-pills").innerHTML=["All"].concat(MODS).map(function(m){return '<button class="pill'+(mFilter===m?" pill-teal":"")+'" onclick="mFilter=\''+m+'\';renderFind()">'+m+'</button>';}).join("");
-  var f=P.filter(function(p){return(vFilter==="All"||p.venueTypes.indexOf(vFilter)>-1)&&(mFilter==="All"||p.modalities.indexOf(mFilter)>-1);});
-  document.getElementById("healer-list").innerHTML=f.length?f.map(function(p){return healerCard(p,false);}).join(""):'<div style="text-align:center;padding:60px 0;color:#7A6E8A"><div style="font-size:40px;margin-bottom:12px">🔍</div>No practitioners found for this filter.</div>';
+  var f=P.filter(function(p){
+    var vOk=vFilter==="All"||p.venueTypes.indexOf(vFilter)>-1;
+    var mOk=mFilter==="All"||p.modalities.indexOf(mFilter)>-1;
+    var zOk=!zipFilter||!p.zip||(p.zip.charAt(0)===zipFilter.charAt(0));
+    return vOk&&mOk&&zOk;
+  });
+  document.getElementById("healer-list").innerHTML=f.length?f.map(function(p){return healerCard(p,false);}).join(""):'<div style="text-align:center;padding:60px 0;color:#9A8FAA"><div style="font-size:40px;margin-bottom:12px">🔍</div>No practitioners found for this filter.</div>';
 }
 
 function openBooking(id){
   selP=P.find(function(p){return p.id===id;});
   if(!selP)return;
-  document.getElementById("bk-healer").innerHTML='<div style="font-size:30px">'+selP.avatar+'</div><div style="flex:1"><div style="font-weight:bold;color:#F9F7FC">'+selP.name+'</div><div class="text-soft" style="font-size:12px">'+selP.location+'</div><div class="mod-tags" style="margin-top:4px">'+selP.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div style="text-align:right"><div style="font-size:20px;color:#D4A843;font-weight:bold">$'+selP.rate+'</div><div class="text-soft" style="font-size:11px">per session</div></div>';
-  document.getElementById("bk-step1").innerHTML='<div class="card"><h3 style="font-weight:normal;font-size:18px;color:#F9F7FC;margin-bottom:20px">Tell us about your event</h3><div class="field"><label>VENUE / COMPANY NAME</label><input id="b-venue" placeholder="e.g. Lotus Yoga Studio"></div><div class="field"><label>YOUR EMAIL</label><input id="b-email" type="email" placeholder="you@example.com"></div><div class="two-col"><div class="field"><label>DATE</label><input id="b-date" type="date"></div><div class="field"><label>TIME</label><input id="b-time" type="time"></div></div><div class="field"><label>VENUE TYPE</label><select id="b-vtype"><option value="">Select...</option>'+VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<option>'+v+'</option>';}).join("")+'</select></div><div class="field"><label>GROUP SIZE</label><input id="b-group" type="number" placeholder="e.g. 20"></div><div class="field"><label>NOTES FOR THE HEALER</label><textarea id="b-notes" rows="3" placeholder="Themes, intentions, special requests..."></textarea></div><button class="btn btn-gold full-width" style="padding:14px;font-size:15px" onclick="bkStep2()">Review Booking →</button></div>';
+  document.getElementById("bk-healer").innerHTML='<div style="font-size:30px">'+selP.avatar+'</div><div style="flex:1"><div style="font-weight:bold;color:#1A1225">'+selP.name+'</div><div class="text-soft" style="font-size:12px">'+selP.location+'</div><div class="mod-tags" style="margin-top:4px">'+selP.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div style="text-align:right"><div style="font-size:20px;color:#B8902A;font-weight:bold">$'+selP.rate+'</div><div class="text-soft" style="font-size:11px">per session</div></div>';
+  document.getElementById("bk-step1").innerHTML='<div class="card"><h3 style="font-weight:normal;font-size:18px;color:#1A1225;margin-bottom:20px">Tell us about your event</h3><div class="field"><label>VENUE / ORGANIZATION NAME</label><input id="b-venue" placeholder="e.g. Lotus Yoga Studio or Sunrise Nursing Home"></div><div class="field"><label>YOUR EMAIL</label><input id="b-email" type="email" placeholder="you@example.com"></div><div class="two-col"><div class="field"><label>DATE</label><input id="b-date" type="date"></div><div class="field"><label>TIME</label><input id="b-time" type="time"></div></div><div class="field"><label>VENUE TYPE</label><select id="b-vtype"><option value="">Select...</option>'+VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<option>'+v+'</option>';}).join("")+'</select></div><div class="field"><label>GROUP SIZE</label><input id="b-group" type="number" placeholder="e.g. 20"></div><div class="field"><label>NOTES FOR THE HEALER</label><textarea id="b-notes" rows="3" placeholder="Themes, intentions, accessibility needs, special requests..."></textarea></div><button class="btn btn-gold full-width" style="padding:14px;font-size:15px" onclick="bkStep2()">Review Booking →</button></div>';
   document.getElementById("bk-step1").style.display="block";
   document.getElementById("bk-step2").style.display="none";
   document.getElementById("bk-step3").style.display="none";
@@ -379,25 +422,47 @@ function bkStep2(){
   var v=document.getElementById("b-venue").value,e=document.getElementById("b-email").value,d=document.getElementById("b-date").value;
   if(!v||!e||!d){toast("Please fill in required fields","#C4727A");return;}
   var fee=selP.rate,pf=Math.round(fee*.15),tot=Math.round(fee*1.15);
-  var rows=[["Venue",v],["Date",d],["Time",document.getElementById("b-time").value||"—"],["Type",document.getElementById("b-vtype").value||"—"],["Group",document.getElementById("b-group").value?document.getElementById("b-group").value+" people":"—"],["Session fee","$"+fee],["Platform fee (15%)","$"+pf]];
-  document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#F9F7FC;margin-bottom:20px">Review your booking</h3>'+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#E8E2F0">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#D4A843"><span class="disclaimer-text">I understand that REAL Sound is a marketplace platform. REAL Sound is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Sound bears no liability for any injury or damage arising from this session.</span></label></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">Confirm and Request →</button></div></div>';
+  var rows=[["Venue/Org",v],["Date",d],["Time",document.getElementById("b-time").value||"—"],["Type",document.getElementById("b-vtype").value||"—"],["Group",document.getElementById("b-group").value?document.getElementById("b-group").value+" people":"—"],["Session fee","$"+fee],["Platform fee (15%)","$"+pf]];
+  document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#1A1225;margin-bottom:20px">Review your booking</h3>'+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#2A2030">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#B8902A"><span class="disclaimer-text">I understand that REAL Sound is a marketplace platform. REAL Sound is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Sound bears no liability for any injury or damage arising from this session.</span></label></div><div class="stripe-box"><div style="font-size:11px;letter-spacing:.1em;color:#B8902A;margin-bottom:10px">PAYMENT DETAILS</div><div id="card-element"></div><div id="card-errors"></div><div style="font-size:10px;color:#9A8FAA;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" id="pay-btn" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">Pay $'+tot+' & Request →</button></div></div>';
   document.getElementById("bk-step1").style.display="none";
   document.getElementById("bk-step2").style.display="block";
+  if(!elements)initStripe();
+  setTimeout(function(){
+    if(cardElement){try{cardElement.unmount();}catch(e){}}
+    cardElement=elements.create('card',{style:{base:{fontFamily:'Georgia,serif',fontSize:'14px',color:'#2A2030','::placeholder':{color:'#9A8FAA'}},invalid:{color:'#C4727A'}}});
+    cardElement.mount('#card-element');
+    cardElement.on('change',function(e){document.getElementById('card-errors').textContent=e.error?e.error.message:'';});
+  },100);
 }
 
 function bkStep1(){document.getElementById("bk-step1").style.display="block";document.getElementById("bk-step2").style.display="none";}
 
-function confirmBooking(){
+async function confirmBooking(){
   if(!document.getElementById("b-agreed").checked){toast("Please agree to the terms","#C4727A");return;}
-  var bk={id:"b"+Date.now(),practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,fee:selP.rate,platformFee:Math.round(selP.rate*.15),total:Math.round(selP.rate*1.15),status:"pending",createdAt:new Date().toISOString()};
-  B.push(bk);lsSet("rs:b",B);
-  document.getElementById("bk-step2").style.display="none";
-  document.getElementById("bk-step3").innerHTML='<div class="card card-gold" style="text-align:center;padding:36px"><div style="font-size:52px;margin-bottom:16px">🔔</div><h2 class="text-gold" style="font-weight:normal;margin-bottom:10px">Request Sent!</h2><p class="text-soft" style="margin-bottom:24px;line-height:1.7;font-size:14px">'+selP.name+' will confirm within 24 hours.</p><button class="btn btn-outline" onclick="showPage(\'find\')">Back to healers</button></div>';
-  document.getElementById("bk-step3").style.display="block";
-  toast("Booking request sent! 🎵");
+  var btn=document.getElementById("pay-btn");
+  btn.disabled=true;btn.textContent="Processing…";
+  var fee=selP.rate,tot=Math.round(fee*1.15);
+  try{
+    var result=await stripe.createPaymentMethod({type:'card',card:cardElement,billing_details:{email:document.getElementById("b-email").value}});
+    if(result.error){
+      document.getElementById("card-errors").textContent=result.error.message;
+      btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
+      return;
+    }
+    var bk={id:"b"+Date.now(),practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,fee:selP.rate,platformFee:Math.round(selP.rate*.15),total:tot,status:"pending",paymentMethodId:result.paymentMethod.id,createdAt:new Date().toISOString()};
+    B.push(bk);lsSet("rs:b",B);
+    document.getElementById("bk-step2").style.display="none";
+    document.getElementById("bk-step3").innerHTML='<div class="card card-gold" style="text-align:center;padding:36px"><div style="font-size:52px;margin-bottom:16px">🔔</div><h2 class="text-gold" style="font-weight:normal;margin-bottom:10px">Request Sent!</h2><p class="text-soft" style="margin-bottom:8px;line-height:1.7;font-size:14px">'+selP.name+' will confirm within 24 hours.</p><p class="text-soft" style="margin-bottom:24px;font-size:13px">Your card will be charged once they accept.</p><button class="btn btn-outline" onclick="showPage(\'find\')">Back to healers</button></div>';
+    document.getElementById("bk-step3").style.display="block";
+    toast("Booking request sent! 🎵");
+  }catch(e){
+    btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
+    toast("Something went wrong. Please try again.","#C4727A");
+  }
 }
 
 function renderJoinPills(){
+  if(!document.getElementById("j-mods"))return;
   document.getElementById("j-mods").innerHTML=MODS.map(function(m){return '<button class="pill'+(jMods.indexOf(m)>-1?" pill-teal":"")+'" onclick="toggle(jMods,\''+m+'\',\'j-mods\',renderJoinPills)">'+m+'</button>';}).join("");
   document.getElementById("j-instr").innerHTML=INSTR.map(function(i){return '<button class="pill'+(jInstr.indexOf(i)>-1?" pill-gold":"")+'" onclick="toggle(jInstr,\''+i+'\',\'j-instr\',renderJoinPills)">'+i+'</button>';}).join("");
   document.getElementById("j-venues").innerHTML=VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<button class="pill'+(jVenues.indexOf(v)>-1?" pill-rose":"")+'" onclick="toggle(jVenues,\''+v+'\',\'j-venues\',renderJoinPills)">'+v+'</button>';}).join("");
@@ -413,11 +478,11 @@ function showJoin(n){
 }
 
 function submitJoin(){
-  var name=document.getElementById("j-name").value,email=document.getElementById("j-email").value,pass=document.getElementById("j-password").value,loc=document.getElementById("j-location").value,rate=document.getElementById("j-rate").value;
+  var name=document.getElementById("j-name").value,email=document.getElementById("j-email").value,pass=document.getElementById("j-password").value,loc=document.getElementById("j-location").value,rate=document.getElementById("j-rate").value,zip=document.getElementById("j-zip").value;
   if(!name||!email||!pass||!loc||!rate){toast("Please fill all required fields","#C4727A");return;}
   if(P.find(function(p){return p.email===email;})){toast("Email already registered","#C4727A");return;}
   var avatars=["🌿","🎵","🌸","💫","🔔","🌀","🪬"];
-  var p={id:"p"+Date.now(),name:name,email:email,password:pass,location:loc,rate:parseInt(rate),instruments:jInstr.slice(),venueTypes:jVenues.slice(),modalities:jMods.slice(),bio:document.getElementById("j-bio").value,rating:5.0,reviews:0,available:true,avatar:avatars[Math.floor(Math.random()*avatars.length)]};
+  var p={id:"p"+Date.now(),name:name,email:email,password:pass,location:loc,zip:zip,rate:parseInt(rate),instruments:jInstr.slice(),venueTypes:jVenues.slice(),modalities:jMods.slice(),bio:document.getElementById("j-bio").value,rating:5.0,reviews:0,available:true,avatar:avatars[Math.floor(Math.random()*avatars.length)]};
   P.push(p);lsSet("rs:p",P);jMods=[];jInstr=[];jVenues=[];
   toast("Welcome to REAL Sound! ✨");showJoin(2);
 }
@@ -428,7 +493,7 @@ function renderLogin(){
     document.getElementById("dashboard").style.display="block";
     document.getElementById("dash-name").textContent=curUser.avatar+" "+curUser.name;
     setPTab("overview",document.querySelector(".ptab"));
-  } else {
+  }else{
     document.getElementById("login-form").style.display="block";
     document.getElementById("dashboard").style.display="none";
   }
@@ -459,7 +524,7 @@ function myEarned(){return myB().filter(function(b){return b.status==="confirmed
 
 function renderOverview(){
   var mb=myB(),pend=mb.filter(function(b){return b.status==="pending";}),conf=mb.filter(function(b){return b.status==="confirmed";});
-  document.getElementById("ptab-overview").innerHTML='<div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#D4A843">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#F9F7FC;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.date+' · '+b.venueType+' · '+b.groupSize+' people</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#7A6E8A;padding:28px">No pending requests yet.</div>');
+  document.getElementById("ptab-overview").innerHTML='<div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#B8902A">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#1A1225;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.date+' · '+b.venueType+' · '+b.groupSize+' people</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#9A8FAA;padding:28px">No pending requests yet.</div>');
 }
 
 function respond(id,status){
@@ -469,19 +534,19 @@ function respond(id,status){
 
 function renderMyBookings(){
   var mb=myB();
-  document.getElementById("ptab-bookings").innerHTML='<div class="section-title">ALL BOOKINGS ('+mb.length+')</div>'+(mb.length?mb.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#F9F7FC;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.date+' · '+b.venueType+'</div></div><div style="text-align:right"><span class="status-'+b.status+'">'+b.status+'</span><div class="text-teal" style="font-size:13px;margin-top:6px">$'+b.fee+' your cut</div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#7A6E8A;padding:28px">No bookings yet.</div>');
+  document.getElementById("ptab-bookings").innerHTML='<div class="section-title">ALL BOOKINGS ('+mb.length+')</div>'+(mb.length?mb.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#1A1225;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.date+' · '+b.venueType+'</div></div><div style="text-align:right"><span class="status-'+b.status+'">'+b.status+'</span><div class="text-teal" style="font-size:13px;margin-top:6px">$'+b.fee+' your cut</div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#9A8FAA;padding:28px">No bookings yet.</div>');
 }
 
 function renderEarnings(){
   var conf=myB().filter(function(b){return b.status==="confirmed";});
   var earned=conf.reduce(function(s,b){return s+b.fee;},0);
   var fees=conf.reduce(function(s,b){return s+b.platformFee;},0);
-  document.getElementById("ptab-earnings").innerHTML='<div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+earned+'</div><div class="stat-label">TOTAL EARNED</div></div><div class="stat"><div class="stat-num" style="color:#7A6E8A">$'+fees+'</div><div class="stat-label">PLATFORM FEES</div></div><div class="stat"><div class="stat-num" style="color:#D4A843">'+conf.length+'</div><div class="stat-label">SESSIONS DONE</div></div></div><div class="section-title">CONFIRMED SESSIONS</div>'+(conf.length?conf.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#F9F7FC">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.date+' · '+b.venueType+'</div></div><div style="text-align:right"><div style="font-size:18px;color:#4A9B8E;font-weight:bold">$'+b.fee+'</div><div class="text-soft" style="font-size:11px">your earnings</div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#7A6E8A;padding:28px">No confirmed sessions yet.</div>');
+  document.getElementById("ptab-earnings").innerHTML='<div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+earned+'</div><div class="stat-label">TOTAL EARNED</div></div><div class="stat"><div class="stat-num" style="color:#9A8FAA">$'+fees+'</div><div class="stat-label">PLATFORM FEES</div></div><div class="stat"><div class="stat-num" style="color:#B8902A">'+conf.length+'</div><div class="stat-label">SESSIONS DONE</div></div></div><div class="section-title">CONFIRMED SESSIONS</div>'+(conf.length?conf.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#1A1225">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.date+' · '+b.venueType+'</div></div><div style="text-align:right"><div style="font-size:18px;color:#4A9B8E;font-weight:bold">$'+b.fee+'</div><div class="text-soft" style="font-size:11px">your earnings</div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#9A8FAA;padding:28px">No confirmed sessions yet.</div>');
 }
 
 function renderMyProfile(){
   var p=curUser;
-  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px"><div style="font-size:38px;background:#2E2438;border-radius:50%;width:58px;height:58px;display:flex;align-items:center;justify-content:center">'+p.avatar+'</div><div><div style="font-weight:bold;font-size:20px;color:#F9F7FC">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">$'+p.rate+'/session</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div></div>';
+  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px"><div style="font-size:38px;background:#FBF7EE;border-radius:50%;width:58px;height:58px;display:flex;align-items:center;justify-content:center">'+p.avatar+'</div><div><div style="font-weight:bold;font-size:20px;color:#1A1225">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">$'+p.rate+'/session</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div></div>';
 }
 
 function checkAdmin(){
@@ -489,7 +554,7 @@ function checkAdmin(){
     document.getElementById("admin-login").style.display="none";
     document.getElementById("admin-dash").style.display="block";
     renderAdmin();
-  } else toast("Incorrect code","#C4727A");
+  }else toast("Incorrect code","#C4727A");
 }
 
 function lockAdmin(){document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
@@ -497,14 +562,17 @@ function lockAdmin(){document.getElementById("admin-login").style.display="block
 function renderAdmin(){
   var conf=B.filter(function(b){return b.status==="confirmed";});
   var rev=conf.reduce(function(s,b){return s+b.platformFee;},0);
-  document.getElementById("admin-stats").innerHTML='<div class="stat"><div class="stat-num">'+B.length+'</div><div class="stat-label">TOTAL BOOKINGS</div></div><div class="stat"><div class="stat-num" style="color:#D4A843">'+B.filter(function(b){return b.status==="pending";}).length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+rev+'</div><div class="stat-label">YOUR REVENUE</div></div>';
-  document.getElementById("admin-bookings").innerHTML=B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#F9F7FC;margin-bottom:2px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.practitionerName+' · '+b.date+' · '+b.venueType+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span></div></div><span class="status-'+b.status+'">'+b.status+'</span>'+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>';
-  document.getElementById("admin-practitioners").innerHTML=P.map(function(p){return '<div class="booking-card" style="display:flex;align-items:center;gap:14px"><div style="font-size:22px">'+p.avatar+'</div><div style="flex:1"><div style="font-weight:bold;color:#F9F7FC">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · $'+p.rate+'/session</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button></div>';}).join("");
+  document.getElementById("admin-stats").innerHTML='<div class="stat"><div class="stat-num">'+B.length+'</div><div class="stat-label">TOTAL BOOKINGS</div></div><div class="stat"><div class="stat-num" style="color:#B8902A">'+B.filter(function(b){return b.status==="pending";}).length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+rev+'</div><div class="stat-label">YOUR REVENUE</div></div>';
+  document.getElementById("admin-bookings").innerHTML=B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#1A1225;margin-bottom:2px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.practitionerName+' · '+b.date+' · '+b.venueType+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span></div></div><span class="status-'+b.status+'">'+b.status+'</span>'+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>';
+  document.getElementById("admin-practitioners").innerHTML=P.map(function(p){return '<div class="booking-card" style="display:flex;align-items:center;gap:14px"><div style="font-size:22px">'+p.avatar+'</div><div style="flex:1"><div style="font-weight:bold;color:#1A1225">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · $'+p.rate+'/session</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button></div>';}).join("");
 }
 
 function aRespond(id,s){B=B.map(function(b){return b.id===id?Object.assign({},b,{status:s}):b;});lsSet("rs:b",B);renderAdmin();}
 function removeP(id){P=P.filter(function(p){return p.id!==id;});lsSet("rs:p",P);renderAdmin();}
 
+window.addEventListener('load', function(){
+  if(typeof Stripe !== 'undefined') initStripe();
+});
 renderHome();
 </script>
 </body>
