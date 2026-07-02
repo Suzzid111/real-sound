@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>REAL Sound</title>
 <script src="https://js.stripe.com/v3/" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  (function(){emailjs.init({publicKey:"2iDmkgKIVLziQiw1Y"});})();
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Georgia,serif;background:#FAFAF8;color:#2A2030;min-height:100vh}
@@ -451,6 +455,11 @@ async function confirmBooking(){
     }
     var bk={id:"b"+Date.now(),practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,fee:selP.rate,platformFee:Math.round(selP.rate*.15),total:tot,status:"pending",paymentMethodId:result.paymentMethod.id,createdAt:new Date().toISOString()};
     B.push(bk);lsSet("rs:b",B);
+    emailjs.send("service_bl7o2cm","template_50n96cr",{
+      name:bk.venueName,
+      email:bk.email,
+      message:"Healer: "+bk.practitionerName+" | Date: "+bk.date+" | Time: "+(bk.time||"TBD")+" | Type: "+bk.venueType+" | Group: "+(bk.groupSize||"TBD")+" | Total: $"+bk.total+" | Notes: "+(bk.notes||"None")
+    }).catch(function(){});
     document.getElementById("bk-step2").style.display="none";
     document.getElementById("bk-step3").innerHTML='<div class="card card-gold" style="text-align:center;padding:36px"><div style="font-size:52px;margin-bottom:16px">🔔</div><h2 class="text-gold" style="font-weight:normal;margin-bottom:10px">Request Sent!</h2><p class="text-soft" style="margin-bottom:8px;line-height:1.7;font-size:14px">'+selP.name+' will confirm within 24 hours.</p><p class="text-soft" style="margin-bottom:24px;font-size:13px">Your card will be charged once they accept.</p><button class="btn btn-outline" onclick="showPage(\'find\')">Back to healers</button></div>';
     document.getElementById("bk-step3").style.display="block";
