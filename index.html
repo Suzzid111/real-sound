@@ -227,6 +227,12 @@ input:focus,select:focus,textarea:focus{border-color:#B8902A}
       <div class="field"><label>INSTRUMENTS</label><div class="pills" id="j-instr"></div></div>
       <div class="field"><label>VENUE TYPES YOU SERVE</label><div class="pills" id="j-venues"></div></div>
       <div class="field"><label>YOUR BIO</label><textarea id="j-bio" rows="4" placeholder="Tell venues about your practice…"></textarea></div>
+      <div class="disclaimer-box">
+        <label class="disclaimer-label">
+          <input type="checkbox" id="j-agreed" style="margin-top:3px;accent-color:#B8902A">
+          <span class="disclaimer-text">I agree to the REAL Sound Founding Healer Terms: I understand that REAL Sound is the originating source of any client or venue connection made through this platform. I agree not to solicit, accept, or arrange direct bookings with any client or venue first introduced through REAL Sound, bypassing the platform, for a period of 24 months from the date of first connection. A 15% commission applies to all confirmed bookings made through REAL Sound. Violation of these terms may result in removal from the platform.</span>
+        </label>
+      </div>
       <button class="btn btn-gold full-width" style="padding:14px;font-size:15px;margin-top:4px" onclick="submitJoin()">Create Profile →</button>
     </div>
   </div>
@@ -489,6 +495,7 @@ function showJoin(n){
 function submitJoin(){
   var name=document.getElementById("j-name").value,email=document.getElementById("j-email").value,pass=document.getElementById("j-password").value,loc=document.getElementById("j-location").value,rate=document.getElementById("j-rate").value,zip=document.getElementById("j-zip").value;
   if(!name||!email||!pass||!loc||!rate){toast("Please fill all required fields","#C4727A");return;}
+  if(!document.getElementById("j-agreed").checked){toast("Please agree to the Founding Healer terms","#C4727A");return;}
   if(P.find(function(p){return p.email===email;})){toast("Email already registered","#C4727A");return;}
   var avatars=["🌿","🎵","🌸","💫","🔔","🌀","🪬"];
   var p={id:"p"+Date.now(),name:name,email:email,password:pass,location:loc,zip:zip,rate:parseInt(rate),instruments:jInstr.slice(),venueTypes:jVenues.slice(),modalities:jMods.slice(),bio:document.getElementById("j-bio").value,rating:5.0,reviews:0,available:true,avatar:avatars[Math.floor(Math.random()*avatars.length)]};
