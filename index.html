@@ -470,13 +470,20 @@ async function confirmBooking(){
   btn.disabled=true;btn.textContent="Processing…";
   var fee=selP.rate,tot=Math.round(fee*1.15);
   try{
-    var result=await stripe.createPaymentMethod({type:'card',card:cardElement,billing_details:{email:document.getElementById("b-email").value}});
+    var piRes=await fetch('/api/create-payment-intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:tot,email:document.getElementById("b-email").value,metadata:{practitioner:selP.name}})});
+    var piData=await piRes.json();
+    if(piData.error){
+      document.getElementById("card-errors").textContent=piData.error;
+      btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
+      return;
+    }
+    var result=await stripe.confirmCardPayment(piData.clientSecret,{payment_method:{card:cardElement,billing_details:{email:document.getElementById("b-email").value}}});
     if(result.error){
       document.getElementById("card-errors").textContent=result.error.message;
       btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
       return;
     }
-    var bk={id:"b"+Date.now(),practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,fee:selP.rate,platformFee:Math.round(selP.rate*.15),total:tot,status:"pending",paymentMethodId:result.paymentMethod.id,createdAt:new Date().toISOString()};
+    var bk={id:"b"+Date.now(),paymentIntentId:piData.paymentIntentId,practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,fee:selP.rate,platformFee:Math.round(selP.rate*.15),total:tot,status:"pending",paymentMethodId:result.paymentMethod.id,createdAt:new Date().toISOString()};
     B.push(bk);lsSet("rs:b",B);
     emailjs.send("service_bl7o2cm","template_50n96cr",{
       name:bk.venueName,
@@ -567,7 +574,17 @@ function renderOverview(){
   document.getElementById("ptab-overview").innerHTML='<div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#6B4699">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.date+' · '+b.venueType+' · '+b.groupSize+' people</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No pending requests yet.</div>');
 }
 
-function respond(id,status){
+async function respond(id,status){
+  var bkg=B.find(function(b){return b.id===id;});
+  if(bkg&&bkg.paymentIntentId){
+    try{
+      if(status==="confirmed"){
+        await fetch('/api/capture-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentIntentId:bkg.paymentIntentId})});
+      }else{
+        await fetch('/api/cancel-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentIntentId:bkg.paymentIntentId})});
+      }
+    }catch(e){}
+  }
   B=B.map(function(b){return b.id===id?Object.assign({},b,{status:status}):b;});
   lsSet("rs:b",B);toast(status==="confirmed"?"Booking confirmed ✓":"Booking declined",status==="confirmed"?"#4A9B8E":"#C4727A");renderOverview();
 }
