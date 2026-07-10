@@ -453,12 +453,13 @@ function bkStep2(){
   document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin-bottom:20px">Review your booking</h3>'+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#2A1F3D">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">I understand that REAL Sound is a marketplace platform. REAL Sound is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Sound bears no liability for any injury or damage arising from this session.</span></label></div><div class="stripe-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="card-element"></div><div id="card-errors"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" id="pay-btn" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">Pay $'+tot+' & Request →</button></div></div>';
   document.getElementById("bk-step1").style.display="none";
   document.getElementById("bk-step2").style.display="block";
-  if(!elements)initStripe();
+ if(!elements)initStripe();
   setTimeout(function(){
-    if(cardElement){try{cardElement.unmount();}catch(e){}}
-    cardElement=elements.create('card',{style:{base:{fontFamily:'Georgia,serif',fontSize:'14px',color:'#2A1F3D','::placeholder':{color:'#A990C9'}},invalid:{color:'#C4727A'}}});
+    if(!cardElement){
+      cardElement=elements.create('card',{style:{base:{fontFamily:'Georgia,serif',fontSize:'14px',color:'#2A1F3D','::placeholder':{color:'#A990C9'}},invalid:{color:'#C4727A'}}});
+      cardElement.on('change',function(e){document.getElementById('card-errors').textContent=e.error?e.error.message:'';});
+    }
     cardElement.mount('#card-element');
-    cardElement.on('change',function(e){document.getElementById('card-errors').textContent=e.error?e.error.message:'';});
   },100);
 }
 
