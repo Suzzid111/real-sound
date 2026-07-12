@@ -369,8 +369,7 @@ function lsGet(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 async function serverGet(key,d){try{var r=await fetch('/api/data?key='+key);var j=await r.json();return (j.value!==null&&j.value!==undefined)?j.value:d;}catch(e){return d;}}
 async function serverSet(key,value){try{await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,value:value})});}catch(e){}}
-async function loadFromServer(){P=await serverGet('practitioners',P);B=await serverGet('bookings',B);lsSet("rs:p",P);lsSet("rs:b",B);showPage('home');}
-
+async function loadFromServer(){P=await serverGet('practitioners',P);B=await serverGet('bookings',B);lsSet("rs:p",P);lsSet("rs:b",B);renderHome();}
 var P=lsGet("rs:p",SEED);
 var B=lsGet("rs:b",[]);
 var vFilter="All",mFilter="All",selP=null,curUser=null;
@@ -386,7 +385,7 @@ function showPage(p){
   var nb=document.getElementById("nav-"+p);
   if(!nb)nb=document.getElementById("nav-login");
   if(nb)nb.classList.add("active");
-  if(p==="home")loadFromServer();
+  if(p==="home")renderHome();
   if(p==="find")renderFind();
   if(p==="join")renderJoinPills();
   if(p==="login")renderLogin();
