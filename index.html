@@ -367,6 +367,9 @@ var zipFilter="";
 
 function lsGet(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+async function serverGet(key,d){try{var r=await fetch('/api/data?key='+key);var j=await r.json();return (j.value!==null&&j.value!==undefined)?j.value:d;}catch(e){return d;}}
+async function serverSet(key,value){try{await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,value:value})});}catch(e){}}
+async function loadFromServer(){P=await serverGet('practitioners',P);B=await serverGet('bookings',B);lsSet("rs:p",P);lsSet("rs:b",B);showPage('home');}
 
 var P=lsGet("rs:p",SEED);
 var B=lsGet("rs:b",[]);
@@ -383,7 +386,7 @@ function showPage(p){
   var nb=document.getElementById("nav-"+p);
   if(!nb)nb=document.getElementById("nav-login");
   if(nb)nb.classList.add("active");
-  if(p==="home")renderHome();
+  if(p==="home")loadFromServer();
   if(p==="find")renderFind();
   if(p==="join")renderJoinPills();
   if(p==="login")renderLogin();
@@ -485,7 +488,7 @@ async function confirmBooking(){
       return;
     }
     var bk={id:"b"+Date.now(),paymentIntentId:piData.paymentIntentId,practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,fee:selP.rate,platformFee:Math.round(selP.rate*.15),total:tot,status:"pending",paymentMethodId:result.paymentIntent.payment_method,createdAt:new Date().toISOString()};
-    B.push(bk);lsSet("rs:b",B);
+    B.push(bk);lsSet("rs:b",B);serverSet('bookings',B);
     emailjs.send("service_bl7o2cm","template_50n96cr",{
       name:bk.venueName,
       email:bk.email,
@@ -525,7 +528,7 @@ function submitJoin(){
   var src=getSrc();
   var avatars=["🌿","🎵","🌸","💫","🔔","🌀","🪬"];
   var p={id:"p"+Date.now(),name:name,email:email,password:pass,location:loc,zip:zip,rate:parseInt(rate),instruments:jInstr.slice(),venueTypes:jVenues.slice(),modalities:jMods.slice(),bio:document.getElementById("j-bio").value,rating:5.0,reviews:0,available:true,avatar:avatars[Math.floor(Math.random()*avatars.length)],source:src,joinedAt:new Date().toISOString()};
-  P.push(p);lsSet("rs:p",P);
+ P.push(p);lsSet("rs:p",P);serverSet('practitioners',P);
   emailjs.send("service_bl7o2cm","template_50n96cr",{
     name:"REAL Sound Admin",
     email:"bookings.realsound@gmail.com",
@@ -627,14 +630,14 @@ function renderAdmin(){
   document.getElementById("admin-bookings").innerHTML=(srcHtml?'<div style="margin-bottom:16px"><div class="section-title">SIGNUP SOURCES</div>'+srcHtml+'</div>':'')+(B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:2px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.practitionerName+' · '+b.date+' · '+b.venueType+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span></div></div><span class="status-'+b.status+'">'+b.status+'</span>'+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>');
   document.getElementById("admin-practitioners").innerHTML=P.map(function(p){return '<div class="booking-card" style="display:flex;align-items:center;gap:14px"><div style="font-size:22px">'+p.avatar+'</div><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · $'+p.rate+'/session'+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+' </div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button></div>';}).join("");
 }
-
-function aRespond(id,s){B=B.map(function(b){return b.id===id?Object.assign({},b,{status:s}):b;});lsSet("rs:b",B);renderAdmin();}
-function removeP(id){P=P.filter(function(p){return p.id!==id;});lsSet("rs:p",P);renderAdmin();}
+lsSet("rs:b",B)
+function aRespond(id,s){B=B.map(function(b){return b.id===id?Object.assign({},b,{status:s}):b;});lsSet("rs:b",B);serverSet('bookings',B);renderAdmin();}
+function removeP(id){P=P.filter(function(p){return p.id!==id;});lsSet("rs:p",P);serverSet('practitioners',P);renderAdmin();}
 
 window.addEventListener('load',function(){
   if(typeof Stripe!=='undefined')initStripe();
 });
-renderHome();
+loadFromServer();
 </script>
 </body>
 </html>
