@@ -86,7 +86,7 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
 .review-key{color:#A990C9;font-size:11px;letter-spacing:.08em}
 .disclaimer-box{background:linear-gradient(135deg,#FAF8FF,#F0EAF8);border-radius:8px;padding:12px;margin:12px 0;border:1px solid rgba(107,70,153,.15)}
 .disclaimer-label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
-.disclaimer-text{font-size:11px;color:#7A6E8A;line-height:1.6}
+.disclaimer-text{font-size:11px;color:#7A6E8A;line-height:1.6;flex:1;min-width:0;overflow-wrap:break-word}
 .dash-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:24px}
 .ptabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:20px}
 .ptab{background:#F0EAF8;border:none;color:#7A6E8A;padding:7px 13px;border-radius:20px;cursor:pointer;font-family:Georgia,serif;font-size:11px}
@@ -345,6 +345,7 @@ function initStripe(){
   stripe=Stripe(STRIPE_KEY);
   elements=stripe.elements();
   cardElement=elements.create('card',{style:{base:{fontFamily:'Georgia,serif',fontSize:'14px',color:'#2A1F3D','::placeholder':{color:'#A990C9'}},invalid:{color:'#C4727A'}}});
+  cardElement.on('change',function(e){document.getElementById('card-errors').textContent=e.error?e.error.message:'';});
 }
 
 // Source tracking
@@ -629,7 +630,6 @@ function renderAdmin(){
   document.getElementById("admin-bookings").innerHTML=(srcHtml?'<div style="margin-bottom:16px"><div class="section-title">SIGNUP SOURCES</div>'+srcHtml+'</div>':'')+(B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:2px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.practitionerName+' · '+b.date+' · '+b.venueType+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span></div></div><span class="status-'+b.status+'">'+b.status+'</span>'+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>');
   document.getElementById("admin-practitioners").innerHTML=P.map(function(p){return '<div class="booking-card" style="display:flex;align-items:center;gap:14px"><div style="font-size:22px">'+p.avatar+'</div><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · $'+p.rate+'/session'+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+' </div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button></div>';}).join("");
 }
-lsSet("rs:b",B)
 function aRespond(id,s){B=B.map(function(b){return b.id===id?Object.assign({},b,{status:s}):b;});lsSet("rs:b",B);serverSet('bookings',B);renderAdmin();}
 function removeP(id){P=P.filter(function(p){return p.id!==id;});lsSet("rs:p",P);serverSet('practitioners',P);renderAdmin();}
 
