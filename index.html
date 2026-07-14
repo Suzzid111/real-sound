@@ -288,7 +288,7 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
           <button class="ptab active" onclick="setPTab('overview',this)">📊 Overview</button>
           <button class="ptab" onclick="setPTab('bookings',this)">📅 Bookings</button>
           <button class="ptab" onclick="setPTab('earnings',this)">💰 Earnings</button>
-          <button class="ptab" onclick="setPTab('profile',this)">👤 Profile</button>
+          <button class="ptab" onclick="setPTab('profile',this)">👤 Profile</button><button class="ptab" onclick="setPTab('schedule',this)">🗓️ Schedule">👤 Profile</button>
         </div>
         <button class="btn btn-ghost" style="font-size:11px;padding:7px 13px" onclick="doLogout()">Log out</button>
       </div>
@@ -296,7 +296,7 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
     <div id="ptab-overview"></div>
     <div id="ptab-bookings" style="display:none"></div>
     <div id="ptab-earnings" style="display:none"></div>
-    <div id="ptab-profile" style="display:none"></div>
+    <div id="ptab-profile" style="display:none"></div><div id="ptab-schedule" style="display:none"></div>
   </div>
 </div>
 </div>
@@ -561,13 +561,13 @@ function doLogin(){
 function doLogout(){curUser=null;renderLogin();}
 
 function setPTab(tab,btn){
-  ["overview","bookings","earnings","profile"].forEach(function(t){document.getElementById("ptab-"+t).style.display=t===tab?"block":"none";});
+  ["overview","bookings","earnings","profile","schedule"].forEach(function(t){document.getElementById("ptab-"+t).style.display=t===tab?"block":"none";});
   document.querySelectorAll(".ptab").forEach(function(b){b.classList.remove("active");});
   if(btn)btn.classList.add("active");
   if(tab==="overview")renderOverview();
   if(tab==="bookings")renderMyBookings();
   if(tab==="earnings")renderEarnings();
-  if(tab==="profile")renderMyProfile();
+  if(tab==="profile")renderMyProfile();   if(tab==="schedule")renderSchedule();
 }
 
 function myB(){return B.filter(function(b){return b.practitionerId===curUser.id;});}
