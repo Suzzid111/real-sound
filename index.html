@@ -431,7 +431,7 @@ function renderFind(){
   var f=P.filter(function(p){
     var vOk=vFilter==="All"||p.venueTypes.indexOf(vFilter)>-1;
     var mOk=mFilter==="All"||p.modalities.indexOf(mFilter)>-1;
-    var zOk=!zipFilter||!p.zip||(p.zip.charAt(0)===zipFilter.charAt(0));
+    var zOk=!zipFilter||!p.zip||(p.zip.substring(0,3)===zipFilter.substring(0,3));
     return vOk&&mOk&&zOk;
   });
   document.getElementById("healer-list").innerHTML=f.length?f.map(function(p){return healerCard(p,false);}).join(""):'<div style="text-align:center;padding:60px 0;color:#A990C9"><div style="font-size:40px;margin-bottom:12px">🔍</div>No practitioners found for this filter.</div>';
