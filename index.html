@@ -230,15 +230,24 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
       <h3 style="font-weight:normal;font-size:20px;color:#2A1F3D;margin-bottom:4px">Create your healer profile</h3>
       <p class="text-soft" style="font-size:13px;margin-bottom:20px">Venues will see this. Use your email and password to log back in.</p>
       <div class="field"><label>YOUR NAME</label><input id="j-name" placeholder="e.g. Luna Serrano"></div>
-      <div class="field"><label>EMAIL</label><input id="j-email" type="email" placeholder="you@example.com"></div>
+      <div class="field"><label>EMAIL <span style="text-transform:none;letter-spacing:0;color:#A990C9">(private — admin use only, never shown publicly)</span></label><input id="j-email" type="email" placeholder="you@example.com"></div>
       <div class="field"><label>PASSWORD</label><input id="j-password" type="password" placeholder="Create a password"></div>
       <div class="field"><label>LOCATION</label><input id="j-location" placeholder="City, State"></div>
       <div class="field"><label>ZIP CODE</label><input id="j-zip" placeholder="e.g. 02910" maxlength="5"></div>
-      <div class="field"><label>SESSION RATE ($)</label><input id="j-rate" type="number" placeholder="e.g. 250"></div>
+      <div class="field">
+        <label>SESSION TYPES & PRICING</label>
+        <div id="j-tier-list" style="margin-bottom:8px"></div>
+        <div class="two-col">
+          <input id="j-tier-name" placeholder="e.g. 60-min Sound Bath">
+          <input id="j-tier-price" type="number" placeholder="Price $">
+        </div>
+        <button type="button" class="btn btn-ghost full-width" style="margin-top:8px" onclick="addJoinTier()">+ Add Session Type</button>
+      </div>
+      <div class="field"><label>CALENDLY LINK <span style="text-transform:none;letter-spacing:0;color:#A990C9">(optional)</span></label><input id="j-calendly" placeholder="e.g. calendly.com/yourname"></div>
       <div class="field"><label>MODALITIES</label><div class="pills" id="j-mods"></div></div>
       <div class="field"><label>INSTRUMENTS</label><div class="pills" id="j-instr"></div></div>
       <div class="field"><label>VENUE TYPES YOU SERVE</label><div class="pills" id="j-venues"></div></div>
-      <div class="field"><label>YOUR BIO</label><textarea id="j-bio" rows="4" placeholder="Tell venues about your practice…"></textarea></div>
+      <div class="field"><label>YOUR BIO <span style="text-transform:none;letter-spacing:0;color:#A990C9">(please, no outside website links)</span></label><textarea id="j-bio" rows="4" placeholder="Tell venues about your practice…"></textarea></div>
       <div class="disclaimer-box">
         <label class="disclaimer-label">
           <input type="checkbox" id="j-agreed" style="margin-top:3px;accent-color:#6B4699">
@@ -303,8 +312,8 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
 
 <!-- ADMIN -->
 <div id="page-admin" class="page">
-<div class="wrap" style="max-width:500px;padding-top:60px">
-  <div id="admin-login" style="text-align:center">
+<div class="wrap" style="max-width:640px;padding-top:60px">
+  <div id="admin-login" style="text-align:center;max-width:400px;margin:0 auto">
     <div style="font-size:36px;margin-bottom:16px">🔐</div>
     <h3 style="color:#2A1F3D;font-weight:normal;margin-bottom:20px">Admin Access</h3>
     <div class="field"><input id="admin-code" placeholder="Enter admin code" style="text-align:center"></div>
@@ -312,14 +321,20 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
     
   </div>
   <div id="admin-dash" style="display:none">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">
-      <h2 class="text-purple" style="font-weight:normal">⚙ Admin Dashboard</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:10px">
+      <h2 class="text-purple" style="font-weight:normal">⚙ Admin Dashboard <span id="admin-role-badge" class="text-soft" style="font-size:11px;font-weight:normal"></span></h2>
       <button class="btn btn-ghost" style="font-size:12px;padding:6px 14px" onclick="lockAdmin()">Lock</button>
     </div>
+    <div id="admin-owner-controls" style="display:none;margin-bottom:20px"></div>
+    <div class="section-title">🔔 RECENT ACTIVITY</div>
+    <div id="admin-notes" style="margin-bottom:24px"></div>
     <div class="dash-grid" id="admin-stats"></div>
     <div class="section-title">ALL BOOKINGS</div>
     <div id="admin-bookings"></div>
-    <div class="section-title" style="margin-top:24px">PRACTITIONERS</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px">
+      <div class="section-title" style="margin-bottom:0">PRACTITIONERS</div>
+      <button id="admin-export-btn" class="btn btn-ghost" style="font-size:11px;padding:6px 12px;display:none" onclick="exportHealerEmails()">⬇ Export emails (CSV)</button>
+    </div>
     <div id="admin-practitioners"></div>
   </div>
 </div>
@@ -334,7 +349,9 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
 <div class="footer">
   <div style="color:#C9922A;font-size:13px;letter-spacing:.12em">◉ REAL HOLISTIC NETWORK</div>
   <div style="color:#A990C9;font-size:11px;margin-top:4px">A REAL Golden Peace venture by Suzzanna</div>
-  <div style="color:#7A6E8A;font-size:10px;margin-top:4px">© 2026 REAL Holistic Network · All Rights Reserved</div>
+  <div style="color:#E8B84B;font-size:16px;margin-top:12px">🐘</div>
+  <div style="color:#A990C9;font-size:10px;margin-top:4px;font-style:italic">In loving memory of my father, who collected elephants — every elephant here is for him.</div>
+  <div style="color:#7A6E8A;font-size:10px;margin-top:10px">© 2026 REAL Holistic Network · All Rights Reserved</div>
 </div>
 
 <script>
@@ -355,11 +372,34 @@ function getSrc(){
 }
 
 var SEED=[
-  {id:"p1",name:"Luna Serrano",location:"Providence, RI",zip:"02903",email:"luna@example.com",password:"luna123",instruments:["Crystal Bowls","Gong","Chimes"],venueTypes:["Yoga Studios","Corporate","Retreats","Nursing Homes"],modalities:["Sound Bath & Gong Bath","Reiki & Crystal Healing"],rate:250,rating:4.9,reviews:38,available:true,bio:"Level 2 Reiki practitioner and certified sound healer with 6 years bringing deep healing to groups of all kinds.",avatar:"🌙"},
-  {id:"p2",name:"Marcus Bloom",location:"Boston, MA",zip:"02101",email:"marcus@example.com",password:"marcus123",instruments:["Tibetan Bowls","Gong","Tuning Forks"],venueTypes:["Martial Arts Studios","Corporate","Yoga Studios"],modalities:["Sound Bath & Gong Bath","Breathwork"],rate:300,rating:4.8,reviews:52,available:true,bio:"Former athlete turned sound healer. Specializes in high-performance stress release — perfect for MMA gyms and corporate burnout.",avatar:"🔮"},
-  {id:"p3",name:"Celeste Mora",location:"Newport, RI",zip:"02840",email:"celeste@example.com",password:"celeste123",instruments:["Crystal Bowls","Voice","Rain Drum"],venueTypes:["Yoga Studios","Retreats","Private Events","Nursing Homes"],modalities:["Sound Bath & Gong Bath","Reiki & Crystal Healing","Meditation"],rate:200,rating:5.0,reviews:21,available:false,bio:"Trained in sacred sound ceremony traditions. Creates immersive, deeply spiritual experiences for intimate groups.",avatar:"✨"},
-  {id:"p4",name:"Jordan Wells",location:"Worcester, MA",zip:"01601",email:"jordan@example.com",password:"jordan123",instruments:["Gong","Steel Tongue Drum","Chimes"],venueTypes:["Martial Arts Studios","Corporate","Yoga Studios"],modalities:["Sound Bath & Gong Bath","Breathwork"],rate:275,rating:4.7,reviews:44,available:true,bio:"Power-meets-peace. Jordan's gong work is especially impactful in masculine-energy spaces like boxing and BJJ gyms.",avatar:"⚡"}
+  {id:"p1",name:"Luna Serrano",location:"Providence, RI",zip:"02903",email:"luna@example.com",password:"luna123",instruments:["Crystal Bowls","Gong","Chimes"],venueTypes:["Yoga Studios","Corporate","Retreats","Nursing Homes"],modalities:["Sound Bath & Gong Bath","Reiki & Crystal Healing"],rate:250,sessionTypes:[{id:"t1",name:"Group Sound Bath",price:250}],rating:4.9,reviews:38,available:true,bio:"Level 2 Reiki practitioner and certified sound healer with 6 years bringing deep healing to groups of all kinds.",avatar:"🌙"},
+  {id:"p2",name:"Marcus Bloom",location:"Boston, MA",zip:"02101",email:"marcus@example.com",password:"marcus123",instruments:["Tibetan Bowls","Gong","Tuning Forks"],venueTypes:["Martial Arts Studios","Corporate","Yoga Studios"],modalities:["Sound Bath & Gong Bath","Breathwork"],rate:300,sessionTypes:[{id:"t1",name:"Group Sound Bath",price:300}],rating:4.8,reviews:52,available:true,bio:"Former athlete turned sound healer. Specializes in high-performance stress release — perfect for MMA gyms and corporate burnout.",avatar:"🔮"},
+  {id:"p3",name:"Celeste Mora",location:"Newport, RI",zip:"02840",email:"celeste@example.com",password:"celeste123",instruments:["Crystal Bowls","Voice","Rain Drum"],venueTypes:["Yoga Studios","Retreats","Private Events","Nursing Homes"],modalities:["Sound Bath & Gong Bath","Reiki & Crystal Healing","Meditation"],rate:200,sessionTypes:[{id:"t1",name:"Group Sound Bath",price:200}],rating:5.0,reviews:21,available:false,bio:"Trained in sacred sound ceremony traditions. Creates immersive, deeply spiritual experiences for intimate groups.",avatar:"✨"},
+  {id:"p4",name:"Jordan Wells",location:"Worcester, MA",zip:"01601",email:"jordan@example.com",password:"jordan123",instruments:["Gong","Steel Tongue Drum","Chimes"],venueTypes:["Martial Arts Studios","Corporate","Yoga Studios"],modalities:["Sound Bath & Gong Bath","Breathwork"],rate:275,sessionTypes:[{id:"t1",name:"Group Sound Bath",price:275}],rating:4.7,reviews:44,available:true,bio:"Power-meets-peace. Jordan's gong work is especially impactful in masculine-energy spaces like boxing and BJJ gyms.",avatar:"⚡"}
 ];
+
+// ---- Session-type / pricing tier helpers ----
+function getTiers(p){
+  if(p.sessionTypes&&p.sessionTypes.length)return p.sessionTypes;
+  return [{id:"legacy",name:"Session",price:p.rate||0}];
+}
+function minPrice(p){var t=getTiers(p);return Math.min.apply(null,t.map(function(x){return x.price;}));}
+function priceLabel(p){var t=getTiers(p);return t.length>1?"From $"+minPrice(p):"$"+minPrice(p);}
+
+// ---- Link / self-promotion blocker (item 6) ----
+function containsLink(str){
+  if(!str)return false;
+  return /(https?:\/\/|www\.|\b[a-z0-9-]+\.(com|net|org|io|co|biz|info|me|shop)\b)/i.test(str);
+}
+function blockedFieldsCheck(fields){
+  for(var i=0;i<fields.length;i++){
+    if(containsLink(fields[i])){
+      toast("Please remove website links/URLs from your profile fields — links to outside sites aren't allowed.","#C4727A");
+      return true;
+    }
+  }
+  return false;
+}
 
 var VENUES=["All","Yoga Studios","Martial Arts Studios","Corporate","Retreats","Nursing Homes","Private Events","Hotels & Spas"];
 var MODS=["Sound Bath & Gong Bath","Reiki & Crystal Healing","Breathwork","Meditation","Art Therapy","Herbalist","Life Coach"];
@@ -370,11 +410,35 @@ function lsGet(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 async function serverGet(key,d){try{var r=await fetch('/api/data?key='+key);var j=await r.json();return (j.value!==null&&j.value!==undefined)?j.value:d;}catch(e){return d;}}
 async function serverSet(key,value){try{await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,value:value})});}catch(e){}}
-async function loadFromServer(){P=await serverGet('practitioners',P);B=await serverGet('bookings',B);lsSet("rs:p",P);lsSet("rs:b",B);renderHome();}
+async function loadFromServer(){P=await serverGet('practitioners',P);B=await serverGet('bookings',B);ADMIN_NOTES=await serverGet('adminNotes',ADMIN_NOTES);TEAM_ADMIN_ACTIVE=await serverGet('teamAdminActive',TEAM_ADMIN_ACTIVE);lsSet("rs:p",P);lsSet("rs:b",B);renderHome();}
 var P=lsGet("rs:p",SEED);
 var B=lsGet("rs:b",[]);
-var vFilter="All",mFilter="All",selP=null,curUser=null;
-var jMods=[],jInstr=[],jVenues=[];
+var ADMIN_NOTES=[];
+var TEAM_ADMIN_ACTIVE=true;
+// Fallback activity log so new signups/bookings are always visible in the admin
+// dashboard even if the EmailJS notification email fails to send.
+function logAdminNotification(msg){
+  ADMIN_NOTES.unshift({msg:msg,ts:new Date().toISOString()});
+  ADMIN_NOTES=ADMIN_NOTES.slice(0,30);
+  serverSet('adminNotes',ADMIN_NOTES);
+}
+var vFilter="All",mFilter="All",selP=null,selTier=null,curUser=null;
+var jMods=[],jInstr=[],jVenues=[],jTiers=[];
+
+function renderJoinTiers(){
+  var el=document.getElementById("j-tier-list");
+  if(!el)return;
+  el.innerHTML=jTiers.length?jTiers.map(function(t,i){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px"><span style="font-size:13px">'+t.name+' — <strong>$'+t.price+'</strong></span><button type="button" class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="removeJoinTier('+i+')">Remove</button></div>';}).join(""):'<div class="text-soft" style="font-size:12px">No session types added yet — add at least one below.</div>';
+}
+function addJoinTier(){
+  var n=document.getElementById("j-tier-name").value.trim(),pr=document.getElementById("j-tier-price").value;
+  if(!n||!pr||isNaN(parseInt(pr))){toast("Enter a session type name and a price","#C4727A");return;}
+  if(containsLink(n)){toast("Session type name can't include a website link","#C4727A");return;}
+  jTiers.push({id:"t"+Date.now(),name:n,price:parseInt(pr)});
+  document.getElementById("j-tier-name").value="";document.getElementById("j-tier-price").value="";
+  renderJoinTiers();
+}
+function removeJoinTier(i){jTiers.splice(i,1);renderJoinTiers();}
 
 function toast(msg,bg){var t=document.getElementById("toast");t.textContent=msg;t.style.background=bg||"#6B4699";t.style.color="#fff";t.style.display="block";setTimeout(function(){t.style.display="none";},3200);}
 
@@ -390,7 +454,7 @@ function showPage(p){
   if(p==="find")renderFind();
   if(p==="join")renderJoinPills();
   if(p==="login")renderLogin();
-  if(p==="admin"){document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
+  if(p==="admin"){curAdminRole=null;editingHealerId=null;document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
 }
 
 function stars(n){return "★".repeat(Math.floor(n))+"☆".repeat(5-Math.floor(n));}
@@ -421,8 +485,8 @@ function renderHome(){
 
 function healerCard(p,mini){
   var tags=p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("");
-  if(mini)return '<div class="healer-card" onclick="openBooking(\''+p.id+'\')"><div class="healer-top"><div class="avatar">'+p.avatar+'</div><div><div class="healer-name">'+p.name+'</div><div class="healer-loc">'+p.location+'</div></div><div style="margin-left:auto;color:#C9922A;font-weight:bold">$'+p.rate+'</div></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><div style="font-size:13px;color:#A990C9;line-height:1.5">'+p.bio.slice(0,80)+'...</div></div></div>';
-  return '<div class="healer-card"><div class="healer-top"><div class="avatar">'+p.avatar+'</div><div style="flex:1"><div class="healer-name">'+p.name+'</div><div class="healer-loc">📍 '+p.location+'</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"● Open":"○ Busy")+'</span></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><p style="font-size:13px;color:#A990C9;margin:0 0 10px;line-height:1.5">'+p.bio+'</p><div style="display:flex;align-items:center;justify-content:space-between"><div><span style="font-size:20px;font-weight:bold;color:#2A1F3D">$'+p.rate+'</span><span class="text-soft" style="font-size:12px">/session</span><div style="color:#C9922A;font-size:12px;margin-top:2px">'+stars(p.rating)+' <span class="text-soft">('+p.reviews+')</span></div></div>'+(p.available?'<button class="btn btn-gold" onclick="openBooking(\''+p.id+'\')">Book →</button>':'<button class="btn btn-ghost" disabled>Unavailable</button>')+'</div></div></div>';
+  if(mini)return '<div class="healer-card" onclick="openBooking(\''+p.id+'\')"><div class="healer-top"><div class="avatar">'+p.avatar+'</div><div><div class="healer-name">'+p.name+'</div><div class="healer-loc">'+p.location+'</div></div><div style="margin-left:auto;color:#C9922A;font-weight:bold">'+priceLabel(p)+'</div></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><div style="font-size:13px;color:#A990C9;line-height:1.5">'+p.bio.slice(0,80)+'...</div></div></div>';
+  return '<div class="healer-card"><div class="healer-top"><div class="avatar">'+p.avatar+'</div><div style="flex:1"><div class="healer-name">'+p.name+'</div><div class="healer-loc">📍 '+p.location+'</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"● Open":"○ Busy")+'</span></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><p style="font-size:13px;color:#A990C9;margin:0 0 10px;line-height:1.5">'+p.bio+'</p><div style="display:flex;align-items:center;justify-content:space-between"><div><span style="font-size:20px;font-weight:bold;color:#2A1F3D">'+priceLabel(p)+'</span><span class="text-soft" style="font-size:12px">'+(getTiers(p).length>1?"":"/session")+'</span><div style="color:#C9922A;font-size:12px;margin-top:2px">'+stars(p.rating)+' <span class="text-soft">('+p.reviews+')</span></div></div>'+(p.available?'<button class="btn btn-gold" onclick="openBooking(\''+p.id+'\')">Book →</button>':'<button class="btn btn-ghost" disabled>Unavailable</button>')+'</div></div></div>';
 }
 
 function renderFind(){
@@ -437,23 +501,36 @@ function renderFind(){
   document.getElementById("healer-list").innerHTML=f.length?f.map(function(p){return healerCard(p,false);}).join(""):'<div style="text-align:center;padding:60px 0;color:#A990C9"><div style="font-size:40px;margin-bottom:12px">🔍</div>No practitioners found for this filter.</div>';
 }
 
+function updateBkTierPrice(){
+  var sel=document.getElementById("b-tier");
+  if(!sel)return;
+  selTier=getTiers(selP).find(function(t){return t.id===sel.value;})||getTiers(selP)[0];
+  var priceEl=document.getElementById("bk-price-display");
+  if(priceEl)priceEl.textContent="$"+selTier.price;
+}
+
 function openBooking(id){
   selP=P.find(function(p){return p.id===id;});
   if(!selP)return;
-  document.getElementById("bk-healer").innerHTML='<div style="font-size:30px">'+selP.avatar+'</div><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D">'+selP.name+'</div><div class="text-soft" style="font-size:12px">'+selP.location+'</div><div class="mod-tags" style="margin-top:4px">'+selP.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div style="text-align:right"><div style="font-size:20px;color:#C9922A;font-weight:bold">$'+selP.rate+'</div><div class="text-soft" style="font-size:11px">per session</div></div>';
-  document.getElementById("bk-step1").innerHTML='<div class="card"><h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin-bottom:20px">Tell us about your event</h3><div class="field"><label>VENUE / ORGANIZATION NAME</label><input id="b-venue" placeholder="e.g. Lotus Yoga Studio or Sunrise Nursing Home"></div><div class="field"><label>YOUR EMAIL</label><input id="b-email" type="email" placeholder="you@example.com"></div><div class="two-col"><div class="field"><label>DATE</label><input id="b-date" type="date"></div><div class="field"><label>TIME</label><input id="b-time" type="time"></div></div><div class="field"><label>VENUE TYPE</label><select id="b-vtype"><option value="">Select...</option>'+VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<option>'+v+'</option>';}).join("")+'</select></div><div class="field"><label>GROUP SIZE</label><input id="b-group" type="number" placeholder="e.g. 20"></div><div class="field"><label>NOTES FOR THE HEALER</label><textarea id="b-notes" rows="3" placeholder="Themes, intentions, accessibility needs, special requests..."></textarea></div><button class="btn btn-purple full-width" style="padding:14px;font-size:15px" onclick="bkStep2()">Review Booking →</button></div>';
+  var tiers=getTiers(selP);
+  selTier=tiers[0];
+  document.getElementById("bk-healer").innerHTML='<div style="font-size:30px">'+selP.avatar+'</div><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D">'+selP.name+'</div><div class="text-soft" style="font-size:12px">'+selP.location+'</div><div class="mod-tags" style="margin-top:4px">'+selP.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div style="text-align:right"><div style="font-size:20px;color:#C9922A;font-weight:bold" id="bk-price-display">$'+selTier.price+'</div><div class="text-soft" style="font-size:11px">per session</div></div>';
+  var tierField=tiers.length>1?'<div class="field"><label>SESSION TYPE</label><select id="b-tier" onchange="updateBkTierPrice()">'+tiers.map(function(t){return '<option value="'+t.id+'">'+t.name+' — $'+t.price+'</option>';}).join("")+'</select></div>':'';
+  var calendlyBtn=selP.calendlyUrl?'<a href="'+(/^https?:\/\//.test(selP.calendlyUrl)?selP.calendlyUrl:'https://'+selP.calendlyUrl)+'" target="_blank" rel="noopener" class="btn btn-outline full-width" style="margin-bottom:14px;text-align:center;display:block;text-decoration:none">📅 Schedule a call with '+selP.name+' first</a>':'';
+  document.getElementById("bk-step1").innerHTML='<div class="card">'+calendlyBtn+'<h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin-bottom:20px">Tell us about your event</h3>'+tierField+'<div class="field"><label>VENUE / ORGANIZATION NAME</label><input id="b-venue" placeholder="e.g. Lotus Yoga Studio or Sunrise Nursing Home"></div><div class="field"><label>YOUR EMAIL</label><input id="b-email" type="email" placeholder="you@example.com"></div><div class="two-col"><div class="field"><label>DATE</label><input id="b-date" type="date"></div><div class="field"><label>TIME</label><input id="b-time" type="time"></div></div><div class="field"><label>VENUE TYPE</label><select id="b-vtype"><option value="">Select...</option>'+VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<option>'+v+'</option>';}).join("")+'</select></div><div class="field"><label>GROUP SIZE</label><input id="b-group" type="number" placeholder="e.g. 20"></div><div class="field"><label>NOTES FOR THE HEALER</label><textarea id="b-notes" rows="3" placeholder="Themes, intentions, accessibility needs, special requests..."></textarea></div><button class="btn btn-purple full-width" style="padding:14px;font-size:15px" onclick="bkStep2()">Review Booking →</button></div>';
   document.getElementById("bk-step1").style.display="block";
   document.getElementById("bk-step2").style.display="none";
   document.getElementById("bk-step3").style.display="none";
   showPage("booking");
 }
 
-function bkStep2(){var hasConflict=(selP.schedule||[]).some(function(s){return s.date===d;})||B.some(function(b){return b.practitionerId===selP.id&&b.status==="confirmed"&&b.date===d;});
-    var conflictWarning=hasConflict?'<div class="disclaimer-box" style="border-color:#C4727A;background:linear-gradient(135deg,#fde8ea,#fde8ea)"><span style="font-size:13px;color:#A45560">⚠️ '+selP.name+' already has something on their schedule this date. Consider messaging first or choosing another date.</span></div>':'';
+function bkStep2(){
   var v=document.getElementById("b-venue").value,e=document.getElementById("b-email").value,d=document.getElementById("b-date").value;
   if(!v||!e||!d){toast("Please fill in required fields","#C4727A");return;}
-  var fee=selP.rate,pf=Math.round(fee*.15),tot=Math.round(fee*1.15);
-  var rows=[["Venue/Org",v],["Date",d],["Time",document.getElementById("b-time").value||"—"],["Type",document.getElementById("b-vtype").value||"—"],["Group",document.getElementById("b-group").value?document.getElementById("b-group").value+" people":"—"],["Session fee","$"+fee],["Platform fee (15%)","$"+pf]];
+  var hasConflict=(selP.schedule||[]).some(function(s){return s.date===d;})||B.some(function(b){return b.practitionerId===selP.id&&b.status==="confirmed"&&b.date===d;});
+  var conflictWarning=hasConflict?'<div class="disclaimer-box" style="border-color:#C4727A;background:linear-gradient(135deg,#fde8ea,#fde8ea)"><span style="font-size:13px;color:#A45560">⚠️ '+selP.name+' already has something on their schedule this date. Consider messaging first or choosing another date.</span></div>':'';
+  var fee=selTier.price,pf=Math.round(fee*.15),tot=Math.round(fee*1.15);
+  var rows=[["Venue/Org",v],["Session type",selTier.name],["Date",d],["Time",document.getElementById("b-time").value||"—"],["Type",document.getElementById("b-vtype").value||"—"],["Group",document.getElementById("b-group").value?document.getElementById("b-group").value+" people":"—"],["Session fee","$"+fee],["Platform fee (15%)","$"+pf]];
   document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin-bottom:20px">Review your booking</h3>'+conflictWarning+''+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#2A1F3D">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">I understand that REAL Holistic Network is a marketplace platform. REAL Holistic Network is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Holistic Network bears no liability for any injury or damage arising from this session.</span></label></div><div class="stripe-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="card-element"></div><div id="card-errors"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" id="pay-btn" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">Pay $'+tot+' & Request →</button></div></div>';
   document.getElementById("bk-step1").style.display="none";
   document.getElementById("bk-step2").style.display="block";
@@ -473,7 +550,7 @@ async function confirmBooking(){
   if(!document.getElementById("b-agreed").checked){toast("Please agree to the terms","#C4727A");return;}
   var btn=document.getElementById("pay-btn");
   btn.disabled=true;btn.textContent="Processing…";
-  var fee=selP.rate,tot=Math.round(fee*1.15);
+  var fee=selTier.price,tot=Math.round(fee*1.15);
   try{
     var piRes=await fetch('/api/create-payment-intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:tot,email:document.getElementById("b-email").value,metadata:{practitioner:selP.name}})});
     var piData=await piRes.json();
@@ -488,13 +565,14 @@ async function confirmBooking(){
       btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
       return;
     }
-    var bk={id:"b"+Date.now(),paymentIntentId:piData.paymentIntentId,practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,fee:selP.rate,platformFee:Math.round(selP.rate*.15),total:tot,status:"pending",paymentMethodId:result.paymentIntent.payment_method,createdAt:new Date().toISOString()};
+    var bk={id:"b"+Date.now(),paymentIntentId:piData.paymentIntentId,practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,sessionType:selTier.name,fee:selTier.price,platformFee:Math.round(selTier.price*.15),total:tot,status:"pending",paymentMethodId:result.paymentIntent.payment_method,createdAt:new Date().toISOString()};
     B.push(bk);lsSet("rs:b",B);serverSet('bookings',B);
+    logAdminNotification("🔔 New booking request: "+bk.venueName+" → "+bk.practitionerName+" ("+bk.date+")");
     emailjs.send("service_bl7o2cm","template_50n96cr",{
       name:bk.venueName,
       email:bk.email,
-      message:"NEW BOOKING REQUEST 🔔 | Healer: "+bk.practitionerName+" | Date: "+bk.date+" | Time: "+(bk.time||"TBD")+" | Type: "+bk.venueType+" | Group: "+(bk.groupSize||"TBD")+" | Total: $"+bk.total+" | Notes: "+(bk.notes||"None")
-    }).catch(function(){});
+      message:"NEW BOOKING REQUEST 🔔 | Healer: "+bk.practitionerName+" | Session: "+bk.sessionType+" | Date: "+bk.date+" | Time: "+(bk.time||"TBD")+" | Type: "+bk.venueType+" | Group: "+(bk.groupSize||"TBD")+" | Total: $"+bk.total+" | Notes: "+(bk.notes||"None")
+    }).then(function(){console.log("Booking notification email sent.");}).catch(function(err){console.error("EmailJS failed to send booking notification:",err);});
     document.getElementById("bk-step2").style.display="none";
     document.getElementById("bk-step3").innerHTML='<div class="card card-gold" style="text-align:center;padding:36px"><div style="font-size:52px;margin-bottom:16px">🔔</div><h2 class="text-gold" style="font-weight:normal;margin-bottom:10px">Request Sent!</h2><p class="text-soft" style="margin-bottom:8px;line-height:1.7;font-size:14px">'+selP.name+' will confirm within 24 hours.</p><p class="text-soft" style="margin-bottom:24px;font-size:13px">Your card will be charged once they accept.</p><button class="btn btn-outline" onclick="showPage(\'find\')">Back to healers</button></div>';
     document.getElementById("bk-step3").style.display="block";
@@ -507,6 +585,7 @@ async function confirmBooking(){
 
 function renderJoinPills(){
   if(!document.getElementById("j-mods"))return;
+  renderJoinTiers();
   document.getElementById("j-mods").innerHTML=MODS.map(function(m){return '<button class="pill'+(jMods.indexOf(m)>-1?" pill-teal":"")+'" onclick="toggle(jMods,\''+m+'\',\'j-mods\',renderJoinPills)">'+m+'</button>';}).join("");
   document.getElementById("j-instr").innerHTML=INSTR.map(function(i){return '<button class="pill'+(jInstr.indexOf(i)>-1?" pill-gold":"")+'" onclick="toggle(jInstr,\''+i+'\',\'j-instr\',renderJoinPills)">'+i+'</button>';}).join("");
   document.getElementById("j-venues").innerHTML=VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<button class="pill'+(jVenues.indexOf(v)>-1?" pill-rose":"")+'" onclick="toggle(jVenues,\''+v+'\',\'j-venues\',renderJoinPills)">'+v+'</button>';}).join("");
@@ -522,20 +601,22 @@ function showJoin(n){
 }
 
 function submitJoin(){
-  var name=document.getElementById("j-name").value,email=document.getElementById("j-email").value,pass=document.getElementById("j-password").value,loc=document.getElementById("j-location").value,rate=document.getElementById("j-rate").value,zip=document.getElementById("j-zip").value;
-  if(!name||!email||!pass||!loc||!rate){toast("Please fill all required fields","#C4727A");return;}
+  var name=document.getElementById("j-name").value,email=document.getElementById("j-email").value,pass=document.getElementById("j-password").value,loc=document.getElementById("j-location").value,zip=document.getElementById("j-zip").value,bio=document.getElementById("j-bio").value,calendly=document.getElementById("j-calendly").value.trim();
+  if(!name||!email||!pass||!loc||!jTiers.length){toast(jTiers.length?"Please fill all required fields":"Please add at least one session type & price","#C4727A");return;}
   if(!document.getElementById("j-agreed").checked){toast("Please agree to the Founding Healer terms","#C4727A");return;}
   if(P.find(function(p){return p.email===email;})){toast("Email already registered","#C4727A");return;}
+  if(blockedFieldsCheck([name,loc,bio]))return;
   var src=getSrc();
   var avatars=["🌿","🎵","🌸","💫","🔔","🌀","🪬"];
-  var p={id:"p"+Date.now(),name:name,email:email,password:pass,location:loc,zip:zip,rate:parseInt(rate),instruments:jInstr.slice(),venueTypes:jVenues.slice(),modalities:jMods.slice(),bio:document.getElementById("j-bio").value,rating:5.0,reviews:0,available:true,avatar:avatars[Math.floor(Math.random()*avatars.length)],source:src,joinedAt:new Date().toISOString()};
+  var p={id:"p"+Date.now(),name:name,email:email,password:pass,location:loc,zip:zip,rate:Math.min.apply(null,jTiers.map(function(t){return t.price;})),sessionTypes:jTiers.slice(),calendlyUrl:calendly,instruments:jInstr.slice(),venueTypes:jVenues.slice(),modalities:jMods.slice(),bio:bio,rating:5.0,reviews:0,available:true,avatar:avatars[Math.floor(Math.random()*avatars.length)],source:src,joinedAt:new Date().toISOString()};
  P.push(p);lsSet("rs:p",P);serverSet('practitioners',P);
+  logAdminNotification("🌟 New healer: "+name+" ("+loc+")");
   emailjs.send("service_bl7o2cm","template_50n96cr",{
     name:"REAL Holistic Network Admin",
     email:"bookings.realsound@gmail.com",
-    message:"🌟 NEW FOUNDING HEALER SIGNED UP! | Name: "+name+" | Location: "+loc+" | Modalities: "+jMods.join(", ")+" | Rate: $"+rate+"/session | Source: "+src+" | Joined: "+new Date().toLocaleString()
-  }).catch(function(){});
-  jMods=[];jInstr=[];jVenues=[];
+    message:"🌟 NEW FOUNDING HEALER SIGNED UP! | Name: "+name+" | Email: "+email+" | Location: "+loc+" | Modalities: "+jMods.join(", ")+" | Session types: "+jTiers.map(function(t){return t.name+" ($"+t.price+")";}).join(", ")+" | Source: "+src+" | Joined: "+new Date().toLocaleString()
+  }).then(function(){console.log("Signup notification email sent.");}).catch(function(err){console.error("EmailJS failed to send signup notification:",err);});
+  jMods=[];jInstr=[];jVenues=[];jTiers=[];
   toast("Welcome to REAL Holistic Network! ✨");showJoin(2);
 }
 
@@ -576,7 +657,7 @@ function myEarned(){return myB().filter(function(b){return b.status==="confirmed
 
 function renderOverview(){
   var mb=myB(),pend=mb.filter(function(b){return b.status==="pending";}),conf=mb.filter(function(b){return b.status==="confirmed";});
-  document.getElementById("ptab-overview").innerHTML='<div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#6B4699">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.date+' · '+b.venueType+' · '+b.groupSize+' people</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No pending requests yet.</div>');
+  document.getElementById("ptab-overview").innerHTML='<div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#6B4699">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+(b.sessionType?b.sessionType+' · ':'')+b.date+' · '+b.venueType+' · '+b.groupSize+' people</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No pending requests yet.</div>');
 }
 
 async function respond(id,status){
@@ -591,12 +672,12 @@ async function respond(id,status){
     }catch(e){}
   }
   B=B.map(function(b){return b.id===id?Object.assign({},b,{status:status}):b;});
-  lsSet("rs:b",B);toast(status==="confirmed"?"Booking confirmed ✓":"Booking declined",status==="confirmed"?"#4A9B8E":"#C4727A");renderOverview();
+  lsSet("rs:b",B);serverSet('bookings',B);toast(status==="confirmed"?"Booking confirmed ✓":"Booking declined",status==="confirmed"?"#4A9B8E":"#C4727A");renderOverview();
 }
 
 function renderMyBookings(){
   var mb=myB();
-  document.getElementById("ptab-bookings").innerHTML='<div class="section-title">ALL BOOKINGS ('+mb.length+')</div>'+(mb.length?mb.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.date+' · '+b.venueType+'</div></div><div style="text-align:right"><span class="status-'+b.status+'">'+b.status+'</span><div class="text-teal" style="font-size:13px;margin-top:6px">$'+b.fee+' your cut</div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No bookings yet.</div>');
+  document.getElementById("ptab-bookings").innerHTML='<div class="section-title">ALL BOOKINGS ('+mb.length+')</div>'+(mb.length?mb.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+(b.sessionType?b.sessionType+' · ':'')+b.date+' · '+b.venueType+'</div></div><div style="text-align:right"><span class="status-'+b.status+'">'+b.status+'</span><div class="text-teal" style="font-size:13px;margin-top:6px">$'+b.fee+' your cut</div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No bookings yet.</div>');
 }
 
 function renderEarnings(){
@@ -608,35 +689,128 @@ function renderEarnings(){
 
 function renderMyProfile(){
   var p=curUser;
-  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px"><div style="font-size:38px;background:linear-gradient(135deg,#F0EAF8,#E8E0F4);border-radius:50%;width:58px;height:58px;display:flex;align-items:center;justify-content:center">'+p.avatar+'</div><div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">$'+p.rate+'/session</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div></div>';
+  var tierRows=getTiers(p).map(function(t){return '<div class="review-row"><span class="review-key">'+t.name.toUpperCase()+'</span><span style="color:#2A1F3D">$'+t.price+'</span></div>';}).join("");
+  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px"><div style="font-size:38px;background:linear-gradient(135deg,#F0EAF8,#E8E0F4);border-radius:50%;width:58px;height:58px;display:flex;align-items:center;justify-content:center">'+p.avatar+'</div><div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">'+priceLabel(p)+'</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div class="card"><div class="section-title">YOUR SESSION TYPES & PRICING</div>'+tierRows+(p.calendlyUrl?'<div class="review-row"><span class="review-key">CALENDLY</span><span style="color:#2A1F3D">'+p.calendlyUrl+'</span></div>':'')+'<div class="text-soft" style="font-size:12px;margin-top:10px">To change your session types, pricing, or Calendly link, contact REAL Holistic Network admin.</div></div></div>';
 }
 
 function mySchedule(){var own=(curUser.schedule||[]).map(function(s){return {id:s.id,date:s.date,time:s.time,note:s.note,type:"personal"};});var booked=myB().filter(function(b){return b.status==="confirmed";}).map(function(b){return {id:b.id,date:b.date,time:b.time,note:b.venueName+" ("+b.venueType+")",type:"booking"};});return own.concat(booked).sort(function(a,b){return (a.date+" "+(a.time||"")).localeCompare(b.date+" "+(b.time||""));});}
 function renderSchedule(){var items=mySchedule();document.getElementById("ptab-schedule").innerHTML='<div class="card"><h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin-bottom:16px">Add to your schedule</h3><div class="two-col"><div class="field"><label>DATE</label><input id="sch-date" type="date"></div><div class="field"><label>TIME</label><input id="sch-time" type="time"></div></div><div class="field"><label>NOTE</label><input id="sch-note" placeholder="e.g. Personal client, dentist appt"></div><button class="btn btn-purple full-width" onclick="addScheduleEntry()">+ Add to Schedule</button></div><div class="section-title" style="margin-top:24px">YOUR SCHEDULE ('+items.length+')</div>'+(items.length?items.map(function(i){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#2A1F3D">'+i.date+(i.time?' · '+i.time:'')+'</div><div class="text-soft" style="font-size:13px">'+i.note+'</div></div>'+(i.type==="personal"?'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="deleteScheduleEntry(\''+i.id+'\')">Remove</button>':'<span class="status-confirmed">REAL Holistic Network</span>')+'</div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">Nothing on your schedule yet.</div>');}
 function addScheduleEntry(){var date=document.getElementById("sch-date").value,time=document.getElementById("sch-time").value,note=document.getElementById("sch-note").value;if(!date){toast("Please choose a date","#C4727A");return;}var entry={id:"sch"+Date.now(),date:date,time:time,note:note||"Personal appointment"};curUser.schedule=(curUser.schedule||[]).concat([entry]);P=P.map(function(p){return p.id===curUser.id?curUser:p;});lsSet("rs:p",P);serverSet('practitioners',P);document.getElementById("sch-date").value="";document.getElementById("sch-time").value="";document.getElementById("sch-note").value="";toast("Added to your schedule ✓","#4A9B8E");renderSchedule();}
 function deleteScheduleEntry(id){curUser.schedule=(curUser.schedule||[]).filter(function(s){return s.id!==id;});P=P.map(function(p){return p.id===curUser.id?curUser:p;});lsSet("rs:p",P);serverSet('practitioners',P);renderSchedule();}
-  function checkAdmin(){
-  if(document.getElementById("admin-code").value==="REALSOUND"){
-    document.getElementById("admin-login").style.display="none";
-    document.getElementById("admin-dash").style.display="block";
-    renderAdmin();
-  }else toast("Incorrect code","#C4727A");
+// Two admin tiers: OWNER has full control (including revoking the TEAM code
+// at will). TEAM is a limited helper login — can't remove healers, can't
+// touch the owner-only controls, and can never lock the owner out.
+var ADMIN_OWNER_CODE="REALSOUND";
+var ADMIN_TEAM_CODE="REALTEAM26";
+var curAdminRole=null; // "owner" | "team" | null
+var editingHealerId=null;
+
+function checkAdmin(){
+  var code=document.getElementById("admin-code").value;
+  if(code===ADMIN_OWNER_CODE){
+    curAdminRole="owner";
+  }else if(code===ADMIN_TEAM_CODE&&TEAM_ADMIN_ACTIVE){
+    curAdminRole="team";
+  }else{
+    toast(code===ADMIN_TEAM_CODE?"Team access is currently turned off":"Incorrect code","#C4727A");
+    return;
+  }
+  document.getElementById("admin-login").style.display="none";
+  document.getElementById("admin-dash").style.display="block";
+  renderAdmin();
 }
 
-function lockAdmin(){document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
+function lockAdmin(){curAdminRole=null;editingHealerId=null;document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
+
+function toggleTeamAccess(){
+  TEAM_ADMIN_ACTIVE=!TEAM_ADMIN_ACTIVE;
+  serverSet('teamAdminActive',TEAM_ADMIN_ACTIVE);
+  toast(TEAM_ADMIN_ACTIVE?"Team admin access turned ON":"Team admin access turned OFF","#6B4699");
+  renderAdmin();
+}
+
+function sendTestEmail(){
+  emailjs.send("service_bl7o2cm","template_50n96cr",{
+    name:"REAL Holistic Network Admin",
+    email:"bookings.realsound@gmail.com",
+    message:"✅ This is a test notification from your admin dashboard, sent "+new Date().toLocaleString()+". If you got this, EmailJS is working correctly."
+  }).then(function(){toast("Test email sent — check your inbox ✓","#4A9B8E");}).catch(function(err){console.error("Test email failed:",err);toast("Test email failed — check the browser console for details","#C4727A");});
+}
+
+function exportHealerEmails(){
+  var rows=[["Name","Email","Location","Joined"]].concat(P.map(function(p){return [p.name,p.email,p.location,p.joinedAt?new Date(p.joinedAt).toLocaleDateString():""];}));
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c||"").replace(/"/g,'""')+'"';}).join(",");}).join("\n");
+  var blob=new Blob([csv],{type:"text/csv"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="real-holistic-network-healer-emails.csv";
+  a.click();
+}
 
 function renderAdmin(){
+  var isOwner=curAdminRole==="owner";
+  document.getElementById("admin-role-badge").textContent=isOwner?"(Owner)":"(Team)";
+  document.getElementById("admin-export-btn").style.display=isOwner?"inline-block":"none";
+  document.getElementById("admin-owner-controls").style.display=isOwner?"block":"none";
+  if(isOwner){
+    document.getElementById("admin-owner-controls").innerHTML='<div class="card card-purple" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div><div style="font-weight:bold;color:#2A1F3D;font-size:13px">Team Admin Access</div><div class="text-soft" style="font-size:11px">Team code is currently '+(TEAM_ADMIN_ACTIVE?"ON — helpers can log in":"OFF — helper code is locked out")+'</div></div><div style="display:flex;gap:8px"><button class="btn '+(TEAM_ADMIN_ACTIVE?"btn-danger":"btn-teal")+'" style="font-size:12px;padding:7px 14px" onclick="toggleTeamAccess()">Turn '+(TEAM_ADMIN_ACTIVE?"OFF":"ON")+'</button><button class="btn btn-ghost" style="font-size:12px;padding:7px 14px" onclick="sendTestEmail()">✉ Send test email</button></div></div>';
+  }
   var conf=B.filter(function(b){return b.status==="confirmed";});
   var rev=conf.reduce(function(s,b){return s+b.platformFee;},0);
+  document.getElementById("admin-notes").innerHTML=ADMIN_NOTES.length?ADMIN_NOTES.slice(0,8).map(function(n){return '<div class="booking-card" style="padding:10px 14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span style="font-size:13px">'+n.msg+'</span><span class="text-soft" style="font-size:11px">'+new Date(n.ts).toLocaleString()+'</span></div>';}).join(""):'<div class="text-soft" style="font-size:13px">No recent activity logged yet.</div>';
   document.getElementById("admin-stats").innerHTML='<div class="stat"><div class="stat-num">'+B.length+'</div><div class="stat-label">TOTAL BOOKINGS</div></div><div class="stat"><div class="stat-num" style="color:#6B4699">'+B.filter(function(b){return b.status==="pending";}).length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+rev+'</div><div class="stat-label">YOUR REVENUE</div></div>';
   // Signup source breakdown
   var sources={};P.forEach(function(p){var s=p.source||'direct';sources[s]=(sources[s]||0)+1;});
   var srcHtml=Object.keys(sources).map(function(s){return '<span style="background:#F0EAF8;color:#6B4699;padding:3px 10px;border-radius:8px;font-size:12px;margin-right:6px">'+s+': '+sources[s]+'</span>';}).join('');
-  document.getElementById("admin-bookings").innerHTML=(srcHtml?'<div style="margin-bottom:16px"><div class="section-title">SIGNUP SOURCES</div>'+srcHtml+'</div>':'')+(B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:2px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.practitionerName+' · '+b.date+' · '+b.venueType+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span></div></div><span class="status-'+b.status+'">'+b.status+'</span>'+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>');
-  document.getElementById("admin-practitioners").innerHTML=P.map(function(p){return '<div class="booking-card" style="display:flex;align-items:center;gap:14px"><div style="font-size:22px">'+p.avatar+'</div><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · $'+p.rate+'/session'+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+' </div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button></div>';}).join("");
+  document.getElementById("admin-bookings").innerHTML=(srcHtml?'<div style="margin-bottom:16px"><div class="section-title">SIGNUP SOURCES</div>'+srcHtml+'</div>':'')+(B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:2px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.practitionerName+(b.sessionType?' · '+b.sessionType:'')+' · '+b.date+' · '+b.venueType+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span></div></div><span class="status-'+b.status+'">'+b.status+'</span>'+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>');
+  document.getElementById("admin-practitioners").innerHTML=P.map(function(p){
+    if(editingHealerId===p.id)return healerEditForm(p);
+    return '<div class="booking-card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><div style="font-size:22px">'+p.avatar+'</div><div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · '+priceLabel(p)+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+'</div><div class="text-soft" style="font-size:12px">✉ <a href="mailto:'+p.email+'" style="color:#6B4699">'+p.email+'</a></div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="editHealer(\''+p.id+'\')">Edit</button>'+(isOwner?'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button>':'')+'</div></div>';
+  }).join("");
 }
+
+function healerEditForm(p){
+  var tiers=getTiers(p);
+  return '<div class="card card-purple">'
+    +'<div class="field"><label>NAME</label><input id="eh-name" value="'+p.name.replace(/"/g,'&quot;')+'"></div>'
+    +'<div class="field"><label>LOCATION</label><input id="eh-location" value="'+p.location.replace(/"/g,'&quot;')+'"></div>'
+    +'<div class="field"><label>EMAIL (admin-only)</label><input id="eh-email" value="'+p.email.replace(/"/g,'&quot;')+'"></div>'
+    +'<div class="field"><label>BIO</label><textarea id="eh-bio" rows="3">'+p.bio+'</textarea></div>'
+    +'<div class="field"><label>CALENDLY LINK</label><input id="eh-calendly" value="'+(p.calendlyUrl||"").replace(/"/g,'&quot;')+'"></div>'
+    +'<div class="field"><label>SESSION TYPES & PRICING (one per line — Name, Price)</label><textarea id="eh-tiers" rows="'+Math.max(2,tiers.length)+'">'+tiers.map(function(t){return t.name+", "+t.price;}).join("\n")+'</textarea></div>'
+    +'<label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:14px"><input type="checkbox" id="eh-available" '+(p.available?"checked":"")+' style="width:auto;accent-color:#6B4699"> Available for bookings</label>'
+    +'<div style="display:flex;gap:10px"><button class="btn btn-ghost" style="flex:1" onclick="cancelHealerEdit()">Cancel</button><button class="btn btn-purple" style="flex:1" onclick="saveHealerEdit(\''+p.id+'\')">Save Changes</button></div>'
+    +'</div>';
+}
+
+function editHealer(id){editingHealerId=id;renderAdmin();}
+function cancelHealerEdit(){editingHealerId=null;renderAdmin();}
+
+function saveHealerEdit(id){
+  var name=document.getElementById("eh-name").value.trim(),loc=document.getElementById("eh-location").value.trim(),email=document.getElementById("eh-email").value.trim(),bio=document.getElementById("eh-bio").value.trim(),calendly=document.getElementById("eh-calendly").value.trim();
+  var tierLines=document.getElementById("eh-tiers").value.split("\n").map(function(l){return l.trim();}).filter(Boolean);
+  if(!name||!loc||!email||!tierLines.length){toast("Please fill all required fields","#C4727A");return;}
+  if(blockedFieldsCheck([name,loc,bio])){editingHealerId=id;return;}
+  var tiers=[];
+  for(var i=0;i<tierLines.length;i++){
+    var parts=tierLines[i].split(",");
+    var tname=(parts[0]||"").trim(),tprice=parseInt((parts[1]||"").trim());
+    if(!tname||isNaN(tprice)){toast('Each session type line should read "Name, Price" — please check line '+(i+1),"#C4727A");return;}
+    if(containsLink(tname)){toast("Session type names can't include a website link","#C4727A");return;}
+    tiers.push({id:"t"+i+"_"+Date.now(),name:tname,price:tprice});
+  }
+  P=P.map(function(p){return p.id===id?Object.assign({},p,{name:name,location:loc,email:email,bio:bio,calendlyUrl:calendly,sessionTypes:tiers,rate:Math.min.apply(null,tiers.map(function(t){return t.price;})),available:document.getElementById("eh-available").checked}):p;});
+  lsSet("rs:p",P);serverSet('practitioners',P);
+  editingHealerId=null;
+  toast("Healer profile updated ✓","#4A9B8E");
+  renderAdmin();
+}
+
 function aRespond(id,s){B=B.map(function(b){return b.id===id?Object.assign({},b,{status:s}):b;});lsSet("rs:b",B);serverSet('bookings',B);renderAdmin();}
-function removeP(id){P=P.filter(function(p){return p.id!==id;});lsSet("rs:p",P);serverSet('practitioners',P);renderAdmin();}
+function removeP(id){
+  if(curAdminRole!=="owner"){toast("Only the owner login can remove healers","#C4727A");return;}
+  P=P.filter(function(p){return p.id!==id;});lsSet("rs:p",P);serverSet('practitioners',P);renderAdmin();
+}
 
 window.addEventListener('load',function(){
   if(typeof Stripe!=='undefined')initStripe();
