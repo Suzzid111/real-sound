@@ -115,6 +115,9 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
 .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:32px}
 .how-card{text-align:center;padding:24px 16px;background:#fff;border-radius:20px;border:1px solid rgba(107,70,153,.12);box-shadow:0 2px 12px rgba(107,70,153,.06)}
 .how-num{width:40px;height:40px;background:linear-gradient(135deg,#6B4699,#9B6BC9);border-radius:50%;color:#fff;font-size:18px;font-weight:bold;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+/* phone fix: date & time boxes stay inside their card */
+.two-col>*{min-width:0}
+input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;min-height:42px}
 </style>
 </head>
 <body>
