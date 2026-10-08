@@ -283,6 +283,8 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
       <div class="field"><label>PASSWORD</label><input id="p-password" type="password" placeholder="Your password"></div>
       <div id="login-err" style="color:#C4727A;font-size:13px;margin-bottom:10px;display:none"></div>
       <button class="btn btn-purple full-width" style="padding:13px;font-size:15px;margin-bottom:12px" onclick="doLogin()">Log In →</button>
+      <div style="text-align:center;margin-bottom:10px"><span class="text-purple" style="cursor:pointer;font-size:12px" onclick="toggleForgot()">Forgot your password?</span></div>
+      <div id="forgot-box" style="display:none;border-top:1px solid rgba(107,70,153,.1);padding-top:12px;margin-bottom:12px"><div class="text-soft" style="font-size:12px;line-height:1.6;margin-bottom:8px">Enter the email you signed up with. We'll send you a temporary password, usually within 24 hours.</div><div class="field"><input id="fp-email" type="email" placeholder="your@email.com"></div><button class="btn btn-ghost full-width" onclick="requestPasswordReset()">Send Reset Request</button></div>
       <div style="text-align:center"><span class="text-soft" style="font-size:12px">Not listed? </span><span class="text-purple" style="cursor:pointer;font-size:12px" onclick="showPage('join')">Create a profile →</span></div>
       <div style="border-top:1px solid rgba(107,70,153,.1);padding-top:12px;font-size:11px;color:#A990C9;text-align:center;margin-top:12px;line-height:1.6">Demo: luna@example.com / luna123</div>
     </div>
@@ -652,7 +654,7 @@ function doLogin(){
   var email=document.getElementById("p-email").value,pass=document.getElementById("p-password").value;
   var p=P.find(function(x){return x.email===email&&x.password===pass;});
   var err=document.getElementById("login-err");
-  if(p){curUser=p;err.style.display="none";renderLogin();if(needsPayTerms(p))showPayTermsGate();}
+  if(p){curUser=p;err.style.display="none";renderLogin();if(needsPayTerms(p))showPayTermsGate();else if(p.mustChangePassword)showChangePwGate();}
   else{err.textContent="Email or password not recognised.";err.style.display="block";}
 }
 
@@ -707,7 +709,7 @@ function renderEarnings(){
 function renderMyProfile(){
   var p=curUser;
   var tierRows=getTiers(p).map(function(t){return '<div class="review-row"><span class="review-key">'+t.name.toUpperCase()+'</span><span style="color:#2A1F3D">$'+t.price+'</span></div>';}).join("");
-  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px"><div style="font-size:38px;background:linear-gradient(135deg,#F0EAF8,#E8E0F4);border-radius:50%;width:58px;height:58px;display:flex;align-items:center;justify-content:center">'+p.avatar+'</div><div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">'+priceLabel(p)+'</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div class="card"><div class="section-title">YOUR SESSION TYPES & PRICING</div>'+tierRows+(p.calendlyUrl?'<div class="review-row"><span class="review-key">CALENDLY</span><span style="color:#2A1F3D">'+p.calendlyUrl+'</span></div>':'')+'<div class="text-soft" style="font-size:12px;margin-top:10px">To change your session types, pricing, or Calendly link, contact REAL Holistic Network admin.</div></div></div>';
+  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px"><div style="font-size:38px;background:linear-gradient(135deg,#F0EAF8,#E8E0F4);border-radius:50%;width:58px;height:58px;display:flex;align-items:center;justify-content:center">'+p.avatar+'</div><div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">'+priceLabel(p)+'</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div class="card"><div class="section-title">YOUR SESSION TYPES & PRICING</div>'+tierRows+(p.calendlyUrl?'<div class="review-row"><span class="review-key">CALENDLY</span><span style="color:#2A1F3D">'+p.calendlyUrl+'</span></div>':'')+'<div class="text-soft" style="font-size:12px;margin-top:10px">To change your session types, pricing, or Calendly link, contact REAL Holistic Network admin.</div></div>'+changePwCard(false)+'</div>';
 }
 
 function mySchedule(){var own=(curUser.schedule||[]).map(function(s){return {id:s.id,date:s.date,time:s.time,note:s.note,type:"personal"};});var booked=myB().filter(function(b){return b.status==="confirmed";}).map(function(b){return {id:b.id,date:b.date,time:b.time,note:b.venueName+" ("+b.venueType+")",type:"booking"};});return own.concat(booked).sort(function(a,b){return (a.date+" "+(a.time||"")).localeCompare(b.date+" "+(b.time||""));});}
@@ -793,6 +795,7 @@ function healerEditForm(p){
     +'<div class="field"><label>LOCATION</label><input id="eh-location" value="'+p.location.replace(/"/g,'&quot;')+'"></div>'
     +'<div class="field"><label>EMAIL (admin-only)</label><input id="eh-email" value="'+p.email.replace(/"/g,'&quot;')+'"></div>'
     +'<div class="field"><label>BIO</label><textarea id="eh-bio" rows="3">'+p.bio+'</textarea></div>'
+    +'<div class="field"><label>NEW PASSWORD <span style="text-transform:none;letter-spacing:0;color:#A990C9">(leave blank to keep their current one)</span></label><input id="eh-password" type="text" placeholder="Temporary password to send the healer"></div>'
     +'<div class="field"><label>CALENDLY LINK</label><input id="eh-calendly" value="'+(p.calendlyUrl||"").replace(/"/g,'&quot;')+'"></div>'
     +'<div class="field"><label>SESSION TYPES & PRICING (one per line — Name, Price)</label><textarea id="eh-tiers" rows="'+Math.max(2,tiers.length)+'">'+tiers.map(function(t){return t.name+", "+t.price;}).join("\n")+'</textarea></div>'
     +'<label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:14px"><input type="checkbox" id="eh-available" '+(p.available?"checked":"")+' style="width:auto;accent-color:#6B4699"> Available for bookings</label>'
@@ -808,6 +811,8 @@ function saveHealerEdit(id){
   var tierLines=document.getElementById("eh-tiers").value.split("\n").map(function(l){return l.trim();}).filter(Boolean);
   if(!name||!loc||!email||!tierLines.length){toast("Please fill all required fields","#C4727A");return;}
   if(blockedFieldsCheck([name,loc,bio])){editingHealerId=id;return;}
+  var newPw=(document.getElementById("eh-password")||{}).value||"";newPw=newPw.trim();
+  if(newPw&&newPw.length<6){toast("New password must be at least 6 characters","#C4727A");return;}
   var tiers=[];
   for(var i=0;i<tierLines.length;i++){
     var parts=tierLines[i].split(",");
@@ -816,7 +821,8 @@ function saveHealerEdit(id){
     if(containsLink(tname)){toast("Session type names can't include a website link","#C4727A");return;}
     tiers.push({id:"t"+i+"_"+Date.now(),name:tname,price:tprice});
   }
-  P=P.map(function(p){return p.id===id?Object.assign({},p,{name:name,location:loc,email:email,bio:bio,calendlyUrl:calendly,sessionTypes:tiers,rate:Math.min.apply(null,tiers.map(function(t){return t.price;})),available:document.getElementById("eh-available").checked}):p;});
+  P=P.map(function(p){return p.id===id?Object.assign({},p,{name:name,location:loc,email:email,bio:bio,calendlyUrl:calendly,sessionTypes:tiers,rate:Math.min.apply(null,tiers.map(function(t){return t.price;})),available:document.getElementById("eh-available").checked},newPw?{password:newPw,mustChangePassword:true}:{}):p;});
+  if(newPw)logAdminNotification("🔑 Temporary password set for "+name);
   lsSet("rs:p",P);serverSet('practitioners',P);
   editingHealerId=null;
   toast("Healer profile updated ✓","#4A9B8E");
@@ -1060,8 +1066,40 @@ function acceptPayTerms(){
   P=P.map(function(p){return p.id===curUser.id?curUser:p;});lsSet("rs:p",P);serverSet('practitioners',P);
   logAdminNotification("✅ "+curUser.name+" acknowledged the payment terms");
   document.getElementById("payterms-overlay").style.display="none";toast("Thank you ✓","#4A9B8E");
+  if(curUser.mustChangePassword)showChangePwGate();
 }
 function declinePayTerms(){document.getElementById("payterms-overlay").style.display="none";doLogout();}
+// =====================================================================
+// PASSWORDS: forgot-password request, temporary password, change password
+// =====================================================================
+function toggleForgot(){var b=document.getElementById("forgot-box");b.style.display=b.style.display==="none"?"block":"none";var e=document.getElementById("p-email").value;if(e)document.getElementById("fp-email").value=e;}
+function requestPasswordReset(){
+  var email=document.getElementById("fp-email").value.trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){toast("Please enter a valid email","#C4727A");return;}
+  var p=P.find(function(x){return (x.email||"").toLowerCase()===email.toLowerCase();});
+  logAdminNotification("🔑 Password reset requested: "+email+(p?" ("+p.name+")":" (no healer with this email)"));
+  emailjs.send("service_bl7o2cm","template_50n96cr",{name:"Password Reset Request",email:email,message:"🔑 PASSWORD RESET REQUEST | Email: "+email+" | Healer: "+(p?p.name:"No healer found with this email")+" | To help: Admin → Edit this healer → type a temporary password → Save, then email it to them. They'll be asked to choose a new one when they log in."}).catch(function(err){console.error("EmailJS reset request failed:",err);});
+  document.getElementById("forgot-box").innerHTML='<div style="font-size:13px;color:#4A9B8E;text-align:center;line-height:1.6">✓ Request received. If that email is registered, we\'ll send you a temporary password, usually within 24 hours.</div>';
+}
+function changePwCard(forced){
+  return '<div class="card" style="margin-top:16px"><div class="section-title">'+(forced?'CHOOSE A NEW PASSWORD':'CHANGE PASSWORD')+'</div>'+(forced?'<div class="text-soft" style="font-size:13px;margin-bottom:12px;line-height:1.6">You logged in with a temporary password. Please choose your own password to continue.</div>':'<div class="field"><label>CURRENT PASSWORD</label><input id="cp-current" type="password"></div>')+'<div class="field"><label>NEW PASSWORD</label><input id="cp-new" type="password" placeholder="At least 6 characters"></div><div class="field"><label>TYPE IT AGAIN</label><input id="cp-new2" type="password"></div><button class="btn btn-purple full-width" onclick="saveNewPassword('+(forced?'true':'false')+')">Save New Password</button></div>';
+}
+function saveNewPassword(forced){
+  var nw=document.getElementById("cp-new").value,nw2=document.getElementById("cp-new2").value;
+  if(!forced&&document.getElementById("cp-current").value!==curUser.password){toast("Current password is not correct","#C4727A");return;}
+  if(nw.length<6){toast("New password must be at least 6 characters","#C4727A");return;}
+  if(nw!==nw2){toast("The two new passwords don't match","#C4727A");return;}
+  curUser.password=nw;delete curUser.mustChangePassword;
+  P=P.map(function(p){return p.id===curUser.id?curUser:p;});lsSet("rs:p",P);serverSet('practitioners',P);
+  toast("Password updated ✓","#4A9B8E");
+  var o=document.getElementById("changepw-overlay");if(o)o.style.display="none";
+  if(!forced)renderMyProfile();
+}
+function showChangePwGate(){
+  var o=document.getElementById("changepw-overlay");
+  if(!o){o=document.createElement("div");o.id="changepw-overlay";o.style.cssText="position:fixed;inset:0;background:rgba(42,31,61,.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto";document.body.appendChild(o);}
+  o.innerHTML='<div style="max-width:440px;width:100%;background:#fff;border-radius:16px">'+changePwCard(true)+'</div>';o.style.display="flex";
+}
 function payTermsBadge(p){
   return p.payTermsVersion===PAY_TERMS_VERSION?'<div style="font-size:11px;color:#4A9B8E">✓ Payment terms acknowledged '+new Date(p.payTermsAcceptedAt).toLocaleDateString()+'</div>':'<div style="font-size:11px;color:#C4727A">⚠ Payment terms not acknowledged yet (asked at next login)</div>';
 }
