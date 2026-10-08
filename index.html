@@ -220,7 +220,7 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
     <div style="text-align:center;padding-top:20px">
       <div style="font-size:52px;margin-bottom:16px">🎵</div>
       <h2 style="font-weight:normal;font-size:26px;margin-bottom:10px;color:#2A1F3D">Share your gift. <span class="text-gold">Get booked.</span></h2>
-      <p class="text-soft" style="max-width:400px;margin:0 auto 28px;line-height:1.7;font-size:14px">REAL Holistic Network connects healers with yoga studios, gyms, nursing homes, and companies. Keep 85% of every booking.</p>
+      <p class="text-soft" style="max-width:400px;margin:0 auto 28px;line-height:1.7;font-size:14px">REAL Holistic Network connects healers with yoga studios, gyms, nursing homes, and companies. Keep 85% of every booking (minus Stripe's card processing fee).</p>
       <button class="btn btn-purple" onclick="showJoin(1)" style="padding:13px 32px;font-size:15px">Create My Profile →</button>
       <div style="margin-top:14px"><span class="text-soft" style="font-size:13px">Already listed? </span><span class="text-purple" style="cursor:pointer;font-size:13px" onclick="showPage('login')">Log in →</span></div>
     </div>
@@ -254,6 +254,7 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
           <span class="disclaimer-text">I agree to the REAL Holistic Network Founding Healer Terms: I understand that REAL Holistic Network is the originating source of any client or venue connection made through this platform. I agree not to solicit, accept, or arrange direct bookings with any client or venue first introduced through REAL Holistic Network, bypassing the platform, for a period of 24 months from the date of first connection. A 15% commission applies to all confirmed bookings made through REAL Holistic Network. Violation of these terms may result in removal from the platform.</span>
         </label>
       </div>
+      <div class="disclaimer-box"><div id="j-payterms"></div><label class="disclaimer-label"><input type="checkbox" id="j-pay-agreed" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">I have read and agree to how payments work.</span></label></div>
       <button class="btn btn-purple full-width" style="padding:14px;font-size:15px;margin-top:4px" onclick="submitJoin()">Create Profile →</button>
     </div>
   </div>
@@ -297,7 +298,7 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
           <button class="ptab active" onclick="setPTab('overview',this)">📊 Overview</button>
           <button class="ptab" onclick="setPTab('bookings',this)">📅 Bookings</button>
           <button class="ptab" onclick="setPTab('earnings',this)">💰 Earnings</button>
-          <button class="ptab" onclick="setPTab('profile',this)">👤 Profile</button><button class="ptab" onclick="setPTab('schedule',this)">🗓️ Schedule</button>
+          <button class="ptab" onclick="setPTab('profile',this)">👤 Profile</button><button class="ptab" onclick="setPTab('schedule',this)">🗓️ Schedule</button><button class="ptab" onclick="setPTab('availability',this)">⏰ Booking Hours</button>
         </div>
         <button class="btn btn-ghost" style="font-size:11px;padding:7px 13px" onclick="doLogout()">Log out</button>
       </div>
@@ -305,7 +306,7 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
     <div id="ptab-overview"></div>
     <div id="ptab-bookings" style="display:none"></div>
     <div id="ptab-earnings" style="display:none"></div>
-    <div id="ptab-profile" style="display:none"></div><div id="ptab-schedule" style="display:none"></div>
+    <div id="ptab-profile" style="display:none"></div><div id="ptab-schedule" style="display:none"></div><div id="ptab-availability" style="display:none"></div>
   </div>
 </div>
 </div>
@@ -507,6 +508,7 @@ function updateBkTierPrice(){
   selTier=getTiers(selP).find(function(t){return t.id===sel.value;})||getTiers(selP)[0];
   var priceEl=document.getElementById("bk-price-display");
   if(priceEl)priceEl.textContent="$"+selTier.price;
+  bkSlot=null;setBkHidden();renderSlotPicker();
 }
 
 function openBooking(id){
@@ -517,21 +519,24 @@ function openBooking(id){
   document.getElementById("bk-healer").innerHTML='<div style="font-size:30px">'+selP.avatar+'</div><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D">'+selP.name+'</div><div class="text-soft" style="font-size:12px">'+selP.location+'</div><div class="mod-tags" style="margin-top:4px">'+selP.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div style="text-align:right"><div style="font-size:20px;color:#C9922A;font-weight:bold" id="bk-price-display">$'+selTier.price+'</div><div class="text-soft" style="font-size:11px">per session</div></div>';
   var tierField=tiers.length>1?'<div class="field"><label>SESSION TYPE</label><select id="b-tier" onchange="updateBkTierPrice()">'+tiers.map(function(t){return '<option value="'+t.id+'">'+t.name+' — $'+t.price+'</option>';}).join("")+'</select></div>':'';
   var calendlyBtn=selP.calendlyUrl?'<a href="'+(/^https?:\/\//.test(selP.calendlyUrl)?selP.calendlyUrl:'https://'+selP.calendlyUrl)+'" target="_blank" rel="noopener" class="btn btn-outline full-width" style="margin-bottom:14px;text-align:center;display:block;text-decoration:none">📅 Schedule a call with '+selP.name+' first</a>':'';
-  document.getElementById("bk-step1").innerHTML='<div class="card">'+calendlyBtn+'<h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin-bottom:20px">Tell us about your event</h3>'+tierField+'<div class="field"><label>VENUE / ORGANIZATION NAME</label><input id="b-venue" placeholder="e.g. Lotus Yoga Studio or Sunrise Nursing Home"></div><div class="field"><label>YOUR EMAIL</label><input id="b-email" type="email" placeholder="you@example.com"></div><div class="two-col"><div class="field"><label>DATE</label><input id="b-date" type="date"></div><div class="field"><label>TIME</label><input id="b-time" type="time"></div></div><div class="field"><label>VENUE TYPE</label><select id="b-vtype"><option value="">Select...</option>'+VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<option>'+v+'</option>';}).join("")+'</select></div><div class="field"><label>GROUP SIZE</label><input id="b-group" type="number" placeholder="e.g. 20"></div><div class="field"><label>NOTES FOR THE HEALER</label><textarea id="b-notes" rows="3" placeholder="Themes, intentions, accessibility needs, special requests..."></textarea></div><button class="btn btn-purple full-width" style="padding:14px;font-size:15px" onclick="bkStep2()">Review Booking →</button></div>';
+  document.getElementById("bk-step1").innerHTML='<div class="card">'+calendlyBtn+'<h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin-bottom:20px">Tell us about your event</h3>'+tierField+'<div class="field"><label>VENUE / ORGANIZATION NAME</label><input id="b-venue" placeholder="e.g. Lotus Yoga Studio or Sunrise Nursing Home"></div><div class="field"><label>YOUR EMAIL</label><input id="b-email" type="email" placeholder="you@example.com"></div>'+bkDateTimeField()+'<div class="field"><label>VENUE TYPE</label><select id="b-vtype"><option value="">Select...</option>'+VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<option>'+v+'</option>';}).join("")+'</select></div><div class="field"><label>GROUP SIZE</label><input id="b-group" type="number" placeholder="e.g. 20"></div><div class="field"><label>NOTES FOR THE HEALER</label><textarea id="b-notes" rows="3" placeholder="Themes, intentions, accessibility needs, special requests..."></textarea></div><button class="btn btn-purple full-width" style="padding:14px;font-size:15px" onclick="bkStep2()">Review Booking →</button></div>';
   document.getElementById("bk-step1").style.display="block";
   document.getElementById("bk-step2").style.display="none";
   document.getElementById("bk-step3").style.display="none";
   showPage("booking");
+  renderSlotPicker();
+  if(hasCalendar(selP))serverGet('bookings',B).then(function(x){B=x;if(!bkSlot)renderSlotPicker();});
 }
 
 function bkStep2(){
   var v=document.getElementById("b-venue").value,e=document.getElementById("b-email").value,d=document.getElementById("b-date").value;
+  if(hasCalendar(selP)&&!bkSlot){toast("Please choose a date and time","#C4727A");return;}
   if(!v||!e||!d){toast("Please fill in required fields","#C4727A");return;}
   var hasConflict=(selP.schedule||[]).some(function(s){return s.date===d;})||B.some(function(b){return b.practitionerId===selP.id&&b.status==="confirmed"&&b.date===d;});
   var conflictWarning=hasConflict?'<div class="disclaimer-box" style="border-color:#C4727A;background:linear-gradient(135deg,#fde8ea,#fde8ea)"><span style="font-size:13px;color:#A45560">⚠️ '+selP.name+' already has something on their schedule this date. Consider messaging first or choosing another date.</span></div>':'';
-  var fee=selTier.price,pf=Math.round(fee*.15),tot=Math.round(fee*1.15);
-  var rows=[["Venue/Org",v],["Session type",selTier.name],["Date",d],["Time",document.getElementById("b-time").value||"—"],["Type",document.getElementById("b-vtype").value||"—"],["Group",document.getElementById("b-group").value?document.getElementById("b-group").value+" people":"—"],["Session fee","$"+fee],["Platform fee (15%)","$"+pf]];
-  document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin-bottom:20px">Review your booking</h3>'+conflictWarning+''+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#2A1F3D">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">I understand that REAL Holistic Network is a marketplace platform. REAL Holistic Network is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Holistic Network bears no liability for any injury or damage arising from this session.</span></label></div><div class="stripe-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="card-element"></div><div id="card-errors"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" id="pay-btn" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">Pay $'+tot+' & Request →</button></div></div>';
+  var fee=selTier.price,tot=fee;
+  var rows=[["Venue/Org",v],["Session type",selTier.name],["Date",bkDisplayDate()],["Time",bkDisplayTime()],["Type",document.getElementById("b-vtype").value||"—"],["Group",document.getElementById("b-group").value?document.getElementById("b-group").value+" people":"—"],["Session fee","$"+fee]];
+  document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin-bottom:20px">Review your booking</h3>'+conflictWarning+''+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#2A1F3D">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">Your card is charged only after the healer confirms. Cancellation policy: cancel at least 24 hours before your session for a full refund; later cancellations and no-shows are not refunded. To cancel, email bookings.realsound@gmail.com. I understand that REAL Holistic Network is a marketplace platform. REAL Holistic Network is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Holistic Network bears no liability for any injury or damage arising from this session.</span></label></div><div class="stripe-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="card-element"></div><div id="card-errors"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" id="pay-btn" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">Pay $'+tot+' & Request →</button></div></div>';
   document.getElementById("bk-step1").style.display="none";
   document.getElementById("bk-step2").style.display="block";
  if(!elements)initStripe();
@@ -550,35 +555,45 @@ async function confirmBooking(){
   if(!document.getElementById("b-agreed").checked){toast("Please agree to the terms","#C4727A");return;}
   var btn=document.getElementById("pay-btn");
   btn.disabled=true;btn.textContent="Processing…";
-  var fee=selTier.price,tot=Math.round(fee*1.15);
+  var fee=selTier.price,tot=fee,useSlot=bkIsSlot();
+  bkLockId=null;
+  if(useSlot){
+    try{
+      var rs=await reserveSlot("hold");
+      if(!rs.ok){toast(rs.error||"Sorry, that time was just taken. Please pick another time.","#C4727A");btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";B=await serverGet('bookings',B);bkStep1();bkSlot=null;setBkHidden();renderSlotPicker();return;}
+      bkLockId=rs.lockId;
+    }catch(e){toast("Couldn't reserve that time. Please try again.","#C4727A");btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";return;}
+  }
+  var releaseHold=function(){if(useSlot&&bkLockId)reserveSlot("release").catch(function(){});};
   try{
-    var piRes=await fetch('/api/create-payment-intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:tot,email:document.getElementById("b-email").value,metadata:{practitioner:selP.name}})});
+    var piRes=await fetch('/api/create-payment-intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:tot,email:document.getElementById("b-email").value,metadata:{practitioner:selP.name,session:selTier.name,start:useSlot?bkSlot.toISOString():(document.getElementById("b-date").value+" "+document.getElementById("b-time").value)}})});
     var piData=await piRes.json();
     if(piData.error){
-      document.getElementById("card-errors").textContent=piData.error;
+      document.getElementById("card-errors").textContent=piData.error;releaseHold();
       btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
       return;
     }
     var result=await stripe.confirmCardPayment(piData.clientSecret,{payment_method:{card:cardElement,billing_details:{email:document.getElementById("b-email").value}}});
     if(result.error){
-      document.getElementById("card-errors").textContent=result.error.message;
+      document.getElementById("card-errors").textContent=result.error.message;releaseHold();
       btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
       return;
     }
-    var bk={id:"b"+Date.now(),paymentIntentId:piData.paymentIntentId,practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,sessionType:selTier.name,fee:selTier.price,platformFee:Math.round(selTier.price*.15),total:tot,status:"pending",paymentMethodId:result.paymentIntent.payment_method,createdAt:new Date().toISOString()};
-    B.push(bk);lsSet("rs:b",B);serverSet('bookings',B);
+    var bk={id:"b"+Date.now(),paymentIntentId:piData.paymentIntentId,practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,sessionType:selTier.name,price:selTier.price,fee:selTier.price-Math.round(selTier.price*.15),platformFee:Math.round(selTier.price*.15),total:tot,status:"pending",startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null,healerTz:useSlot?getAvail(selP).tz:null,lockId:useSlot?bkLockId:null,paymentMethodId:result.paymentIntent.payment_method,createdAt:new Date().toISOString()};
+    var latestB=await serverGet('bookings',B);B=latestB.concat([bk]);lsSet("rs:b",B);serverSet('bookings',B);
+    if(useSlot)reserveSlot("keep",{bookingId:bk.id}).catch(function(){});
     logAdminNotification("🔔 New booking request: "+bk.venueName+" → "+bk.practitionerName+" ("+bk.date+")");
     emailjs.send("service_bl7o2cm","template_50n96cr",{
       name:bk.venueName,
       email:bk.email,
-      message:"NEW BOOKING REQUEST 🔔 | Healer: "+bk.practitionerName+" | Session: "+bk.sessionType+" | Date: "+bk.date+" | Time: "+(bk.time||"TBD")+" | Type: "+bk.venueType+" | Group: "+(bk.groupSize||"TBD")+" | Total: $"+bk.total+" | Notes: "+(bk.notes||"None")
+      message:"NEW BOOKING REQUEST 🔔 | Healer: "+bk.practitionerName+" | Session: "+bk.sessionType+" | Date: "+bk.date+" | Time: "+(bk.time||"TBD")+(bk.healerTz?" ("+tzLabel(bk.healerTz)+")":"")+" | Type: "+bk.venueType+" | Group: "+(bk.groupSize||"TBD")+" | Total: $"+bk.total+" | Notes: "+(bk.notes||"None")
     }).then(function(){console.log("Booking notification email sent.");}).catch(function(err){console.error("EmailJS failed to send booking notification:",err);});
     document.getElementById("bk-step2").style.display="none";
     document.getElementById("bk-step3").innerHTML='<div class="card card-gold" style="text-align:center;padding:36px"><div style="font-size:52px;margin-bottom:16px">🔔</div><h2 class="text-gold" style="font-weight:normal;margin-bottom:10px">Request Sent!</h2><p class="text-soft" style="margin-bottom:8px;line-height:1.7;font-size:14px">'+selP.name+' will confirm within 24 hours.</p><p class="text-soft" style="margin-bottom:24px;font-size:13px">Your card will be charged once they accept.</p><button class="btn btn-outline" onclick="showPage(\'find\')">Back to healers</button></div>';
     document.getElementById("bk-step3").style.display="block";
     toast("Booking request sent! 🎵");
   }catch(e){
-    btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
+    releaseHold();btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
     toast("Something went wrong. Please try again.","#C4727A");
   }
 }
@@ -597,18 +612,19 @@ function showJoin(n){
   document.getElementById("join0").style.display=n===0?"block":"none";
   document.getElementById("join1").style.display=n===1?"block":"none";
   document.getElementById("join2").style.display=n===2?"block":"none";
-  if(n===1)renderJoinPills();
+  if(n===1){renderJoinPills();var pt=document.getElementById("j-payterms");if(pt)pt.innerHTML=payTermsHtml();}
 }
 
 function submitJoin(){
   var name=document.getElementById("j-name").value,email=document.getElementById("j-email").value,pass=document.getElementById("j-password").value,loc=document.getElementById("j-location").value,zip=document.getElementById("j-zip").value,bio=document.getElementById("j-bio").value,calendly=document.getElementById("j-calendly").value.trim();
   if(!name||!email||!pass||!loc||!jTiers.length){toast(jTiers.length?"Please fill all required fields":"Please add at least one session type & price","#C4727A");return;}
   if(!document.getElementById("j-agreed").checked){toast("Please agree to the Founding Healer terms","#C4727A");return;}
+  if(!document.getElementById("j-pay-agreed").checked){toast("Please agree to how payments work","#C4727A");return;}
   if(P.find(function(p){return p.email===email;})){toast("Email already registered","#C4727A");return;}
   if(blockedFieldsCheck([name,loc,bio]))return;
   var src=getSrc();
   var avatars=["🌿","🎵","🌸","💫","🔔","🌀","🪬"];
-  var p={id:"p"+Date.now(),name:name,email:email,password:pass,location:loc,zip:zip,rate:Math.min.apply(null,jTiers.map(function(t){return t.price;})),sessionTypes:jTiers.slice(),calendlyUrl:calendly,instruments:jInstr.slice(),venueTypes:jVenues.slice(),modalities:jMods.slice(),bio:bio,rating:5.0,reviews:0,available:true,avatar:avatars[Math.floor(Math.random()*avatars.length)],source:src,joinedAt:new Date().toISOString()};
+  var p={id:"p"+Date.now(),name:name,email:email,password:pass,location:loc,zip:zip,rate:Math.min.apply(null,jTiers.map(function(t){return t.price;})),sessionTypes:jTiers.slice(),calendlyUrl:calendly,instruments:jInstr.slice(),venueTypes:jVenues.slice(),modalities:jMods.slice(),bio:bio,rating:5.0,reviews:0,available:true,avatar:avatars[Math.floor(Math.random()*avatars.length)],source:src,joinedAt:new Date().toISOString(),payTermsVersion:PAY_TERMS_VERSION,payTermsAcceptedAt:new Date().toISOString()};
  P.push(p);lsSet("rs:p",P);serverSet('practitioners',P);
   logAdminNotification("🌟 New healer: "+name+" ("+loc+")");
   emailjs.send("service_bl7o2cm","template_50n96cr",{
@@ -636,20 +652,20 @@ function doLogin(){
   var email=document.getElementById("p-email").value,pass=document.getElementById("p-password").value;
   var p=P.find(function(x){return x.email===email&&x.password===pass;});
   var err=document.getElementById("login-err");
-  if(p){curUser=p;err.style.display="none";renderLogin();}
+  if(p){curUser=p;err.style.display="none";renderLogin();if(needsPayTerms(p))showPayTermsGate();}
   else{err.textContent="Email or password not recognised.";err.style.display="block";}
 }
 
 function doLogout(){curUser=null;renderLogin();}
 
 function setPTab(tab,btn){
-  ["overview","bookings","earnings","profile","schedule"].forEach(function(t){document.getElementById("ptab-"+t).style.display=t===tab?"block":"none";});
+  ["overview","bookings","earnings","profile","schedule","availability"].forEach(function(t){document.getElementById("ptab-"+t).style.display=t===tab?"block":"none";});
   document.querySelectorAll(".ptab").forEach(function(b){b.classList.remove("active");});
   if(btn)btn.classList.add("active");
   if(tab==="overview")renderOverview();
   if(tab==="bookings")renderMyBookings();
   if(tab==="earnings")renderEarnings();
-  if(tab==="profile")renderMyProfile();   if(tab==="schedule")renderSchedule();
+  if(tab==="profile")renderMyProfile();   if(tab==="schedule")renderSchedule();if(tab==="availability")renderAvailability();
 }
 
 function myB(){return B.filter(function(b){return b.practitionerId===curUser.id;});}
@@ -671,6 +687,7 @@ async function respond(id,status){
       }
     }catch(e){}
   }
+  if(status==="declined")releaseBookingSlot(bkg);
   B=B.map(function(b){return b.id===id?Object.assign({},b,{status:status}):b;});
   lsSet("rs:b",B);serverSet('bookings',B);toast(status==="confirmed"?"Booking confirmed ✓":"Booking declined",status==="confirmed"?"#4A9B8E":"#C4727A");renderOverview();
 }
@@ -765,7 +782,7 @@ function renderAdmin(){
   document.getElementById("admin-bookings").innerHTML=(srcHtml?'<div style="margin-bottom:16px"><div class="section-title">SIGNUP SOURCES</div>'+srcHtml+'</div>':'')+(B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:2px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.practitionerName+(b.sessionType?' · '+b.sessionType:'')+' · '+b.date+' · '+b.venueType+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span></div></div><span class="status-'+b.status+'">'+b.status+'</span>'+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>');
   document.getElementById("admin-practitioners").innerHTML=P.map(function(p){
     if(editingHealerId===p.id)return healerEditForm(p);
-    return '<div class="booking-card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><div style="font-size:22px">'+p.avatar+'</div><div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · '+priceLabel(p)+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+'</div><div class="text-soft" style="font-size:12px">✉ <a href="mailto:'+p.email+'" style="color:#6B4699">'+p.email+'</a></div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="editHealer(\''+p.id+'\')">Edit</button>'+(isOwner?'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button>':'')+'</div></div>';
+    return '<div class="booking-card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><div style="font-size:22px">'+p.avatar+'</div><div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · '+priceLabel(p)+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+'</div><div class="text-soft" style="font-size:12px">✉ <a href="mailto:'+p.email+'" style="color:#6B4699">'+p.email+'</a></div>'+payTermsBadge(p)+(hasCalendar(p)?'<div style="font-size:11px;color:#6B4699">⏰ Booking calendar on</div>':'')+'</div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="editHealer(\''+p.id+'\')">Edit</button>'+(isOwner?'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button>':'')+'</div></div>';
   }).join("");
 }
 
@@ -806,7 +823,7 @@ function saveHealerEdit(id){
   renderAdmin();
 }
 
-function aRespond(id,s){B=B.map(function(b){return b.id===id?Object.assign({},b,{status:s}):b;});lsSet("rs:b",B);serverSet('bookings',B);renderAdmin();}
+function aRespond(id,s){if(s==="declined")releaseBookingSlot(B.find(function(b){return b.id===id;}));B=B.map(function(b){return b.id===id?Object.assign({},b,{status:s}):b;});lsSet("rs:b",B);serverSet('bookings',B);renderAdmin();}
 function removeP(id){
   if(curAdminRole!=="owner"){toast("Only the owner login can remove healers","#C4727A");return;}
   P=P.filter(function(p){return p.id!==id;});lsSet("rs:p",P);serverSet('practitioners',P);renderAdmin();
@@ -816,6 +833,238 @@ window.addEventListener('load',function(){
   if(typeof Stripe!=='undefined')initStripe();
 });
 loadFromServer();
+</script>
+<script>
+// =====================================================================
+// BOOKING CALENDAR + PAYMENT TERMS ACKNOWLEDGMENT (Oct 2026)
+// Healers set weekly hours on an "Availability" tab; clients pick an open
+// time slot. Slots are reserved on the server (/api/reserve-slot) so two
+// clients can never grab the same time. Healers who haven't set hours yet
+// keep the old "request a date & time" form.
+// =====================================================================
+
+var WEEKDAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+var TZ_CHOICES=[["America/New_York","Eastern"],["America/Chicago","Central"],["America/Denver","Mountain"],["America/Phoenix","Arizona"],["America/Los_Angeles","Pacific"],["America/Anchorage","Alaska"],["Pacific/Honolulu","Hawaii"]];
+var DURATION_CHOICES=[30,45,60,75,90,120,180];
+var CELL_MIN=15; // server reservation grid, in minutes
+
+function browserTz(){try{return Intl.DateTimeFormat().resolvedOptions().timeZone||"America/New_York";}catch(e){return "America/New_York";}}
+function tzLabel(tz){var f=TZ_CHOICES.find(function(t){return t[0]===tz;});return f?f[1]+" time":tz.replace(/_/g," ");}
+
+// Minutes the zone is ahead of UTC at a given instant.
+function tzOffsetMin(date,tz){
+  var parts={};
+  new Intl.DateTimeFormat("en-US",{timeZone:tz,hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit"}).formatToParts(date).forEach(function(p){parts[p.type]=p.value;});
+  var asUtc=Date.UTC(+parts.year,+parts.month-1,+parts.day,(+parts.hour)%24,+parts.minute,+parts.second);
+  return Math.round((asUtc-date.getTime())/60000);
+}
+// "2026-10-14" + "09:30" in a zone -> real Date (handles daylight saving).
+function zonedToDate(dateStr,timeStr,tz){
+  var d=dateStr.split("-").map(Number),t=(timeStr||"00:00").split(":").map(Number);
+  var guess=Date.UTC(d[0],d[1]-1,d[2],t[0],t[1]);
+  var off=tzOffsetMin(new Date(guess),tz),ms=guess-off*60000;
+  var off2=tzOffsetMin(new Date(ms),tz);
+  if(off2!==off)ms=guess-off2*60000;
+  return new Date(ms);
+}
+// Date -> {date:"YYYY-MM-DD",time:"HH:MM",dow} in a zone.
+function dateInTz(date,tz){
+  var parts={};
+  new Intl.DateTimeFormat("en-US",{timeZone:tz,hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",weekday:"short"}).formatToParts(date).forEach(function(p){parts[p.type]=p.value;});
+  return {date:parts.year+"-"+parts.month+"-"+parts.day,time:((+parts.hour)%24<10?"0":"")+((+parts.hour)%24)+":"+parts.minute,dow:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(parts.weekday)};
+}
+function addDaysStr(dateStr,n){var d=dateStr.split("-").map(Number);var x=new Date(Date.UTC(d[0],d[1]-1,d[2]+n));return x.toISOString().slice(0,10);}
+function fmtDay(date,tz){return date.toLocaleDateString("en-US",{timeZone:tz,weekday:"short",month:"short",day:"numeric"});}
+function fmtTime(date,tz){return date.toLocaleTimeString("en-US",{timeZone:tz,hour:"numeric",minute:"2-digit"});}
+function escHtml(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+
+// ---- Availability settings stored on the healer record ----
+function getAvail(p){return p&&p.availability?p.availability:null;}
+function hasCalendar(p){
+  var a=getAvail(p);if(!a||!a.weekly)return false;
+  return Object.keys(a.weekly).some(function(k){return (a.weekly[k]||[]).length>0;});
+}
+function guessDuration(name){
+  var n=String(name||"").toLowerCase(),m=n.match(/(\d+(?:\.\d+)?)\s*(?:-|\s)?\s*(min|minute|hr|hour|h\b)/);
+  if(!m)return 60;var v=parseFloat(m[1]);return /^h/.test(m[2])?Math.round(v*60):Math.round(v);
+}
+// Durations are keyed by session-type NAME so they survive admin edits.
+function tierDuration(p,tier){
+  var a=getAvail(p),d=a&&a.durations&&a.durations[tier.name];
+  return d?+d:guessDuration(tier.name);
+}
+
+// ---- Busy times for a healer (bookings + personal schedule) ----
+function busyIntervals(p){
+  var tz=(getAvail(p)||{}).tz||"America/New_York",out=[];
+  B.forEach(function(b){
+    if(b.practitionerId!==p.id||(b.status!=="pending"&&b.status!=="confirmed"))return;
+    if(b.startUTC){var s=new Date(b.startUTC).getTime();out.push([s,s+(b.durationMin||60)*60000]);}
+    else if(b.date){
+      if(b.time){var s2=zonedToDate(b.date,b.time,tz).getTime();out.push([s2,s2+60*60000]);}
+      else out.push([zonedToDate(b.date,"00:00",tz).getTime(),zonedToDate(addDaysStr(b.date,1),"00:00",tz).getTime()]);
+    }
+  });
+  (p.schedule||[]).forEach(function(s){
+    if(!s.date)return;
+    if(s.time){var st=zonedToDate(s.date,s.time,tz).getTime();out.push([st,st+60*60000]);}
+    else out.push([zonedToDate(s.date,"00:00",tz).getTime(),zonedToDate(addDaysStr(s.date,1),"00:00",tz).getTime()]);
+  });
+  return out;
+}
+
+// All open start times for a session length, grouped by the CLIENT's day.
+function openSlots(p,durationMin){
+  var a=getAvail(p);if(!a)return [];
+  var tz=a.tz||"America/New_York",step=a.step||30,now=Date.now();
+  var earliest=now+(a.minNoticeHours!=null?a.minNoticeHours:24)*3600000;
+  var days=a.maxDaysAhead||60,busy=busyIntervals(p),todayStr=dateInTz(new Date(),tz).date,res=[];
+  for(var i=0;i<=days;i++){
+    var ds=addDaysStr(todayStr,i),dow=new Date(ds+"T12:00:00Z").getUTCDay();
+    (a.weekly[dow]||[]).forEach(function(w){
+      if(!w.start||!w.end)return;
+      var ws=zonedToDate(ds,w.start,tz).getTime(),we=zonedToDate(ds,w.end,tz).getTime();
+      for(var s=ws;s+durationMin*60000<=we;s+=step*60000){
+        if(s<earliest)continue;
+        var e=s+durationMin*60000;
+        if(busy.some(function(x){return s<x[1]&&e>x[0];}))continue;
+        res.push(new Date(s));
+      }
+    });
+  }
+  return res;
+}
+
+// =====================================================================
+// CLIENT SIDE: slot picker inside the booking form
+// =====================================================================
+var bkSlot=null,bkShowDays=10,bkDay=null,bkLockId=null;
+
+function bkDateTimeField(){
+  bkSlot=null;bkDay=null;bkShowDays=10;
+  if(!hasCalendar(selP)){
+    return '<div class="two-col"><div class="field"><label>DATE</label><input id="b-date" type="date"></div><div class="field"><label>TIME</label><input id="b-time" type="time"></div></div><div class="text-soft" style="font-size:12px;margin:-6px 0 14px">'+escHtml(selP.name)+' will confirm whether this date and time works.</div>';
+  }
+  return '<input type="hidden" id="b-date"><input type="hidden" id="b-time"><div class="field"><label>CHOOSE A DATE &amp; TIME</label><div id="bk-slot-picker"></div></div>';
+}
+
+function renderSlotPicker(){
+  var el=document.getElementById("bk-slot-picker");if(!el)return;
+  var ctz=browserTz(),dur=tierDuration(selP,selTier),slots=openSlots(selP,dur);
+  var groups={},order=[];
+  slots.forEach(function(s){var k=dateInTz(s,ctz).date;if(!groups[k]){groups[k]=[];order.push(k);}groups[k].push(s);});
+  if(!order.length){el.innerHTML='<div class="card" style="text-align:center;color:#A990C9;padding:20px;font-size:13px">No open times right now for this session. Please check back soon'+(selP.calendlyUrl?' or schedule a call above':'')+'.</div>';return;}
+  if(!bkDay||!groups[bkDay])bkDay=order[0];
+  var shown=order.slice(0,bkShowDays);
+  if(shown.indexOf(bkDay)<0)shown.push(bkDay);
+  var dayBtns=shown.map(function(k){var d=groups[k][0];return '<button type="button" class="pill'+(k===bkDay?' pill-gold':'')+'" style="margin:0 6px 6px 0" onclick="pickBkDay(\''+k+'\')">'+fmtDay(d,ctz)+'</button>';}).join("");
+  var more=order.length>shown.length?'<button type="button" class="pill" style="margin:0 6px 6px 0;border-style:dashed" onclick="bkShowDays+=10;renderSlotPicker()">More dates…</button>':'';
+  var times=groups[bkDay].map(function(s){var iso=s.toISOString(),on=bkSlot&&bkSlot.toISOString()===iso;return '<button type="button" class="pill'+(on?' pill-teal':'')+'" style="margin:0 6px 6px 0;min-width:84px" onclick="pickBkSlot(\''+iso+'\')">'+fmtTime(s,ctz)+'</button>';}).join("");
+  var htz=(getAvail(selP)||{}).tz;
+  var tzNote='Times shown in your time zone ('+tzLabel(ctz)+')'+(htz&&htz!==ctz?'. '+escHtml(selP.name)+' is on '+tzLabel(htz)+'.':'.')+' Session length: '+dur+' min.';
+  el.innerHTML='<div style="margin-bottom:8px">'+dayBtns+more+'</div><div style="border-top:1px solid rgba(107,70,153,.12);padding-top:10px">'+times+'</div><div class="text-soft" style="font-size:11px;margin-top:6px">'+tzNote+'</div>'+(bkSlot?'<div style="margin-top:10px;font-size:13px;color:#4A9B8E;font-weight:bold">✓ '+fmtDay(bkSlot,ctz)+' at '+fmtTime(bkSlot,ctz)+'</div>':'');
+}
+function pickBkDay(k){bkDay=k;bkSlot=null;setBkHidden();renderSlotPicker();}
+function pickBkSlot(iso){bkSlot=new Date(iso);setBkHidden();renderSlotPicker();}
+function setBkHidden(){
+  var d=document.getElementById("b-date"),t=document.getElementById("b-time");if(!d||!t)return;
+  if(!bkSlot){d.value="";t.value="";return;}
+  var h=dateInTz(bkSlot,(getAvail(selP)||{}).tz||"America/New_York");d.value=h.date;t.value=h.time;
+}
+function bkIsSlot(){return hasCalendar(selP)&&!!bkSlot;}
+function bkDisplayDate(){return bkIsSlot()?fmtDay(bkSlot,browserTz()):document.getElementById("b-date").value;}
+function bkDisplayTime(){return bkIsSlot()?fmtTime(bkSlot,browserTz())+" ("+tierDuration(selP,selTier)+" min)":(document.getElementById("b-time").value||"—");}
+
+// ---- Server reservation of the chosen slot ----
+async function reserveSlot(action,extra){
+  var body=Object.assign({action:action,practitionerId:selP.id,start:bkSlot?bkSlot.toISOString():null,durationMin:tierDuration(selP,selTier),lockId:bkLockId},extra||{});
+  var r=await fetch("/api/reserve-slot",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  return r.json();
+}
+function releaseBookingSlot(b){
+  if(!b||!b.startUTC||!b.lockId)return;
+  fetch("/api/reserve-slot",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"release",practitionerId:b.practitionerId,start:b.startUTC,durationMin:b.durationMin||60,lockId:b.lockId})}).catch(function(){});
+}
+
+// =====================================================================
+// HEALER SIDE: "Availability" tab
+// =====================================================================
+function renderAvailability(){
+  var p=curUser,a=getAvail(p)||{},tz=a.tz||browserTz(),wk=a.weekly||{};
+  var tzOpts=TZ_CHOICES.slice();if(!tzOpts.some(function(t){return t[0]===tz;}))tzOpts.push([tz,tz]);
+  var rows=WEEKDAYS.map(function(name,i){
+    var w=(wk[i]&&wk[i][0])||null;
+    return '<div class="booking-card" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px"><label style="display:flex;align-items:center;gap:8px;min-width:120px;font-size:14px;color:#2A1F3D"><input type="checkbox" id="av-on-'+i+'" '+(w?"checked":"")+' style="width:auto;accent-color:#6B4699" onchange="document.getElementById(\'av-times-'+i+'\').style.opacity=this.checked?1:.35">'+name+'</label><div id="av-times-'+i+'" style="display:flex;align-items:center;gap:6px;flex:1;min-width:200px;opacity:'+(w?1:.35)+'"><input type="time" id="av-s-'+i+'" value="'+(w?w.start:"09:00")+'" style="flex:1"><span class="text-soft">to</span><input type="time" id="av-e-'+i+'" value="'+(w?w.end:"17:00")+'" style="flex:1"></div></div>';
+  }).join("");
+  var durRows=getTiers(p).map(function(t,i){
+    var cur=tierDuration(p,t);var opts=DURATION_CHOICES.slice();if(opts.indexOf(cur)<0)opts.push(cur);opts.sort(function(x,y){return x-y;});
+    return '<div class="review-row" style="align-items:center"><span class="review-key">'+escHtml(t.name).toUpperCase()+'</span><select id="av-dur-'+i+'" style="width:auto">'+opts.map(function(o){return '<option value="'+o+'"'+(o===cur?" selected":"")+'>'+o+' min</option>';}).join("")+'</select></div>';
+  }).join("");
+  function sel(id,vals,cur,fmt){return '<select id="'+id+'">'+vals.map(function(v){return '<option value="'+v+'"'+(v===cur?" selected":"")+'>'+fmt(v)+'</option>';}).join("")+'</select>';}
+  document.getElementById("ptab-availability").innerHTML='<div style="max-width:620px">'
+    +'<div class="card card-gold" style="margin-bottom:16px"><h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin:0 0 6px">Your booking hours</h3><p class="text-soft" style="font-size:13px;margin:0 0 14px;line-height:1.6">Clients will only see open times inside these hours. Anything on your Schedule tab and any booking you already have is blocked out automatically. To take a day off, add it on your Schedule tab without a time.</p>'
+    +'<div class="field"><label>YOUR TIME ZONE</label>'+sel("av-tz",tzOpts.map(function(t){return t[0];}),tz,function(v){var f=tzOpts.find(function(t){return t[0]===v;});return f[1];})+'</div>'+rows+'</div>'
+    +'<div class="card" style="margin-bottom:16px"><div class="section-title">HOW LONG IS EACH SESSION?</div>'+durRows+'</div>'
+    +'<div class="card" style="margin-bottom:16px"><div class="two-col"><div class="field"><label>MINIMUM NOTICE</label>'+sel("av-notice",[2,12,24,48,72],a.minNoticeHours!=null?a.minNoticeHours:24,function(v){return v+" hours ahead";})+'</div><div class="field"><label>CLIENTS CAN BOOK UP TO</label>'+sel("av-ahead",[14,30,60,90],a.maxDaysAhead||60,function(v){return v+" days ahead";})+'</div></div><div class="field"><label>START TIMES EVERY</label>'+sel("av-step",[15,30,60],a.step||30,function(v){return v+" minutes";})+'</div></div>'
+    +'<button class="btn btn-purple full-width" style="padding:14px" onclick="saveAvailability()">Save Booking Hours</button>'
+    +(hasCalendar(p)?'<button class="btn btn-ghost full-width" style="margin-top:10px" onclick="clearAvailability()">Turn off the booking calendar</button>':'')
+    +'</div>';
+}
+function saveAvailability(){
+  var weekly={},any=false;
+  for(var i=0;i<7;i++){
+    if(!document.getElementById("av-on-"+i).checked)continue;
+    var s=document.getElementById("av-s-"+i).value,e=document.getElementById("av-e-"+i).value;
+    if(!s||!e||e<=s){toast(WEEKDAYS[i]+": end time must be after start time","#C4727A");return;}
+    weekly[i]=[{start:s,end:e}];any=true;
+  }
+  if(!any){toast("Turn on at least one day","#C4727A");return;}
+  var durations={};getTiers(curUser).forEach(function(t,i){durations[t.name]=+document.getElementById("av-dur-"+i).value;});
+  curUser.availability={tz:document.getElementById("av-tz").value,weekly:weekly,durations:durations,minNoticeHours:+document.getElementById("av-notice").value,maxDaysAhead:+document.getElementById("av-ahead").value,step:+document.getElementById("av-step").value,updatedAt:new Date().toISOString()};
+  P=P.map(function(p){return p.id===curUser.id?curUser:p;});lsSet("rs:p",P);serverSet('practitioners',P);
+  toast("Booking hours saved ✓ Clients can now pick a time","#4A9B8E");renderAvailability();
+}
+function clearAvailability(){
+  if(!confirm("Turn off the booking calendar? Clients will go back to requesting a date and time."))return;
+  delete curUser.availability;P=P.map(function(p){return p.id===curUser.id?curUser:p;});lsSet("rs:p",P);serverSet('practitioners',P);
+  toast("Booking calendar turned off");renderAvailability();
+}
+
+// =====================================================================
+// PAYMENT TERMS: every healer must acknowledge once (version-tracked)
+// =====================================================================
+var PAY_TERMS_VERSION="2026-10-v1";
+function payTermsHtml(){
+  return '<div style="font-weight:bold;color:#2A1F3D;font-size:17px;margin-bottom:10px">How payments work on REAL Holistic Network</div><ul style="margin:0 0 12px 18px;padding:0;font-size:13px;line-height:1.7;color:#4A3F5C">'
+    +'<li>Clients pay through our site when they book. Their card is charged only after you confirm the appointment. If you decline, they are not charged.</li>'
+    +'<li>Payments go through Stripe, a secure payment company. You will set up a free Stripe account once to receive payouts directly to your bank.</li>'
+    +'<li>Stripe\'s standard card processing fee comes out of your share of each payment.</li>'
+    +PAY_TERMS_FEE_LINE
+    +'<li><strong>Founding Healers:</strong> your first year has no monthly membership fee. After that, a monthly subscription will apply, and we will tell you about it well ahead of time.</li>'
+    +'<li>Clients who cancel at least 24 hours ahead get a full refund. Late cancellations and no-shows are not refunded, and you are paid for them.</li>'
+    +'<li>Please keep all bookings and payments for clients you meet through REAL Holistic Network on our site.</li></ul>';
+}
+// The 15% line lives here so it is easy to change in one place.
+var PAY_TERMS_FEE_LINE='<li>Clients pay your listed price, with nothing added on top. You keep 85% of each booking, and REAL Holistic Network keeps a 15% commission.</li>';
+
+function needsPayTerms(p){return p&&p.payTermsVersion!==PAY_TERMS_VERSION;}
+function showPayTermsGate(){
+  var o=document.getElementById("payterms-overlay");
+  if(!o){o=document.createElement("div");o.id="payterms-overlay";o.style.cssText="position:fixed;inset:0;background:rgba(42,31,61,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto";document.body.appendChild(o);}
+  o.innerHTML='<div class="card card-gold" style="max-width:520px;width:100%;max-height:90vh;overflow-y:auto;background:#fff">'+payTermsHtml()+'<div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="pt-agree" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">I have read and agree to how payments work.</span></label></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="declinePayTerms()">Log out</button><button class="btn btn-purple" style="flex:2" onclick="acceptPayTerms()">Agree &amp; Continue</button></div></div>';
+  o.style.display="flex";
+}
+function acceptPayTerms(){
+  if(!document.getElementById("pt-agree").checked){toast("Please check the box to agree","#C4727A");return;}
+  curUser.payTermsVersion=PAY_TERMS_VERSION;curUser.payTermsAcceptedAt=new Date().toISOString();
+  P=P.map(function(p){return p.id===curUser.id?curUser:p;});lsSet("rs:p",P);serverSet('practitioners',P);
+  logAdminNotification("✅ "+curUser.name+" acknowledged the payment terms");
+  document.getElementById("payterms-overlay").style.display="none";toast("Thank you ✓","#4A9B8E");
+}
+function declinePayTerms(){document.getElementById("payterms-overlay").style.display="none";doLogout();}
+function payTermsBadge(p){
+  return p.payTermsVersion===PAY_TERMS_VERSION?'<div style="font-size:11px;color:#4A9B8E">✓ Payment terms acknowledged '+new Date(p.payTermsAcceptedAt).toLocaleDateString()+'</div>':'<div style="font-size:11px;color:#C4727A">⚠ Payment terms not acknowledged yet (asked at next login)</div>';
+}
 </script>
 </body>
 </html>
