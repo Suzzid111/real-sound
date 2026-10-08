@@ -2,6 +2,7 @@
   "name": "real-sound",
   "version": "1.0.0",
   "dependencies": {
-    "stripe": "^16.0.0"
+    "stripe": "^16.0.0",
+    "@vercel/blob": "^2.3.0"
   }
 }

@@ -5,6 +5,7 @@ import {
   selfHealer, hashPassword, logNote, str
 } from './_lib.js';
 import { setBookingStatus } from './_bookings.js';
+import { loadContent } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -66,12 +67,58 @@ export default async function handler(req, res) {
         await saveHealers(P);
         break;
       }
+      case 'contentSave': {
+        const sec = body.section;
+        if (!['journals', 'teachings', 'resources'].includes(sec)) return res.json({ ok: false, error: 'Unknown section' });
+        const it = body.item || {};
+        const C = await loadContent();
+        const clean = {
+          id: /^[a-z0-9]{6,30}$/.test(String(it.id || '')) ? it.id : 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          title: str(it.title, 150), description: str(it.description, 5000), active: it.active !== false,
+          updatedAt: new Date().toISOString()
+        };
+        if (!clean.title) return res.json({ ok: false, error: 'Please add a title' });
+        if (sec === 'journals') {
+          clean.price = Math.round(parseFloat(it.price) * 100) / 100;
+          if (!(clean.price >= 1)) return res.json({ ok: false, error: 'Please add a price of at least $1' });
+          Object.assign(clean, { filePath: str(it.filePath, 400), fileName: str(it.fileName, 200), imagePath: str(it.imagePath, 400) });
+          if (!clean.filePath) return res.json({ ok: false, error: 'Please upload the file people will download' });
+        } else if (sec === 'teachings') {
+          clean.kind = ['article', 'video', 'class'].includes(it.kind) ? it.kind : 'article';
+          Object.assign(clean, { body: str(it.body, 30000), videoUrl: str(it.videoUrl, 400), date: str(it.date, 10), time: str(it.time, 5), location: str(it.location, 200), signupUrl: str(it.signupUrl, 400), imagePath: str(it.imagePath, 400) });
+        } else {
+          Object.assign(clean, { url: str(it.url, 500), category: str(it.category, 60) || 'General' });
+          if (!/^https?:\/\//i.test(clean.url)) return res.json({ ok: false, error: 'Please add a full web address starting with https://' });
+        }
+        const list = C[sec] || (C[sec] = []);
+        const i = list.findIndex(x => x.id === clean.id);
+        if (i >= 0) list[i] = Object.assign({}, list[i], clean); else { clean.createdAt = clean.updatedAt; list.unshift(clean); }
+        await setJSON('content', C);
+        await logNote(`📚 ${i >= 0 ? 'Updated' : 'Added'} ${sec.slice(0, -1)}: ${clean.title}`);
+        break;
+      }
+      case 'contentDelete': {
+        const C = await loadContent();
+        const sec = body.section;
+        if (!C[sec]) return res.json({ ok: false, error: 'Unknown section' });
+        const gone = C[sec].find(x => x.id === body.id);
+        C[sec] = C[sec].filter(x => x.id !== body.id);
+        await setJSON('content', C);
+        if (gone) await logNote(`🗑 Removed ${sec.slice(0, -1)}: ${gone.title}`);
+        break;
+      }
+      case 'orderLink': {
+        const o = await getJSON('order:' + str(body.id, 80), null);
+        if (!o) return res.json({ ok: false, error: 'Order not found' });
+        const site = 'https://' + (req.headers['x-forwarded-host'] || req.headers.host || 'realholisticnetwork.com');
+        return res.json({ ok: true, link: `${site}/api/learn?order=${o.id}&k=${o.key}`, email: o.email });
+      }
       default:
         return res.status(400).json({ ok: false, error: 'Unknown action' });
     }
 
-    const [P, B, notes, teamActive] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true)]);
-    return res.json({ ok: true, role: s.role, practitioners: P.map(selfHealer), bookings: B, notes, teamActive });
+    const [P, B, notes, teamActive, content, orders] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true), loadContent(), getJSON('orders', [])]);
+    return res.json({ ok: true, role: s.role, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });
   }

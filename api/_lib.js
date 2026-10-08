@@ -170,3 +170,6 @@ export function siteUrl(req) {
 
 export function str(v, max = 2000) { return String(v == null ? '' : v).trim().slice(0, max); }
 export const LINK_RE = /(https?:\/\/|www\.|\b[a-z0-9-]+\.(com|net|org|io|co|us|biz|info|me|site|online|shop|store)\b)/i;
+
+// ---------- Learn section content (journals, teachings, resources) ----------
+export const loadContent = () => getJSON('content', { journals: [], teachings: [], resources: [] });

@@ -132,6 +132,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
   <div class="nav-links">
     <button class="nav-btn active" id="nav-home" onclick="showPage('home')">Home</button>
     <button class="nav-btn" id="nav-find" onclick="showPage('find')">Find a Healer</button>
+    <button class="nav-btn" id="nav-learn" onclick="showPage('learn')">Learn</button>
     <button class="nav-btn" id="nav-join" onclick="showPage('join')">Join as Healer</button>
     <button class="nav-btn" id="nav-login" onclick="showPage('login')">Healer Login</button>
     <button class="nav-btn" id="nav-admin" onclick="showPage('admin')">⚙</button>
@@ -202,6 +203,20 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
   <div class="pills" id="venue-pills"></div>
   <div class="pills" id="mod-pills"></div>
   <div class="healer-grid" id="healer-list"></div>
+</div>
+</div>
+
+<!-- LEARN -->
+<div id="page-learn" class="page">
+<div class="wrap">
+  <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">Learn &amp; Grow</h2>
+  <p class="text-soft" style="margin-bottom:16px;font-size:14px">Journals and workbooks, teachings, and trusted resources for your healing journey.</p>
+  <div class="pills" style="margin-bottom:18px">
+    <button class="pill learn-tab pill-gold" data-tab="journals" onclick="setLearnTab('journals')">📔 Journals</button>
+    <button class="pill learn-tab" data-tab="teachings" onclick="setLearnTab('teachings')">🎓 Teachings</button>
+    <button class="pill learn-tab" data-tab="resources" onclick="setLearnTab('resources')">🔗 Resources</button>
+  </div>
+  <div id="learn-body"></div>
 </div>
 </div>
 
@@ -342,6 +357,8 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
       <button id="admin-export-btn" class="btn btn-ghost" style="font-size:11px;padding:6px 12px;display:none" onclick="exportHealerEmails()">⬇ Export emails (CSV)</button>
     </div>
     <div id="admin-practitioners"></div>
+    <div class="section-title" style="margin-top:28px">📚 LEARN SECTION (journals, teachings, resources)</div>
+    <div id="admin-learn"></div>
   </div>
 </div>
 </div>
@@ -428,7 +445,7 @@ async function api(path,body,token){
   }catch(e){return {ok:false,error:"Couldn't reach the server. Check your connection and try again."};}
 }
 async function refreshPublic(){
-  try{var r=await fetch("/api/public",{cache:"no-store"});var j=await r.json();if(j&&j.practitioners){P=j.practitioners;B=j.bookings;}}catch(e){}
+  try{var r=await fetch("/api/public",{cache:"no-store"});var j=await r.json();if(j&&j.practitioners){P=j.practitioners;B=j.bookings;window.CONTENT=j.content||window.CONTENT;var lp=document.getElementById("page-learn");if(lp&&lp.classList.contains("active")&&!(document.getElementById("buy-overlay")&&document.getElementById("buy-overlay").style.display!=="none"))renderLearn();}}catch(e){}
   return B;
 }
 
@@ -473,6 +490,7 @@ function showPage(p){
   if(nb)nb.classList.add("active");
   if(p==="home")renderHome();
   if(p==="find")renderFind();
+  if(p==="learn")renderLearn();
   if(p==="join")renderJoinPills();
   if(p==="login")renderLogin();
   if(p==="admin"){curAdminRole=null;editingHealerId=null;document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
@@ -811,6 +829,7 @@ function renderAdmin(){
     if(editingHealerId===p.id)return healerEditForm(p);
     return '<div class="booking-card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><div style="font-size:22px">'+p.avatar+'</div><div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · '+priceLabel(p)+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+'</div><div class="text-soft" style="font-size:12px">✉ <a href="mailto:'+p.email+'" style="color:#6B4699">'+p.email+'</a></div>'+payTermsBadge(p)+(hasCalendar(p)?'<div style="font-size:11px;color:#6B4699">⏰ Booking calendar on</div>':'')+'</div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="editHealer(\''+p.id+'\')">Edit</button>'+(isOwner?'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button>':'')+'</div></div>';
   }).join("");
+  renderAdminLearn();
 }
 
 function healerEditForm(p){
@@ -1151,6 +1170,184 @@ function showChangePwGate(){
 }
 function payTermsBadge(p){
   return p.payTermsVersion===PAY_TERMS_VERSION?'<div style="font-size:11px;color:#4A9B8E">✓ Payment terms acknowledged '+new Date(p.payTermsAcceptedAt).toLocaleDateString()+'</div>':'<div style="font-size:11px;color:#C4727A">⚠ Payment terms not acknowledged yet (asked at next login)</div>';
+}
+</script>
+<script>
+// =====================================================================
+// LEARN: Journals (for sale), Teachings (articles, videos, classes),
+// Resource links. Suzzanna adds everything from the admin panel.
+// =====================================================================
+var LEARN_TAB="journals",TEACH_FILTER="all",LEARN_OPEN={};
+function learnData(){return (window.CONTENT||{journals:[],teachings:[],resources:[]});}
+function nl2br(t){return escHtml(t).replace(/\n/g,"<br>");}
+function safeUrl(u){u=String(u||"").trim();return /^https?:\/\//i.test(u)?u:"";}
+function ytId(u){var m=String(u||"").match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{11})/);return m?m[1]:"";}
+function money(n){return "$"+(Math.round(n*100)/100).toFixed(2).replace(/\.00$/,"");}
+function fmtClassDate(d,t){if(!d)return "";var x=new Date(d+"T"+(t||"12:00")+":00");return x.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"})+(t?" · "+x.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}):"");}
+
+function setLearnTab(t){LEARN_TAB=t;renderLearn();}
+function renderLearn(){
+  var el=document.getElementById("learn-body");if(!el)return;
+  var C=learnData();
+  document.querySelectorAll(".learn-tab").forEach(function(b){b.classList.toggle("pill-gold",b.getAttribute("data-tab")===LEARN_TAB);});
+  if(LEARN_TAB==="journals")el.innerHTML=renderJournals(C.journals||[]);
+  else if(LEARN_TAB==="teachings")el.innerHTML=renderTeachings(C.teachings||[]);
+  else el.innerHTML=renderResources(C.resources||[]);
+}
+function emptyCard(msg){return '<div class="card" style="text-align:center;color:#A990C9;padding:32px">'+msg+'</div>';}
+
+function renderJournals(list){
+  if(!list.length)return emptyCard("Journals and workbooks are coming soon.");
+  return '<div class="healer-grid">'+list.map(function(j){
+    return '<div class="card" style="display:flex;flex-direction:column;gap:10px">'+(j.image?'<img src="'+j.image+'" alt="" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:#F0EAF8">':'')+'<div style="font-weight:bold;font-size:17px;color:#2A1F3D">'+escHtml(j.title)+'</div><div class="text-gold" style="font-weight:bold;font-size:18px">'+money(j.price)+'</div><div class="text-soft" style="font-size:13px;line-height:1.6;flex:1">'+nl2br(j.description)+'</div><div class="text-soft" style="font-size:11px">Instant download after purchase</div><button class="btn btn-gold full-width" onclick="openBuy(\''+j.id+'\')">Buy &amp; Download</button></div>';
+  }).join("")+'</div>';
+}
+
+function setTeachFilter(f){TEACH_FILTER=f;renderLearn();}
+function toggleArticle(id){LEARN_OPEN[id]=!LEARN_OPEN[id];renderLearn();}
+function renderTeachings(list){
+  var today=new Date().toISOString().slice(0,10);
+  var items=list.filter(function(t){return t.kind!=="class"||!t.date||t.date>=today;});
+  var filters=[["all","All"],["article","Articles"],["video","Videos"],["class","Classes & Workshops"]];
+  var pills='<div class="pills" style="margin-bottom:14px">'+filters.map(function(f){return '<button class="pill'+(TEACH_FILTER===f[0]?' pill-gold':'')+'" onclick="setTeachFilter(\''+f[0]+'\')">'+f[1]+'</button>';}).join("")+'</div>';
+  if(TEACH_FILTER!=="all")items=items.filter(function(t){return t.kind===TEACH_FILTER;});
+  items.sort(function(a,b){if(a.kind==="class"&&b.kind==="class")return (a.date||"").localeCompare(b.date||"");return (b.createdAt||"").localeCompare(a.createdAt||"");});
+  if(!items.length)return pills+emptyCard("Nothing here yet. Check back soon.");
+  return pills+items.map(function(t){
+    var head='<div style="font-size:11px;letter-spacing:.12em;color:#6B4699;margin-bottom:4px">'+(t.kind==="video"?"VIDEO":t.kind==="class"?"CLASS / WORKSHOP":"ARTICLE")+'</div><div style="font-weight:bold;font-size:17px;color:#2A1F3D;margin-bottom:6px">'+escHtml(t.title)+'</div>';
+    var img=t.image?'<img src="'+t.image+'" alt="" style="width:100%;max-height:260px;object-fit:cover;border-radius:10px;margin-bottom:10px">':'';
+    var desc=t.description?'<div class="text-soft" style="font-size:14px;line-height:1.6;margin-bottom:10px">'+nl2br(t.description)+'</div>':'';
+    var extra="";
+    if(t.kind==="article"&&t.body){extra=LEARN_OPEN[t.id]?'<div style="font-size:15px;line-height:1.8;color:#2A1F3D;margin-bottom:10px">'+nl2br(t.body)+'</div><button class="btn btn-ghost" onclick="toggleArticle(\''+t.id+'\')">Show less</button>':'<button class="btn btn-outline" onclick="toggleArticle(\''+t.id+'\')">Read more</button>';}
+    if(t.kind==="video"){var y=ytId(t.videoUrl),u=safeUrl(t.videoUrl);extra=y?'<div style="position:relative;padding-top:56.25%;border-radius:10px;overflow:hidden"><iframe src="https://www.youtube-nocookie.com/embed/'+y+'" title="'+escHtml(t.title)+'" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>':(u?'<a class="btn btn-outline" href="'+escHtml(u)+'" target="_blank" rel="noopener">▶ Watch video</a>':'');}
+    if(t.kind==="class"){var su=safeUrl(t.signupUrl);extra='<div style="font-size:14px;color:#2A1F3D;margin-bottom:10px">'+(t.date?'📅 '+fmtClassDate(t.date,t.time)+'<br>':'')+(t.location?'📍 '+escHtml(t.location):'')+'</div>'+(su?'<a class="btn btn-gold" href="'+escHtml(su)+'" target="_blank" rel="noopener">Sign up</a>':'');}
+    return '<div class="card" style="margin-bottom:14px">'+img+head+desc+extra+'</div>';
+  }).join("");
+}
+
+function renderResources(list){
+  if(!list.length)return emptyCard("Helpful resources are coming soon.");
+  var groups={},order=[];list.forEach(function(r){var c=r.category||"General";if(!groups[c]){groups[c]=[];order.push(c);}groups[c].push(r);});
+  return order.map(function(c){return '<div class="section-title" style="margin-top:8px">'+escHtml(c).toUpperCase()+'</div>'+groups[c].map(function(r){var u=safeUrl(r.url);return '<a href="'+escHtml(u)+'" target="_blank" rel="noopener" class="booking-card" style="display:block;text-decoration:none"><div style="font-weight:bold;color:#6B4699">'+escHtml(r.title)+' ↗</div>'+(r.description?'<div class="text-soft" style="font-size:13px;margin-top:3px">'+nl2br(r.description)+'</div>':'')+'</a>';}).join("");}).join("")+'<div class="text-soft" style="font-size:11px;margin-top:14px">These links go to other websites. REAL Holistic Network is not responsible for their content.</div>';
+}
+
+// ---------------- buying a journal ----------------
+var BUY_ITEM=null;
+function openBuy(id){
+  BUY_ITEM=(learnData().journals||[]).find(function(j){return j.id===id;});if(!BUY_ITEM)return;
+  var o=document.getElementById("buy-overlay");
+  if(!o){o=document.createElement("div");o.id="buy-overlay";o.style.cssText="position:fixed;inset:0;background:rgba(42,31,61,.55);z-index:9990;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto";document.body.appendChild(o);}
+  o.innerHTML='<div class="card" style="max-width:440px;width:100%;background:#fff;max-height:92vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px"><div><div style="font-weight:bold;font-size:17px;color:#2A1F3D">'+escHtml(BUY_ITEM.title)+'</div><div class="text-gold" style="font-weight:bold;font-size:18px">'+money(BUY_ITEM.price)+'</div></div><button class="btn btn-ghost" style="padding:4px 10px" onclick="closeBuy()">✕</button></div><div id="buy-body"><div class="field"><label>YOUR EMAIL (for your receipt)</label><input id="buy-email" type="email" placeholder="you@example.com"></div><div class="stripe-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="buy-card"></div><div id="buy-errors" style="color:#C4727A;font-size:13px;margin-top:6px"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div class="text-soft" style="font-size:11px;line-height:1.5;margin:8px 0">This is a digital download, available right after payment. Because it is delivered instantly, sales are final. If you have any trouble with your file, email bookings.realsound@gmail.com.</div><button class="btn btn-gold full-width" id="buy-btn" style="padding:14px" onclick="payJournal()">Pay '+money(BUY_ITEM.price)+'</button></div></div>';
+  o.style.display="flex";
+  if(!elements)initStripe();
+  setTimeout(function(){
+    if(!cardElement){cardElement=elements.create('card',{style:{base:{fontFamily:'Georgia,serif',fontSize:'14px',color:'#2A1F3D','::placeholder':{color:'#A990C9'}},invalid:{color:'#C4727A'}}});}
+    try{cardElement.unmount();}catch(e){}
+    cardElement.mount('#buy-card');
+  },100);
+}
+function closeBuy(){var o=document.getElementById("buy-overlay");if(o)o.style.display="none";try{cardElement.unmount();}catch(e){}}
+async function payJournal(){
+  var email=document.getElementById("buy-email").value.trim(),btn=document.getElementById("buy-btn"),err=document.getElementById("buy-errors");
+  err.textContent="";
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){err.textContent="Please enter your email";return;}
+  btn.disabled=true;btn.textContent="Processing…";
+  var again=function(){btn.disabled=false;btn.textContent="Pay "+money(BUY_ITEM.price);};
+  var j=await api("/api/learn",{action:"buy",productId:BUY_ITEM.id,email:email});
+  if(!j.ok){err.textContent=j.error;again();return;}
+  var result=await stripe.confirmCardPayment(j.clientSecret,{payment_method:{card:cardElement,billing_details:{email:email}}});
+  if(result.error){err.textContent=result.error.message;again();return;}
+  var done=await api("/api/learn",{action:"complete",paymentIntentId:j.paymentIntentId});
+  if(!done.ok){err.textContent="Your payment went through, but we couldn't prepare your download. Please email bookings.realsound@gmail.com and we'll send it right away.";again();return;}
+  try{cardElement.unmount();}catch(e){}
+  document.getElementById("buy-body").innerHTML='<div style="text-align:center;padding:10px 0"><div style="font-size:40px;margin-bottom:8px">✨</div><div style="font-size:16px;color:#2A1F3D;margin-bottom:6px">Thank you!</div><div class="text-soft" style="font-size:13px;line-height:1.6;margin-bottom:16px">Your receipt is on its way to '+escHtml(email)+'.<br>Save your file now. You can also bookmark this download link:</div><a class="btn btn-gold full-width" style="display:block;text-decoration:none;text-align:center" href="'+escHtml(done.downloadUrl)+'">⬇ Download '+escHtml(done.title)+'</a><input readonly value="'+escHtml(done.downloadUrl)+'" onclick="this.select()" style="margin-top:12px;font-size:11px;max-width:none"></div>';
+}
+
+// =====================================================================
+// ADMIN: manage the Learn section
+// =====================================================================
+var ADM_LEARN="journals",ADM_EDIT=null,ADM_UP={};
+function admLearnTab(t){ADM_LEARN=t;ADM_EDIT=null;ADM_UP={};renderAdminLearn();}
+function admEditItem(id){ADM_EDIT=((ADMIN_DATA.content||{})[ADM_LEARN]||[]).find(function(x){return x.id===id;})||null;ADM_UP={};renderAdminLearn();var f=document.getElementById("adm-learn-form");if(f)f.scrollIntoView({behavior:"smooth"});}
+function admNewItem(){ADM_EDIT={};ADM_UP={};renderAdminLearn();}
+function admCancel(){ADM_EDIT=null;ADM_UP={};renderAdminLearn();}
+function v(x){return escHtml(x==null?"":x);}
+function renderAdminLearn(){
+  var el=document.getElementById("admin-learn");if(!el||!ADMIN_DATA)return;
+  var C=ADMIN_DATA.content||{journals:[],teachings:[],resources:[]},list=C[ADM_LEARN]||[];
+  var tabs='<div class="pills" style="margin-bottom:12px">'+[["journals","📔 Journals"],["teachings","🎓 Teachings"],["resources","🔗 Resources"]].map(function(t){return '<button class="pill'+(ADM_LEARN===t[0]?' pill-gold':'')+'" onclick="admLearnTab(\''+t[0]+'\')">'+t[1]+'</button>';}).join("")+'</div>';
+  var form=ADM_EDIT?admForm(ADM_EDIT):'<button class="btn btn-purple full-width" onclick="admNewItem()">+ Add '+({journals:"a journal",teachings:"a teaching",resources:"a resource link"}[ADM_LEARN])+'</button>';
+  var rows=list.length?list.map(function(x){
+    var sub=ADM_LEARN==="journals"?money(x.price)+(x.fileName?' · '+v(x.fileName):''):ADM_LEARN==="teachings"?({article:"Article",video:"Video",class:"Class"}[x.kind]||"")+(x.date?' · '+x.date:''):v(x.category)+' · '+v(x.url);
+    return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+v(x.title)+(x.active===false?' <span class="text-soft" style="font-size:11px">(hidden)</span>':'')+'</div><div class="text-soft" style="font-size:12px;word-break:break-all">'+sub+'</div></div><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="admEditItem(\''+x.id+'\')">Edit</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="admDeleteItem(\''+x.id+'\')">Remove</button></div></div>';
+  }).join(""):'<div class="text-soft" style="font-size:13px;margin:10px 0">Nothing added yet.</div>';
+  var orders="";
+  if(ADM_LEARN==="journals"){var O=ADMIN_DATA.orders||[];orders='<div class="section-title" style="margin-top:18px">JOURNAL SALES ('+O.length+')</div>'+(O.length?O.slice(0,30).map(function(o){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><div style="font-weight:bold;color:#2A1F3D">'+v(o.title)+' · '+money(o.amount)+'</div><div class="text-soft" style="font-size:12px">'+v(o.email)+' · '+new Date(o.createdAt).toLocaleDateString()+'</div></div><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="admOrderLink(\''+o.id+'\')">Get download link</button></div>';}).join(""):'<div class="text-soft" style="font-size:13px">No sales yet.</div>');}
+  el.innerHTML=tabs+'<div id="adm-learn-form" style="margin-bottom:14px">'+form+'</div>'+rows+orders;
+}
+function admForm(x){
+  var isNew=!x.id,f='<div class="card card-purple"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:12px">'+(isNew?'Add new':'Edit')+'</div>';
+  f+='<div class="field"><label>TITLE</label><input id="al-title" value="'+v(x.title)+'"></div>';
+  if(ADM_LEARN==="teachings")f+='<div class="field"><label>TYPE</label><select id="al-kind" onchange="ADM_EDIT.kind=this.value;admKeep();renderAdminLearn()">'+[["article","Written article / lesson"],["video","Video"],["class","Class or workshop"]].map(function(k){return '<option value="'+k[0]+'"'+((x.kind||"article")===k[0]?' selected':'')+'>'+k[1]+'</option>';}).join("")+'</select></div>';
+  if(ADM_LEARN==="resources")f+='<div class="field"><label>WEB ADDRESS</label><input id="al-url" placeholder="https://..." value="'+v(x.url)+'"></div><div class="field"><label>GROUP <span style="text-transform:none;letter-spacing:0;color:#A990C9">(e.g. Books, Apps, Crisis Support)</span></label><input id="al-category" value="'+v(x.category)+'"></div>';
+  f+='<div class="field"><label>SHORT DESCRIPTION</label><textarea id="al-desc" rows="3">'+v(x.description)+'</textarea></div>';
+  if(ADM_LEARN==="journals"){
+    f+='<div class="field"><label>PRICE ($)</label><input id="al-price" type="number" min="1" step="0.01" value="'+v(x.price)+'"></div>';
+    f+=upField("file","FILE PEOPLE WILL DOWNLOAD (PDF, audio, zip)",".pdf,.zip,.epub,.mp3,.m4a,.wav",ADM_UP.filePath?ADM_UP.fileName:(x.fileName||""));
+    f+=upField("image","COVER PICTURE (optional)","image/*",ADM_UP.imagePath?"New picture ready":(x.imagePath?"Current picture kept":""));
+  }
+  if(ADM_LEARN==="teachings"){
+    var k=x.kind||"article";
+    if(k==="article")f+='<div class="field"><label>FULL TEXT</label><textarea id="al-body" rows="10">'+v(x.body)+'</textarea></div>';
+    if(k==="video")f+='<div class="field"><label>VIDEO LINK <span style="text-transform:none;letter-spacing:0;color:#A990C9">(YouTube links play right on the page)</span></label><input id="al-video" placeholder="https://youtube.com/..." value="'+v(x.videoUrl)+'"></div>';
+    if(k==="class")f+='<div class="two-col"><div class="field"><label>DATE</label><input id="al-date" type="date" value="'+v(x.date)+'"></div><div class="field"><label>TIME</label><input id="al-time" type="time" value="'+v(x.time)+'"></div></div><div class="field"><label>WHERE <span style="text-transform:none;letter-spacing:0;color:#A990C9">(address, or "Online — Zoom")</span></label><input id="al-location" value="'+v(x.location)+'"></div><div class="field"><label>SIGN-UP LINK</label><input id="al-signup" placeholder="https://..." value="'+v(x.signupUrl)+'"></div>';
+    f+=upField("image","PICTURE (optional)","image/*",ADM_UP.imagePath?"New picture ready":(x.imagePath?"Current picture kept":""));
+  }
+  f+='<label style="display:flex;align-items:center;gap:8px;font-size:13px;margin:6px 0 14px"><input type="checkbox" id="al-active" '+(x.active===false?'':'checked')+' style="width:auto;accent-color:#6B4699"> Show on the website</label>';
+  f+='<div style="display:flex;gap:10px"><button class="btn btn-ghost" style="flex:1" onclick="admCancel()">Cancel</button><button class="btn btn-purple" style="flex:2" id="al-save" onclick="admSave()">Save</button></div></div>';
+  return f;
+}
+function upField(kind,label,accept,status){
+  return '<div class="field"><label>'+label+'</label><input type="file" accept="'+accept+'" onchange="admUpload(\''+kind+'\',this)" style="max-width:none"><div id="al-up-'+kind+'" class="text-soft" style="font-size:12px;margin-top:4px">'+(status?'✓ '+v(status):'')+'</div></div>';
+}
+// Remember what was typed when the form re-draws.
+function admKeep(){
+  var g=function(id){var e=document.getElementById(id);return e?e.value:undefined;};
+  var map={title:"al-title",description:"al-desc",price:"al-price",url:"al-url",category:"al-category",body:"al-body",videoUrl:"al-video",date:"al-date",time:"al-time",location:"al-location",signupUrl:"al-signup"};
+  Object.keys(map).forEach(function(k){var val=g(map[k]);if(val!==undefined)ADM_EDIT[k]=val;});
+}
+var BLOB_CLIENT=null;
+async function admUpload(kind,input){
+  var file=input.files&&input.files[0];if(!file)return;
+  var st=document.getElementById("al-up-"+kind);st.textContent="Uploading… please wait";
+  document.getElementById("al-save").disabled=true;
+  try{
+    if(!BLOB_CLIENT)BLOB_CLIENT=await import("https://esm.sh/@vercel/blob@2.3.0/client");
+    var safe=file.name.replace(/[^\w.\-]+/g,"-");
+    var blob=await BLOB_CLIENT.upload("learn/"+(kind==="file"?"files":"images")+"/"+safe,file,{access:"private",handleUploadUrl:"/api/learn",clientPayload:JSON.stringify({token:ADMIN_TOKEN})});
+    if(kind==="file"){ADM_UP.filePath=blob.pathname;ADM_UP.fileName=file.name;}else{ADM_UP.imagePath=blob.pathname;}
+    st.textContent="✓ Uploaded: "+file.name;
+  }catch(e){
+    st.textContent="";toast("Upload didn't work: "+(e&&e.message?e.message:"please try again"),"#C4727A");
+  }
+  document.getElementById("al-save").disabled=false;
+}
+async function admSave(){
+  admKeep();var x=ADM_EDIT,g=function(id){var e=document.getElementById(id);return e?e.value:"";};
+  var item={id:x.id,title:x.title,description:x.description,active:document.getElementById("al-active").checked};
+  if(ADM_LEARN==="journals")Object.assign(item,{price:x.price,filePath:ADM_UP.filePath||x.filePath||"",fileName:ADM_UP.fileName||x.fileName||"",imagePath:ADM_UP.imagePath||x.imagePath||""});
+  if(ADM_LEARN==="teachings")Object.assign(item,{kind:x.kind||"article",body:x.body,videoUrl:x.videoUrl,date:x.date,time:x.time,location:x.location,signupUrl:x.signupUrl,imagePath:ADM_UP.imagePath||x.imagePath||""});
+  if(ADM_LEARN==="resources")Object.assign(item,{url:x.url,category:x.category});
+  if(await adminCall({action:"contentSave",section:ADM_LEARN,item:item})){toast("Saved ✓","#4A9B8E");ADM_EDIT=null;ADM_UP={};renderAdminLearn();refreshPublic();}
+}
+async function admDeleteItem(id){
+  if(!confirm("Remove this from the website?"))return;
+  if(await adminCall({action:"contentDelete",section:ADM_LEARN,id:id})){toast("Removed");renderAdminLearn();refreshPublic();}
+}
+async function admOrderLink(id){
+  var j=await api("/api/admin",{action:"orderLink",id:id},ADMIN_TOKEN);
+  if(!j.ok){toast(j.error,"#C4727A");return;}
+  try{await navigator.clipboard.writeText(j.link);toast("Download link copied ✓ Paste it into an email to "+j.email,"#4A9B8E");}catch(e){prompt("Copy this download link and email it to "+j.email,j.link);}
 }
 </script>
 </body>
