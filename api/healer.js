@@ -21,8 +21,11 @@ export default async function handler(req, res) {
       const f = body.fields || {};
 
       if ('schedule' in f) {
+        const old = p.schedule || [];
         p.schedule = (Array.isArray(f.schedule) ? f.schedule : []).slice(0, 500).map(e => ({
-          id: str(e.id, 40), date: str(e.date, 10), time: str(e.time, 5), end: str(e.end, 5), note: str(e.note, 200)
+          id: str(e.id, 40), date: str(e.date, 10), time: str(e.time, 5), end: str(e.end, 5), note: str(e.note, 200),
+          // when it was added: keep the saved date, or work it out from the id ("sch" + timestamp)
+          createdAt: (old.find(o => o.id === e.id) || {}).createdAt || (/^sch\d{12,14}$/.test(e.id) ? new Date(+e.id.slice(3)).toISOString() : new Date().toISOString())
         })).filter(e => /^\d{4}-\d{2}-\d{2}$/.test(e.date));
       }
       if ('availability' in f) {
