@@ -284,7 +284,7 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
       <div id="login-err" style="color:#C4727A;font-size:13px;margin-bottom:10px;display:none"></div>
       <button class="btn btn-purple full-width" style="padding:13px;font-size:15px;margin-bottom:12px" onclick="doLogin()">Log In →</button>
       <div style="text-align:center;margin-bottom:10px"><span class="text-purple" style="cursor:pointer;font-size:12px" onclick="toggleForgot()">Forgot your password?</span></div>
-      <div id="forgot-box" style="display:none;border-top:1px solid rgba(107,70,153,.1);padding-top:12px;margin-bottom:12px"><div class="text-soft" style="font-size:12px;line-height:1.6;margin-bottom:8px">Enter the email you signed up with. We'll send you a temporary password, usually within 24 hours.</div><div class="field"><input id="fp-email" type="email" placeholder="your@email.com"></div><button class="btn btn-ghost full-width" onclick="requestPasswordReset()">Send Reset Request</button></div>
+      <div id="forgot-box" style="display:none;border-top:1px solid rgba(107,70,153,.1);padding-top:12px;margin-bottom:12px"><div class="text-soft" style="font-size:12px;line-height:1.6;margin-bottom:8px">Enter the email you signed up with and we'll email you a link to choose a new password.</div><div class="field"><input id="fp-email" type="email" placeholder="your@email.com"></div><button class="btn btn-ghost full-width" onclick="requestPasswordReset()">Send Reset Request</button></div>
       <div style="text-align:center"><span class="text-soft" style="font-size:12px">Not listed? </span><span class="text-purple" style="cursor:pointer;font-size:12px" onclick="showPage('join')">Create a profile →</span></div>
       <div style="border-top:1px solid rgba(107,70,153,.1);padding-top:12px;font-size:11px;color:#A990C9;text-align:center;margin-top:12px;line-height:1.6">Demo: luna@example.com / luna123</div>
     </div>
@@ -410,21 +410,36 @@ var INSTR=["Crystal Bowls","Gong","Tibetan Bowls","Tuning Forks","Chimes","Voice
 var zipFilter="";
 
 function lsGet(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
-function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
-async function serverGet(key,d){try{var r=await fetch('/api/data?key='+key);var j=await r.json();return (j.value!==null&&j.value!==undefined)?j.value:d;}catch(e){return d;}}
-async function serverSet(key,value){try{await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:key,value:value})});}catch(e){}}
-async function loadFromServer(){P=await serverGet('practitioners',P);B=await serverGet('bookings',B);ADMIN_NOTES=await serverGet('adminNotes',ADMIN_NOTES);TEAM_ADMIN_ACTIVE=await serverGet('teamAdminActive',TEAM_ADMIN_ACTIVE);lsSet("rs:p",P);lsSet("rs:b",B);renderHome();}
-var P=lsGet("rs:p",SEED);
-var B=lsGet("rs:b",[]);
-var ADMIN_NOTES=[];
-var TEAM_ADMIN_ACTIVE=true;
+function lsSet(k,v){} // private data is no longer cached in the browser
+var AUTH_TOKEN=null,ADMIN_TOKEN=null,MYB=[],ADMIN_DATA=null;
+try{localStorage.removeItem("rs:p");localStorage.removeItem("rs:b");}catch(e){}
+async function api(path,body,token){
+  try{
+    var r=await fetch(path,{method:"POST",headers:Object.assign({"Content-Type":"application/json"},token?{Authorization:"Bearer "+token}:{}),body:JSON.stringify(body||{})});
+    var j=await r.json().catch(function(){return {ok:false,error:"Server error. Please try again."};});
+    if(j.relogin){
+      if(token&&token===AUTH_TOKEN){AUTH_TOKEN=null;curUser=null;MYB=[];renderLogin();}
+      if(token&&token===ADMIN_TOKEN){ADMIN_TOKEN=null;lockAdmin();}
+    }
+    return j;
+  }catch(e){return {ok:false,error:"Couldn't reach the server. Check your connection and try again."};}
+}
+async function refreshPublic(){
+  try{var r=await fetch("/api/public",{cache:"no-store"});var j=await r.json();if(j&&j.practitioners){P=j.practitioners;B=j.bookings;}}catch(e){}
+  return B;
+}
+
+async function loadFromServer(){
+  await refreshPublic();
+  renderHome();
+  var fp=document.getElementById("page-find");if(fp&&fp.classList.contains("active"))renderFind();
+  checkResetLink();
+}
+var P=[];
+var B=[];
 // Fallback activity log so new signups/bookings are always visible in the admin
 // dashboard even if the EmailJS notification email fails to send.
-function logAdminNotification(msg){
-  ADMIN_NOTES.unshift({msg:msg,ts:new Date().toISOString()});
-  ADMIN_NOTES=ADMIN_NOTES.slice(0,30);
-  serverSet('adminNotes',ADMIN_NOTES);
-}
+function logAdminNotification(msg){} // activity is now logged on the server
 var vFilter="All",mFilter="All",selP=null,selTier=null,curUser=null;
 var jMods=[],jInstr=[],jVenues=[],jTiers=[];
 
@@ -527,7 +542,7 @@ function openBooking(id){
   document.getElementById("bk-step3").style.display="none";
   showPage("booking");
   renderSlotPicker();
-  if(hasCalendar(selP))serverGet('bookings',B).then(function(x){B=x;if(!bkSlot)renderSlotPicker();});
+  if(hasCalendar(selP))refreshPublic().then(function(){if(!bkSlot)renderSlotPicker();});
 }
 
 function bkStep2(){
@@ -562,7 +577,7 @@ async function confirmBooking(){
   if(useSlot){
     try{
       var rs=await reserveSlot("hold");
-      if(!rs.ok){toast(rs.error||"Sorry, that time was just taken. Please pick another time.","#C4727A");btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";B=await serverGet('bookings',B);bkStep1();bkSlot=null;setBkHidden();renderSlotPicker();return;}
+      if(!rs.ok){toast(rs.error||"Sorry, that time was just taken. Please pick another time.","#C4727A");btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";await refreshPublic();bkStep1();bkSlot=null;setBkHidden();renderSlotPicker();return;}
       bkLockId=rs.lockId;
     }catch(e){toast("Couldn't reserve that time. Please try again.","#C4727A");btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";return;}
   }
@@ -581,8 +596,10 @@ async function confirmBooking(){
       btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
       return;
     }
-    var bk={id:"b"+Date.now(),paymentIntentId:piData.paymentIntentId,practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,sessionType:selTier.name,price:selTier.price,fee:selTier.price-Math.round(selTier.price*.15),platformFee:Math.round(selTier.price*.15),total:tot,status:"pending",startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null,healerTz:useSlot?getAvail(selP).tz:null,lockId:useSlot?bkLockId:null,paymentMethodId:result.paymentIntent.payment_method,createdAt:new Date().toISOString()};
-    var latestB=await serverGet('bookings',B);B=latestB.concat([bk]);lsSet("rs:b",B);serverSet('bookings',B);
+    var saved=await api("/api/booking",{practitionerId:selP.id,tierId:selTier.id,sessionType:selTier.name,paymentIntentId:piData.paymentIntentId,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null,healerTz:useSlot?getAvail(selP).tz:null,lockId:useSlot?bkLockId:null});
+    if(!saved.ok){releaseHold();document.getElementById("card-errors").textContent=saved.error||"Something went wrong. Your card was not charged.";btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";return;}
+    var bk={id:saved.booking.id,practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,sessionType:selTier.name,total:tot,healerTz:useSlot?getAvail(selP).tz:null,status:"pending",startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null};
+    B.push({practitionerId:bk.practitionerId,status:"pending",date:bk.date,time:bk.time,startUTC:bk.startUTC,durationMin:bk.durationMin});
     if(useSlot)reserveSlot("keep",{bookingId:bk.id}).catch(function(){});
     logAdminNotification("🔔 New booking request: "+bk.venueName+" → "+bk.practitionerName+" ("+bk.date+")");
     emailjs.send("service_bl7o2cm","template_50n96cr",{
@@ -617,24 +634,24 @@ function showJoin(n){
   if(n===1){renderJoinPills();var pt=document.getElementById("j-payterms");if(pt)pt.innerHTML=payTermsHtml();}
 }
 
-function submitJoin(){
-  var name=document.getElementById("j-name").value,email=document.getElementById("j-email").value,pass=document.getElementById("j-password").value,loc=document.getElementById("j-location").value,zip=document.getElementById("j-zip").value,bio=document.getElementById("j-bio").value,calendly=document.getElementById("j-calendly").value.trim();
+async function submitJoin(){
+  var name=document.getElementById("j-name").value.trim(),email=document.getElementById("j-email").value.trim(),pass=document.getElementById("j-password").value,loc=document.getElementById("j-location").value.trim(),zip=document.getElementById("j-zip").value.trim(),bio=document.getElementById("j-bio").value,calendly=document.getElementById("j-calendly").value.trim();
   if(!name||!email||!pass||!loc||!jTiers.length){toast(jTiers.length?"Please fill all required fields":"Please add at least one session type & price","#C4727A");return;}
+  if(pass.length<6){toast("Password must be at least 6 characters","#C4727A");return;}
   if(!document.getElementById("j-agreed").checked){toast("Please agree to the Founding Healer terms","#C4727A");return;}
   if(!document.getElementById("j-pay-agreed").checked){toast("Please agree to how payments work","#C4727A");return;}
-  if(P.find(function(p){return p.email===email;})){toast("Email already registered","#C4727A");return;}
   if(blockedFieldsCheck([name,loc,bio]))return;
   var src=getSrc();
-  var avatars=["🌿","🎵","🌸","💫","🔔","🌀","🪬"];
-  var p={id:"p"+Date.now(),name:name,email:email,password:pass,location:loc,zip:zip,rate:Math.min.apply(null,jTiers.map(function(t){return t.price;})),sessionTypes:jTiers.slice(),calendlyUrl:calendly,instruments:jInstr.slice(),venueTypes:jVenues.slice(),modalities:jMods.slice(),bio:bio,rating:5.0,reviews:0,available:true,avatar:avatars[Math.floor(Math.random()*avatars.length)],source:src,joinedAt:new Date().toISOString(),payTermsVersion:PAY_TERMS_VERSION,payTermsAcceptedAt:new Date().toISOString()};
- P.push(p);lsSet("rs:p",P);serverSet('practitioners',P);
-  logAdminNotification("🌟 New healer: "+name+" ("+loc+")");
+  var j=await api("/api/auth",{action:"signup",name:name,email:email,password:pass,location:loc,zip:zip,bio:bio,calendlyUrl:calendly,sessionTypes:jTiers.slice(),instruments:jInstr.slice(),venueTypes:jVenues.slice(),modalities:jMods.slice(),source:src,agreedTerms:true,agreedPayTerms:true,payTermsVersion:PAY_TERMS_VERSION});
+  if(!j.ok){toast(j.error||"Sign up failed. Please try again.","#C4727A");return;}
+  AUTH_TOKEN=j.token;curUser=j.healer;MYB=j.bookings||[];
   emailjs.send("service_bl7o2cm","template_50n96cr",{
     name:"REAL Holistic Network Admin",
     email:"bookings.realsound@gmail.com",
     message:"🌟 NEW FOUNDING HEALER SIGNED UP! | Name: "+name+" | Email: "+email+" | Location: "+loc+" | Modalities: "+jMods.join(", ")+" | Session types: "+jTiers.map(function(t){return t.name+" ($"+t.price+")";}).join(", ")+" | Source: "+src+" | Joined: "+new Date().toLocaleString()
   }).then(function(){console.log("Signup notification email sent.");}).catch(function(err){console.error("EmailJS failed to send signup notification:",err);});
   jMods=[];jInstr=[];jVenues=[];jTiers=[];
+  refreshPublic();
   toast("Welcome to REAL Holistic Network! ✨");showJoin(2);
 }
 
@@ -650,15 +667,18 @@ function renderLogin(){
   }
 }
 
-function doLogin(){
-  var email=document.getElementById("p-email").value,pass=document.getElementById("p-password").value;
-  var p=P.find(function(x){return x.email===email&&x.password===pass;});
+async function doLogin(){
+  var email=document.getElementById("p-email").value.trim(),pass=document.getElementById("p-password").value;
   var err=document.getElementById("login-err");
-  if(p){curUser=p;err.style.display="none";renderLogin();if(needsPayTerms(p))showPayTermsGate();else if(p.mustChangePassword)showChangePwGate();}
-  else{err.textContent="Email or password not recognised.";err.style.display="block";}
+  if(!email||!pass){err.textContent="Please enter your email and password.";err.style.display="block";return;}
+  var j=await api("/api/auth",{action:"login",email:email,password:pass});
+  if(!j.ok){err.textContent=j.error||"Email or password not recognised.";err.style.display="block";return;}
+  AUTH_TOKEN=j.token;curUser=j.healer;MYB=j.bookings||[];
+  err.style.display="none";document.getElementById("p-password").value="";renderLogin();
+  if(needsPayTerms(curUser))showPayTermsGate();else if(curUser.mustChangePassword)showChangePwGate();
 }
 
-function doLogout(){curUser=null;renderLogin();}
+function doLogout(){if(AUTH_TOKEN)api("/api/auth",{action:"logout"},AUTH_TOKEN);AUTH_TOKEN=null;curUser=null;MYB=[];renderLogin();}
 
 function setPTab(tab,btn){
   ["overview","bookings","earnings","profile","schedule","availability"].forEach(function(t){document.getElementById("ptab-"+t).style.display=t===tab?"block":"none";});
@@ -670,7 +690,15 @@ function setPTab(tab,btn){
   if(tab==="profile")renderMyProfile();   if(tab==="schedule")renderSchedule();if(tab==="availability")renderAvailability();
 }
 
-function myB(){return B.filter(function(b){return b.practitionerId===curUser.id;});}
+function myB(){return MYB;}
+// Saves the signed-in healer's own changes on the server and refreshes their data.
+async function healerSave(fields,action){
+  var j=await api("/api/healer",Object.assign({action:action||"update"},fields?{fields:fields}:{}),AUTH_TOKEN);
+  if(!j.ok){toast(j.error||"Couldn't save. Please try again.","#C4727A");return false;}
+  curUser=j.healer;MYB=j.bookings||[];
+  refreshPublic();
+  return true;
+}
 function myEarned(){return myB().filter(function(b){return b.status==="confirmed";}).reduce(function(s,b){return s+b.fee;},0);}
 
 function renderOverview(){
@@ -679,19 +707,10 @@ function renderOverview(){
 }
 
 async function respond(id,status){
-  var bkg=B.find(function(b){return b.id===id;});
-  if(bkg&&bkg.paymentIntentId){
-    try{
-      if(status==="confirmed"){
-        await fetch('/api/capture-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentIntentId:bkg.paymentIntentId})});
-      }else{
-        await fetch('/api/cancel-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paymentIntentId:bkg.paymentIntentId})});
-      }
-    }catch(e){}
-  }
-  if(status==="declined")releaseBookingSlot(bkg);
-  B=B.map(function(b){return b.id===id?Object.assign({},b,{status:status}):b;});
-  lsSet("rs:b",B);serverSet('bookings',B);toast(status==="confirmed"?"Booking confirmed ✓":"Booking declined",status==="confirmed"?"#4A9B8E":"#C4727A");renderOverview();
+  var j=await api("/api/healer",{action:"respond",bookingId:id,status:status},AUTH_TOKEN);
+  if(!j.ok){toast(j.error||"Couldn't update the booking. Please try again.","#C4727A");return;}
+  curUser=j.healer;MYB=j.bookings||[];refreshPublic();
+  toast(status==="confirmed"?"Booking confirmed ✓":"Booking declined",status==="confirmed"?"#4A9B8E":"#C4727A");renderOverview();
 }
 
 function renderMyBookings(){
@@ -714,38 +733,36 @@ function renderMyProfile(){
 
 function mySchedule(){var own=(curUser.schedule||[]).map(function(s){return {id:s.id,date:s.date,time:s.time,note:s.note,type:"personal"};});var booked=myB().filter(function(b){return b.status==="confirmed";}).map(function(b){return {id:b.id,date:b.date,time:b.time,note:b.venueName+" ("+b.venueType+")",type:"booking"};});return own.concat(booked).sort(function(a,b){return (a.date+" "+(a.time||"")).localeCompare(b.date+" "+(b.time||""));});}
 function renderSchedule(){var items=mySchedule();document.getElementById("ptab-schedule").innerHTML='<div class="card"><h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin-bottom:16px">Add to your schedule</h3><div class="two-col"><div class="field"><label>DATE</label><input id="sch-date" type="date"></div><div class="field"><label>TIME</label><input id="sch-time" type="time"></div></div><div class="field"><label>NOTE</label><input id="sch-note" placeholder="e.g. Personal client, dentist appt"></div><button class="btn btn-purple full-width" onclick="addScheduleEntry()">+ Add to Schedule</button></div><div class="section-title" style="margin-top:24px">YOUR SCHEDULE ('+items.length+')</div>'+(items.length?items.map(function(i){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#2A1F3D">'+i.date+(i.time?' · '+i.time:'')+'</div><div class="text-soft" style="font-size:13px">'+i.note+'</div></div>'+(i.type==="personal"?'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="deleteScheduleEntry(\''+i.id+'\')">Remove</button>':'<span class="status-confirmed">REAL Holistic Network</span>')+'</div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">Nothing on your schedule yet.</div>');}
-function addScheduleEntry(){var date=document.getElementById("sch-date").value,time=document.getElementById("sch-time").value,note=document.getElementById("sch-note").value;if(!date){toast("Please choose a date","#C4727A");return;}var entry={id:"sch"+Date.now(),date:date,time:time,note:note||"Personal appointment"};curUser.schedule=(curUser.schedule||[]).concat([entry]);P=P.map(function(p){return p.id===curUser.id?curUser:p;});lsSet("rs:p",P);serverSet('practitioners',P);document.getElementById("sch-date").value="";document.getElementById("sch-time").value="";document.getElementById("sch-note").value="";toast("Added to your schedule ✓","#4A9B8E");renderSchedule();}
-function deleteScheduleEntry(id){curUser.schedule=(curUser.schedule||[]).filter(function(s){return s.id!==id;});P=P.map(function(p){return p.id===curUser.id?curUser:p;});lsSet("rs:p",P);serverSet('practitioners',P);renderSchedule();}
+async function addScheduleEntry(){var date=document.getElementById("sch-date").value,time=document.getElementById("sch-time").value,note=document.getElementById("sch-note").value;if(!date){toast("Please choose a date","#C4727A");return;}var entry={id:"sch"+Date.now(),date:date,time:time,note:note||"Personal appointment"};if(!(await healerSave({schedule:(curUser.schedule||[]).concat([entry])})))return;document.getElementById("sch-date").value="";document.getElementById("sch-time").value="";document.getElementById("sch-note").value="";toast("Added to your schedule ✓","#4A9B8E");renderSchedule();}
+async function deleteScheduleEntry(id){if(await healerSave({schedule:(curUser.schedule||[]).filter(function(s){return s.id!==id;})}))renderSchedule();}
 // Two admin tiers: OWNER has full control (including revoking the TEAM code
 // at will). TEAM is a limited helper login — can't remove healers, can't
 // touch the owner-only controls, and can never lock the owner out.
-var ADMIN_OWNER_CODE="REALSOUND";
-var ADMIN_TEAM_CODE="REALTEAM26";
+// Admin codes are checked on the server now (ADMIN_OWNER_CODE / ADMIN_TEAM_CODE in Vercel).
 var curAdminRole=null; // "owner" | "team" | null
 var editingHealerId=null;
 
-function checkAdmin(){
+async function checkAdmin(){
   var code=document.getElementById("admin-code").value;
-  if(code===ADMIN_OWNER_CODE){
-    curAdminRole="owner";
-  }else if(code===ADMIN_TEAM_CODE&&TEAM_ADMIN_ACTIVE){
-    curAdminRole="team";
-  }else{
-    toast(code===ADMIN_TEAM_CODE?"Team access is currently turned off":"Incorrect code","#C4727A");
-    return;
-  }
+  var j=await api("/api/auth",{action:"admin",code:code});
+  if(!j.ok){toast(j.error||"Incorrect code","#C4727A");return;}
+  ADMIN_TOKEN=j.token;curAdminRole=j.role;document.getElementById("admin-code").value="";
+  if(!(await adminCall({action:"all"})))return;
   document.getElementById("admin-login").style.display="none";
   document.getElementById("admin-dash").style.display="block";
   renderAdmin();
 }
+async function adminCall(body){
+  var j=await api("/api/admin",body,ADMIN_TOKEN);
+  if(!j.ok){toast(j.error||"Something went wrong. Please try again.","#C4727A");return false;}
+  ADMIN_DATA=j;curAdminRole=j.role;return true;
+}
 
-function lockAdmin(){curAdminRole=null;editingHealerId=null;document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
+function lockAdmin(){if(ADMIN_TOKEN)api("/api/auth",{action:"logout"},ADMIN_TOKEN);ADMIN_TOKEN=null;ADMIN_DATA=null;curAdminRole=null;editingHealerId=null;document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
 
-function toggleTeamAccess(){
-  TEAM_ADMIN_ACTIVE=!TEAM_ADMIN_ACTIVE;
-  serverSet('teamAdminActive',TEAM_ADMIN_ACTIVE);
-  toast(TEAM_ADMIN_ACTIVE?"Team admin access turned ON":"Team admin access turned OFF","#6B4699");
-  renderAdmin();
+async function toggleTeamAccess(){
+  var on=!ADMIN_DATA.teamActive;
+  if(await adminCall({action:"team",on:on})){toast(on?"Team admin access turned ON":"Team admin access turned OFF","#6B4699");renderAdmin();}
 }
 
 function sendTestEmail(){
@@ -757,6 +774,7 @@ function sendTestEmail(){
 }
 
 function exportHealerEmails(){
+  var P=ADMIN_DATA.practitioners;
   var rows=[["Name","Email","Location","Joined"]].concat(P.map(function(p){return [p.name,p.email,p.location,p.joinedAt?new Date(p.joinedAt).toLocaleDateString():""];}));
   var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c||"").replace(/"/g,'""')+'"';}).join(",");}).join("\n");
   var blob=new Blob([csv],{type:"text/csv"});
@@ -767,6 +785,8 @@ function exportHealerEmails(){
 }
 
 function renderAdmin(){
+  if(!ADMIN_DATA)return;
+  var P=ADMIN_DATA.practitioners,B=ADMIN_DATA.bookings,ADMIN_NOTES=ADMIN_DATA.notes||[],TEAM_ADMIN_ACTIVE=ADMIN_DATA.teamActive;
   var isOwner=curAdminRole==="owner";
   document.getElementById("admin-role-badge").textContent=isOwner?"(Owner)":"(Team)";
   document.getElementById("admin-export-btn").style.display=isOwner?"inline-block":"none";
@@ -806,7 +826,7 @@ function healerEditForm(p){
 function editHealer(id){editingHealerId=id;renderAdmin();}
 function cancelHealerEdit(){editingHealerId=null;renderAdmin();}
 
-function saveHealerEdit(id){
+async function saveHealerEdit(id){
   var name=document.getElementById("eh-name").value.trim(),loc=document.getElementById("eh-location").value.trim(),email=document.getElementById("eh-email").value.trim(),bio=document.getElementById("eh-bio").value.trim(),calendly=document.getElementById("eh-calendly").value.trim();
   var tierLines=document.getElementById("eh-tiers").value.split("\n").map(function(l){return l.trim();}).filter(Boolean);
   if(!name||!loc||!email||!tierLines.length){toast("Please fill all required fields","#C4727A");return;}
@@ -821,18 +841,19 @@ function saveHealerEdit(id){
     if(containsLink(tname)){toast("Session type names can't include a website link","#C4727A");return;}
     tiers.push({id:"t"+i+"_"+Date.now(),name:tname,price:tprice});
   }
-  P=P.map(function(p){return p.id===id?Object.assign({},p,{name:name,location:loc,email:email,bio:bio,calendlyUrl:calendly,sessionTypes:tiers,rate:Math.min.apply(null,tiers.map(function(t){return t.price;})),available:document.getElementById("eh-available").checked},newPw?{password:newPw,mustChangePassword:true}:{}):p;});
-  if(newPw)logAdminNotification("🔑 Temporary password set for "+name);
-  lsSet("rs:p",P);serverSet('practitioners',P);
+  var ok=await adminCall({action:"edit",id:id,fields:{name:name,location:loc,email:email,bio:bio,calendlyUrl:calendly,sessionTypes:tiers,available:document.getElementById("eh-available").checked,newPassword:newPw||undefined}});
+  if(!ok)return;
+  refreshPublic();
   editingHealerId=null;
-  toast("Healer profile updated ✓","#4A9B8E");
+  toast(newPw?"Saved ✓ — they'll be asked to choose their own password at next login":"Healer profile updated ✓","#4A9B8E");
   renderAdmin();
 }
 
-function aRespond(id,s){if(s==="declined")releaseBookingSlot(B.find(function(b){return b.id===id;}));B=B.map(function(b){return b.id===id?Object.assign({},b,{status:s}):b;});lsSet("rs:b",B);serverSet('bookings',B);renderAdmin();}
-function removeP(id){
+async function aRespond(id,s){if(await adminCall({action:"status",bookingId:id,status:s})){toast(s==="confirmed"?"Booking confirmed ✓":"Booking declined",s==="confirmed"?"#4A9B8E":"#C4727A");renderAdmin();refreshPublic();}}
+async function removeP(id){
   if(curAdminRole!=="owner"){toast("Only the owner login can remove healers","#C4727A");return;}
-  P=P.filter(function(p){return p.id!==id;});lsSet("rs:p",P);serverSet('practitioners',P);renderAdmin();
+  if(!confirm("Remove this healer from REAL Holistic Network? This can't be undone."))return;
+  if(await adminCall({action:"remove",id:id})){toast("Healer removed");renderAdmin();refreshPublic();}
 }
 
 window.addEventListener('load',function(){
@@ -1016,7 +1037,7 @@ function renderAvailability(){
     +(hasCalendar(p)?'<button class="btn btn-ghost full-width" style="margin-top:10px" onclick="clearAvailability()">Turn off the booking calendar</button>':'')
     +'</div>';
 }
-function saveAvailability(){
+async function saveAvailability(){
   var weekly={},any=false;
   for(var i=0;i<7;i++){
     if(!document.getElementById("av-on-"+i).checked)continue;
@@ -1026,13 +1047,12 @@ function saveAvailability(){
   }
   if(!any){toast("Turn on at least one day","#C4727A");return;}
   var durations={};getTiers(curUser).forEach(function(t,i){durations[t.name]=+document.getElementById("av-dur-"+i).value;});
-  curUser.availability={tz:document.getElementById("av-tz").value,weekly:weekly,durations:durations,minNoticeHours:+document.getElementById("av-notice").value,maxDaysAhead:+document.getElementById("av-ahead").value,step:+document.getElementById("av-step").value,updatedAt:new Date().toISOString()};
-  P=P.map(function(p){return p.id===curUser.id?curUser:p;});lsSet("rs:p",P);serverSet('practitioners',P);
+  if(!(await healerSave({availability:{tz:document.getElementById("av-tz").value,weekly:weekly,durations:durations,minNoticeHours:+document.getElementById("av-notice").value,maxDaysAhead:+document.getElementById("av-ahead").value,step:+document.getElementById("av-step").value}})))return;
   toast("Booking hours saved ✓ Clients can now pick a time","#4A9B8E");renderAvailability();
 }
-function clearAvailability(){
+async function clearAvailability(){
   if(!confirm("Turn off the booking calendar? Clients will go back to requesting a date and time."))return;
-  delete curUser.availability;P=P.map(function(p){return p.id===curUser.id?curUser:p;});lsSet("rs:p",P);serverSet('practitioners',P);
+  if(!(await healerSave({availability:null})))return;
   toast("Booking calendar turned off");renderAvailability();
 }
 
@@ -1060,11 +1080,9 @@ function showPayTermsGate(){
   o.innerHTML='<div class="card card-gold" style="max-width:520px;width:100%;max-height:90vh;overflow-y:auto;background:#fff">'+payTermsHtml()+'<div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="pt-agree" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">I have read and agree to how payments work.</span></label></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="declinePayTerms()">Log out</button><button class="btn btn-purple" style="flex:2" onclick="acceptPayTerms()">Agree &amp; Continue</button></div></div>';
   o.style.display="flex";
 }
-function acceptPayTerms(){
+async function acceptPayTerms(){
   if(!document.getElementById("pt-agree").checked){toast("Please check the box to agree","#C4727A");return;}
-  curUser.payTermsVersion=PAY_TERMS_VERSION;curUser.payTermsAcceptedAt=new Date().toISOString();
-  P=P.map(function(p){return p.id===curUser.id?curUser:p;});lsSet("rs:p",P);serverSet('practitioners',P);
-  logAdminNotification("✅ "+curUser.name+" acknowledged the payment terms");
+  if(!(await healerSave({payTermsVersion:PAY_TERMS_VERSION})))return;
   document.getElementById("payterms-overlay").style.display="none";toast("Thank you ✓","#4A9B8E");
   if(curUser.mustChangePassword)showChangePwGate();
 }
@@ -1073,24 +1091,40 @@ function declinePayTerms(){document.getElementById("payterms-overlay").style.dis
 // PASSWORDS: forgot-password request, temporary password, change password
 // =====================================================================
 function toggleForgot(){var b=document.getElementById("forgot-box");b.style.display=b.style.display==="none"?"block":"none";var e=document.getElementById("p-email").value;if(e)document.getElementById("fp-email").value=e;}
-function requestPasswordReset(){
+async function requestPasswordReset(){
   var email=document.getElementById("fp-email").value.trim();
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){toast("Please enter a valid email","#C4727A");return;}
-  var p=P.find(function(x){return (x.email||"").toLowerCase()===email.toLowerCase();});
-  logAdminNotification("🔑 Password reset requested: "+email+(p?" ("+p.name+")":" (no healer with this email)"));
-  emailjs.send("service_bl7o2cm","template_50n96cr",{name:"Password Reset Request",email:email,message:"🔑 PASSWORD RESET REQUEST | Email: "+email+" | Healer: "+(p?p.name:"No healer found with this email")+" | To help: Admin → Edit this healer → type a temporary password → Save, then email it to them. They'll be asked to choose a new one when they log in."}).catch(function(err){console.error("EmailJS reset request failed:",err);});
-  document.getElementById("forgot-box").innerHTML='<div style="font-size:13px;color:#4A9B8E;text-align:center;line-height:1.6">✓ Request received. If that email is registered, we\'ll send you a temporary password, usually within 24 hours.</div>';
+  var j=await api("/api/auth",{action:"forgot",email:email});
+  if(!j.ok){toast(j.error||"Something went wrong. Please try again.","#C4727A");return;}
+  document.getElementById("forgot-box").innerHTML='<div style="font-size:13px;color:#4A9B8E;text-align:center;line-height:1.6">✓ '+escHtml(j.message)+'</div>';
+}
+// Opened from the link in a password-reset email: /?reset=<token>
+function checkResetLink(){
+  var m=location.search.match(/[?&]reset=([a-f0-9]{48})/);if(!m)return;
+  var tok=m[1];
+  try{history.replaceState(null,"",location.pathname);}catch(e){}
+  var o=document.createElement("div");o.id="reset-overlay";o.style.cssText="position:fixed;inset:0;background:rgba(42,31,61,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px";
+  o.innerHTML='<div class="card" style="max-width:420px;width:100%;background:#fff"><div class="section-title">CHOOSE A NEW PASSWORD</div><div class="field"><label>NEW PASSWORD</label><input id="rs-new" type="password" placeholder="At least 6 characters"></div><div class="field"><label>TYPE IT AGAIN</label><input id="rs-new2" type="password"></div><div id="rs-err" style="color:#C4727A;font-size:13px;margin-bottom:10px"></div><button class="btn btn-purple full-width" id="rs-btn">Save New Password</button></div>';
+  document.body.appendChild(o);
+  document.getElementById("rs-btn").onclick=async function(){
+    var a=document.getElementById("rs-new").value,b=document.getElementById("rs-new2").value,e=document.getElementById("rs-err");
+    if(a.length<6){e.textContent="Password must be at least 6 characters";return;}
+    if(a!==b){e.textContent="The two passwords don't match";return;}
+    var j=await api("/api/auth",{action:"reset",token:tok,password:a});
+    if(!j.ok){e.textContent=j.error;return;}
+    o.remove();AUTH_TOKEN=j.token;curUser=j.healer;MYB=j.bookings||[];
+    showPage("login");toast("Password updated — you're logged in ✓","#4A9B8E");
+    if(needsPayTerms(curUser))showPayTermsGate();
+  };
 }
 function changePwCard(forced){
   return '<div class="card" style="margin-top:16px"><div class="section-title">'+(forced?'CHOOSE A NEW PASSWORD':'CHANGE PASSWORD')+'</div>'+(forced?'<div class="text-soft" style="font-size:13px;margin-bottom:12px;line-height:1.6">You logged in with a temporary password. Please choose your own password to continue.</div>':'<div class="field"><label>CURRENT PASSWORD</label><input id="cp-current" type="password"></div>')+'<div class="field"><label>NEW PASSWORD</label><input id="cp-new" type="password" placeholder="At least 6 characters"></div><div class="field"><label>TYPE IT AGAIN</label><input id="cp-new2" type="password"></div><button class="btn btn-purple full-width" onclick="saveNewPassword('+(forced?'true':'false')+')">Save New Password</button></div>';
 }
-function saveNewPassword(forced){
+async function saveNewPassword(forced){
   var nw=document.getElementById("cp-new").value,nw2=document.getElementById("cp-new2").value;
-  if(!forced&&document.getElementById("cp-current").value!==curUser.password){toast("Current password is not correct","#C4727A");return;}
   if(nw.length<6){toast("New password must be at least 6 characters","#C4727A");return;}
   if(nw!==nw2){toast("The two new passwords don't match","#C4727A");return;}
-  curUser.password=nw;delete curUser.mustChangePassword;
-  P=P.map(function(p){return p.id===curUser.id?curUser:p;});lsSet("rs:p",P);serverSet('practitioners',P);
+  if(!(await healerSave({newPassword:nw,currentPassword:forced?"":document.getElementById("cp-current").value})))return;
   toast("Password updated ✓","#4A9B8E");
   var o=document.getElementById("changepw-overlay");if(o)o.style.display="none";
   if(!forced)renderMyProfile();
