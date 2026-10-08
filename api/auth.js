@@ -102,7 +102,7 @@ async function forgot(req, res, { email }) {
   const token = newToken();
   await redis(['SET', 'rs:reset:' + token, p.id, 'EX', RESET_SECONDS]);
   const link = `${siteUrl(req)}/?reset=${token}`;
-  const sent = await sendEmail(process.env.EMAILJS_RESET_TEMPLATE_ID, {
+  const sent = await sendEmail(process.env.EMAILJS_RESET_TEMPLATE_ID || 'template_jeavpos', {
     to_email: p.email, email: p.email, to_name: p.name, name: p.name, reset_link: link, link,
     // the same text in one field, for templates that only use {{message}}
     message: `Hi ${p.name}, click this link to choose a new password for REAL Holistic Network: ${link} — it works for 1 hour. If you didn't ask for this, you can ignore this email.`

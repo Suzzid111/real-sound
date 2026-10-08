@@ -602,7 +602,7 @@ async function confirmBooking(){
     B.push({practitionerId:bk.practitionerId,status:"pending",date:bk.date,time:bk.time,startUTC:bk.startUTC,durationMin:bk.durationMin});
     if(useSlot)reserveSlot("keep",{bookingId:bk.id}).catch(function(){});
     logAdminNotification("🔔 New booking request: "+bk.venueName+" → "+bk.practitionerName+" ("+bk.date+")");
-    emailjs.send("service_bl7o2cm","template_50n96cr",{
+    emailjs.send("service_bl7o2cm","template_69wi3t9",{
       name:bk.venueName,
       email:bk.email,
       message:"NEW BOOKING REQUEST 🔔 | Healer: "+bk.practitionerName+" | Session: "+bk.sessionType+" | Date: "+bk.date+" | Time: "+(bk.time||"TBD")+(bk.healerTz?" ("+tzLabel(bk.healerTz)+")":"")+" | Type: "+bk.venueType+" | Group: "+(bk.groupSize||"TBD")+" | Total: $"+bk.total+" | Notes: "+(bk.notes||"None")
@@ -645,7 +645,7 @@ async function submitJoin(){
   var j=await api("/api/auth",{action:"signup",name:name,email:email,password:pass,location:loc,zip:zip,bio:bio,calendlyUrl:calendly,sessionTypes:jTiers.slice(),instruments:jInstr.slice(),venueTypes:jVenues.slice(),modalities:jMods.slice(),source:src,agreedTerms:true,agreedPayTerms:true,payTermsVersion:PAY_TERMS_VERSION});
   if(!j.ok){toast(j.error||"Sign up failed. Please try again.","#C4727A");return;}
   AUTH_TOKEN=j.token;curUser=j.healer;MYB=j.bookings||[];
-  emailjs.send("service_bl7o2cm","template_50n96cr",{
+  emailjs.send("service_bl7o2cm","template_69wi3t9",{
     name:"REAL Holistic Network Admin",
     email:"bookings.realsound@gmail.com",
     message:"🌟 NEW FOUNDING HEALER SIGNED UP! | Name: "+name+" | Email: "+email+" | Location: "+loc+" | Modalities: "+jMods.join(", ")+" | Session types: "+jTiers.map(function(t){return t.name+" ($"+t.price+")";}).join(", ")+" | Source: "+src+" | Joined: "+new Date().toLocaleString()
@@ -766,7 +766,7 @@ async function toggleTeamAccess(){
 }
 
 function sendTestEmail(){
-  emailjs.send("service_bl7o2cm","template_50n96cr",{
+  emailjs.send("service_bl7o2cm","template_69wi3t9",{
     name:"REAL Holistic Network Admin",
     email:"bookings.realsound@gmail.com",
     message:"✅ This is a test notification from your admin dashboard, sent "+new Date().toLocaleString()+". If you got this, EmailJS is working correctly."
