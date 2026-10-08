@@ -83,7 +83,7 @@ export function publicHealer(p) {
     rating: p.rating, reviews: p.reviews, available: !!p.available,
     availability: p.availability || null,
     // only the busy times, never the healer's private notes
-    schedule: (p.schedule || []).map(s => ({ date: s.date, time: s.time || '' }))
+    schedule: (p.schedule || []).map(s => ({ date: s.date, time: s.time || '', end: s.end || '' }))
   };
 }
 // What the signed-in healer sees about themselves (everything but the hash).

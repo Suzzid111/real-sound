@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 
       if ('schedule' in f) {
         p.schedule = (Array.isArray(f.schedule) ? f.schedule : []).slice(0, 500).map(e => ({
-          id: str(e.id, 40), date: str(e.date, 10), time: str(e.time, 5), note: str(e.note, 200)
+          id: str(e.id, 40), date: str(e.date, 10), time: str(e.time, 5), end: str(e.end, 5), note: str(e.note, 200)
         })).filter(e => /^\d{4}-\d{2}-\d{2}$/.test(e.date));
       }
       if ('availability' in f) {
