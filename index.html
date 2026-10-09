@@ -78,7 +78,8 @@ nav{background:#fff;border-bottom:1px solid rgba(107,70,153,.12);padding:0 20px;
 
 .zip-search{display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
 .zip-search input{max-width:160px;background:#fff;border:1.5px solid rgba(107,70,153,.2);border-radius:8px;padding:9px 12px;color:#2A1F3D;font-size:14px;font-family:Georgia,serif;outline:none;width:auto}
-.zip-search input:focus{border-color:#6B4699}
+.zip-search input:focus,.zip-search select:focus{border-color:#6B4699}
+.zip-search select{background:#fff;border:1.5px solid rgba(107,70,153,.2);border-radius:8px;padding:9px 12px;color:#2A1F3D;font-size:14px;font-family:Georgia,serif;outline:none;width:auto;max-width:100%;cursor:pointer}
 .zip-search .zbtn{background:#6B4699;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-family:Georgia,serif;font-size:13px;cursor:pointer;font-weight:bold}
 .zip-search .zclear{background:#F0EAF8;color:#7A6E8A;border:none;border-radius:8px;padding:9px 14px;font-family:Georgia,serif;font-size:13px;cursor:pointer}
 
@@ -203,8 +204,9 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
   <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">Find a Healer</h2>
   <p class="text-soft" style="margin-bottom:16px;font-size:14px">Browse verified practitioners and send a booking request.</p>
   <div class="zip-search">
-    <input id="zip-input" placeholder="Enter ZIP code" maxlength="5" type="text"/>
-    <button class="zbtn" onclick="searchByZip()">Search ZIP</button>
+    <input id="zip-input" placeholder="Enter ZIP code" maxlength="5" type="text" inputmode="numeric" aria-label="ZIP code" onkeydown="if(event.key==='Enter')searchByZip()"/>
+    <select id="svc-select" aria-label="Healing service" onchange="mFilter=this.value;renderFind()"></select>
+    <button class="zbtn" onclick="searchByZip()">Search</button>
     <button class="zclear" onclick="clearZip()">Clear</button>
   </div>
   <div id="zip-msg" style="font-size:12px;color:#A990C9;margin-bottom:10px;display:none"></div>
@@ -550,17 +552,14 @@ function filterMod(m){mFilter=m;}
 
 function searchByZip(){
   var z=document.getElementById("zip-input").value.trim();
-  if(z.length<5){toast("Please enter a 5-digit ZIP code","#C4727A");return;}
+  if(z&&!/^\d{5}$/.test(z)){toast("Please enter a 5-digit ZIP code","#C4727A");return;}
+  if(!z&&mFilter==="All"){toast("Please enter a ZIP code or choose a healing service","#C4727A");return;}
   zipFilter=z;
-  var msg=document.getElementById("zip-msg");
-  msg.style.display="block";
-  msg.textContent="Showing practitioners near ZIP "+z;
   renderFind();
 }
 function clearZip(){
-  zipFilter="";
+  zipFilter="";mFilter="All";
   document.getElementById("zip-input").value="";
-  document.getElementById("zip-msg").style.display="none";
   renderFind();
 }
 
@@ -578,7 +577,14 @@ function healerCard(p,mini){
 
 function renderFind(){
   document.getElementById("venue-pills").innerHTML=VENUES.map(function(v){return '<button class="pill'+(vFilter===v?" pill-purple":"")+'" onclick="vFilter=\''+v+'\';renderFind()">'+v+'</button>';}).join("");
-  document.getElementById("mod-pills").innerHTML=["All"].concat(MODS).map(function(m){return '<button class="pill'+(mFilter===m?" pill-teal":"")+'" onclick="mFilter=\''+m+'\';renderFind()">'+m+'</button>';}).join("");
+  // "Healing service" dropdown: the standard list plus any service a healer listed
+  var svcs=MODS.slice();P.forEach(function(p){(p.modalities||[]).forEach(function(m){if(m&&svcs.indexOf(m)<0)svcs.push(m);});});
+  if(mFilter!=="All"&&svcs.indexOf(mFilter)<0)svcs.push(mFilter);
+  var sel=document.getElementById("svc-select");
+  if(sel){sel.innerHTML='<option value="All">All healing services</option>'+svcs.map(function(m){return '<option value="'+escHtml(m)+'"'+(mFilter===m?' selected':'')+'>'+escHtml(m)+'</option>';}).join("");sel.value=mFilter;}
+  document.getElementById("mod-pills").innerHTML="";
+  var msg=document.getElementById("zip-msg");
+  if(msg){var parts=[];if(mFilter!=="All")parts.push(mFilter);if(zipFilter)parts.push("near ZIP "+zipFilter);msg.style.display=parts.length?"block":"none";msg.textContent=parts.length?"Showing: "+parts.join(" · "):"";}
   var f=P.filter(function(p){
     var vOk=vFilter==="All"||p.venueTypes.indexOf(vFilter)>-1;
     var mOk=mFilter==="All"||p.modalities.indexOf(mFilter)>-1;
