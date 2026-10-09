@@ -1,7 +1,7 @@
 // api/healer.js — everything a signed-in healer can do to their OWN account:
 // reload their data, save schedule / booking hours, acknowledge the payment
 // terms, change their password, accept or decline their bookings.
-import { getSession, loadHealers, saveHealers, loadBookings, selfHealer, hashPassword, checkPassword, logNote, str } from './_lib.js';
+import { getSession, loadHealers, saveHealers, loadBookings, selfHealer, hashPassword, checkPassword, logNote, str, loadEvents, saveEvents, cleanEvent, todayET } from './_lib.js';
 import { setBookingStatus } from './_bookings.js';
 
 export default async function handler(req, res) {
@@ -60,6 +60,29 @@ export default async function handler(req, res) {
         delete p.mustChangePassword;
       }
       await saveHealers(P);
+    } else if (body.action === 'eventSave') {
+      const P = await loadHealers();
+      const p = P.find(x => x.id === s.id);
+      if (!p) return res.status(401).json({ ok: false, error: 'Account not found', relogin: true });
+      const c = cleanEvent(body.event || {});
+      if (c.error) return res.json({ ok: false, error: c.error });
+      const E = await loadEvents();
+      const id = str((body.event || {}).id, 40);
+      const old = id ? E.find(x => x.id === id && x.healerId === s.id) : null;
+      if (id && !old) return res.json({ ok: false, error: 'Event not found' });
+      if (!old && E.filter(x => x.healerId === s.id && x.date >= todayET()).length >= 30) return res.json({ ok: false, error: 'You can have up to 30 upcoming events at a time' });
+      const now = new Date().toISOString();
+      const ev = Object.assign(old || { id: 'ev' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), healerId: p.id, rsvps: [], createdAt: now },
+        c.event, { healerName: p.name, healerAvatar: p.avatar, status: 'pending', declineReason: '', updatedAt: now });
+      if (!old) E.push(ev);
+      await saveEvents(E);
+      await logNote(`📣 Event waiting for your approval: "${ev.title}" by ${p.name} (${ev.date})`);
+    } else if (body.action === 'eventDelete') {
+      const E = await loadEvents();
+      const ev = E.find(x => x.id === body.id && x.healerId === s.id);
+      if (!ev) return res.json({ ok: false, error: 'Event not found' });
+      await saveEvents(E.filter(x => x !== ev));
+      await logNote(`🗑 ${ev.healerName} removed their event "${ev.title}"`);
     } else if (body.action !== 'me') {
       return res.status(400).json({ ok: false, error: 'Unknown action' });
     }
@@ -67,8 +90,8 @@ export default async function handler(req, res) {
     const P = await loadHealers();
     const p = P.find(x => x.id === s.id);
     if (!p) return res.status(401).json({ ok: false, error: 'Account not found', relogin: true });
-    const B = await loadBookings();
-    return res.json({ ok: true, healer: selfHealer(p), bookings: B.filter(b => b.practitionerId === s.id) });
+    const [B, E] = await Promise.all([loadBookings(), loadEvents()]);
+    return res.json({ ok: true, healer: selfHealer(p), bookings: B.filter(b => b.practitionerId === s.id), events: E.filter(e => e.healerId === s.id) });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });
   }

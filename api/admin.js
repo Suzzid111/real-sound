@@ -5,7 +5,7 @@ import {
   selfHealer, hashPassword, logNote, str
 } from './_lib.js';
 import { setBookingStatus } from './_bookings.js';
-import { loadContent } from './_lib.js';
+import { loadContent, loadEvents, saveEvents } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -107,6 +107,23 @@ export default async function handler(req, res) {
         if (gone) await logNote(`🗑 Removed ${sec.slice(0, -1)}: ${gone.title}`);
         break;
       }
+      case 'eventStatus': {
+        const E = await loadEvents();
+        const ev = E.find(x => x.id === body.id);
+        if (!ev) return res.json({ ok: false, error: 'Event not found' });
+        if (body.status === 'remove') {
+          await saveEvents(E.filter(x => x !== ev));
+          await logNote(`🗑 Removed event "${ev.title}" by ${ev.healerName}`);
+          break;
+        }
+        if (!['approved', 'declined'].includes(body.status)) return res.json({ ok: false, error: 'Bad status' });
+        ev.status = body.status;
+        ev.declineReason = body.status === 'declined' ? str(body.reason, 300) : '';
+        ev.reviewedAt = new Date().toISOString();
+        await saveEvents(E);
+        await logNote(`${body.status === 'approved' ? '✅ Approved' : '✗ Declined'} event "${ev.title}" by ${ev.healerName}`);
+        break;
+      }
       case 'orderLink': {
         const o = await getJSON('order:' + str(body.id, 80), null);
         if (!o) return res.json({ ok: false, error: 'Order not found' });
@@ -117,8 +134,8 @@ export default async function handler(req, res) {
         return res.status(400).json({ ok: false, error: 'Unknown action' });
     }
 
-    const [P, B, notes, teamActive, content, orders] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true), loadContent(), getJSON('orders', [])]);
-    return res.json({ ok: true, role: s.role, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders });
+    const [P, B, notes, teamActive, content, orders, E] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true), loadContent(), getJSON('orders', []), loadEvents()]);
+    return res.json({ ok: true, role: s.role, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders, events: E });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });
   }

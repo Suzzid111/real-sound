@@ -132,6 +132,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
   <div class="nav-links">
     <button class="nav-btn active" id="nav-home" onclick="showPage('home')">Home</button>
     <button class="nav-btn" id="nav-find" onclick="showPage('find')">Find a Healer</button>
+    <button class="nav-btn" id="nav-events" onclick="showPage('events')">Events</button>
     <button class="nav-btn" id="nav-learn" onclick="showPage('learn')">Learn</button>
     <button class="nav-btn" id="nav-join" onclick="showPage('join')">Join as Healer</button>
     <button class="nav-btn" id="nav-login" onclick="showPage('login')">Healer Login</button>
@@ -203,6 +204,15 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
   <div class="pills" id="venue-pills"></div>
   <div class="pills" id="mod-pills"></div>
   <div class="healer-grid" id="healer-list"></div>
+</div>
+</div>
+
+<!-- EVENTS -->
+<div id="page-events" class="page">
+<div class="wrap">
+  <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">Community Events</h2>
+  <p class="text-soft" style="margin-bottom:18px;font-size:14px">Free local gatherings hosted by our healers. Tap a highlighted day to see what's happening, and save your spot.</p>
+  <div id="events-body"></div>
 </div>
 </div>
 
@@ -318,7 +328,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
           <button class="ptab active" onclick="setPTab('overview',this)">📊 Overview</button>
           <button class="ptab" onclick="setPTab('bookings',this)">📅 Bookings</button>
           <button class="ptab" onclick="setPTab('earnings',this)">💰 Earnings</button>
-          <button class="ptab" onclick="setPTab('profile',this)">👤 Profile</button><button class="ptab" onclick="setPTab('schedule',this)">🗓️ Schedule</button><button class="ptab" onclick="setPTab('availability',this)">⏰ Booking Hours</button>
+          <button class="ptab" onclick="setPTab('profile',this)">👤 Profile</button><button class="ptab" onclick="setPTab('schedule',this)">🗓️ Schedule</button><button class="ptab" onclick="setPTab('events',this)">📣 Events</button><button class="ptab" onclick="setPTab('availability',this)">⏰ Booking Hours</button>
         </div>
         <button class="btn btn-ghost" style="font-size:11px;padding:7px 13px" onclick="doLogout()">Log out</button>
       </div>
@@ -326,7 +336,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
     <div id="ptab-overview"></div>
     <div id="ptab-bookings" style="display:none"></div>
     <div id="ptab-earnings" style="display:none"></div>
-    <div id="ptab-profile" style="display:none"></div><div id="ptab-schedule" style="display:none"></div><div id="ptab-availability" style="display:none"></div>
+    <div id="ptab-profile" style="display:none"></div><div id="ptab-schedule" style="display:none"></div><div id="ptab-availability" style="display:none"></div><div id="ptab-events" style="display:none"></div>
   </div>
 </div>
 </div>
@@ -357,6 +367,8 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
       <button id="admin-export-btn" class="btn btn-ghost" style="font-size:11px;padding:6px 12px;display:none" onclick="exportHealerEmails()">⬇ Export emails (CSV)</button>
     </div>
     <div id="admin-practitioners"></div>
+    <div class="section-title" style="margin-top:28px">📣 COMMUNITY EVENTS</div>
+    <div id="admin-events"></div>
     <div class="section-title" style="margin-top:28px">📚 LEARN SECTION (journals, teachings, resources)</div>
     <div id="admin-learn"></div>
   </div>
@@ -445,7 +457,7 @@ async function api(path,body,token){
   }catch(e){return {ok:false,error:"Couldn't reach the server. Check your connection and try again."};}
 }
 async function refreshPublic(){
-  try{var r=await fetch("/api/public",{cache:"no-store"});var j=await r.json();if(j&&j.practitioners){P=j.practitioners;B=j.bookings;window.CONTENT=j.content||window.CONTENT;var lp=document.getElementById("page-learn");if(lp&&lp.classList.contains("active")&&!(document.getElementById("buy-overlay")&&document.getElementById("buy-overlay").style.display!=="none"))renderLearn();}}catch(e){}
+  try{var r=await fetch("/api/public",{cache:"no-store"});var j=await r.json();if(j&&j.practitioners){P=j.practitioners;B=j.bookings;window.CONTENT=j.content||window.CONTENT;window.EVENTS=j.events||window.EVENTS;var ep=document.getElementById("page-events");if(ep&&ep.classList.contains("active")&&!(document.getElementById("rsvp-overlay")&&document.getElementById("rsvp-overlay").style.display!=="none"))renderEvents();var lp=document.getElementById("page-learn");if(lp&&lp.classList.contains("active")&&!(document.getElementById("buy-overlay")&&document.getElementById("buy-overlay").style.display!=="none"))renderLearn();}}catch(e){}
   return B;
 }
 
@@ -491,6 +503,7 @@ function showPage(p){
   if(p==="home")renderHome();
   if(p==="find")renderFind();
   if(p==="learn")renderLearn();
+  if(p==="events")renderEvents();
   if(p==="join")renderJoinPills();
   if(p==="login")renderLogin();
   if(p==="admin"){curAdminRole=null;editingHealerId=null;document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
@@ -702,13 +715,13 @@ async function doLogin(){
 function doLogout(){if(AUTH_TOKEN)api("/api/auth",{action:"logout"},AUTH_TOKEN);AUTH_TOKEN=null;curUser=null;MYB=[];renderLogin();}
 
 function setPTab(tab,btn){
-  ["overview","bookings","earnings","profile","schedule","availability"].forEach(function(t){document.getElementById("ptab-"+t).style.display=t===tab?"block":"none";});
+  ["overview","bookings","earnings","profile","schedule","availability","events"].forEach(function(t){document.getElementById("ptab-"+t).style.display=t===tab?"block":"none";});
   document.querySelectorAll(".ptab").forEach(function(b){b.classList.remove("active");});
   if(btn)btn.classList.add("active");
   if(tab==="overview")renderOverview();
   if(tab==="bookings")renderMyBookings();
   if(tab==="earnings")renderEarnings();
-  if(tab==="profile")renderMyProfile();   if(tab==="schedule")renderSchedule();if(tab==="availability"){AV_DRAFT=null;renderAvailability();}
+  if(tab==="profile")renderMyProfile();   if(tab==="schedule")renderSchedule();if(tab==="availability"){AV_DRAFT=null;renderAvailability();}if(tab==="events"){EV_EDIT=null;openHealerEvents();}
 }
 
 function myB(){return MYB;}
@@ -830,6 +843,7 @@ function renderAdmin(){
     return '<div class="booking-card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><div style="font-size:22px">'+p.avatar+'</div><div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · '+priceLabel(p)+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+'</div><div class="text-soft" style="font-size:12px">✉ <a href="mailto:'+p.email+'" style="color:#6B4699">'+p.email+'</a></div>'+payTermsBadge(p)+(hasCalendar(p)?'<div style="font-size:11px;color:#6B4699">⏰ Booking calendar on</div>':'')+'</div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="editHealer(\''+p.id+'\')">Edit</button>'+(isOwner?'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button>':'')+'</div></div>';
   }).join("");
   renderAdminLearn();
+  renderAdminEvents();
 }
 
 function healerEditForm(p){
@@ -1348,6 +1362,160 @@ async function admOrderLink(id){
   var j=await api("/api/admin",{action:"orderLink",id:id},ADMIN_TOKEN);
   if(!j.ok){toast(j.error,"#C4727A");return;}
   try{await navigator.clipboard.writeText(j.link);toast("Download link copied ✓ Paste it into an email to "+j.email,"#4A9B8E");}catch(e){prompt("Copy this download link and email it to "+j.email,j.link);}
+}
+</script>
+<script>
+// =====================================================================
+// COMMUNITY EVENTS: healers post free local events, the admin approves
+// them, and they appear on the public Events calendar. Visitors save a
+// spot right here; the host sees who's coming in their dashboard.
+// =====================================================================
+var EV_MONTH=null,EV_DAY=null,MYEVENTS=[],EV_EDIT=null;
+function evAll(){
+  var list=(window.EVENTS||[]).map(function(e){return Object.assign({type:"healer"},e);});
+  var today=new Date().toISOString().slice(0,10);
+  ((window.CONTENT||{}).teachings||[]).forEach(function(t){
+    if(t.kind==="class"&&t.date&&t.date>=today)list.push({type:"rhn",id:t.id,title:t.title,date:t.date,start:t.time||"",location:t.location,description:t.description,signupUrl:t.signupUrl,healerName:"REAL Holistic Network"});
+  });
+  return list.sort(function(a,b){return (a.date+(a.start||"")).localeCompare(b.date+(b.start||""));});
+}
+function evTime(t){if(!t)return "";var p=t.split(":");var h=+p[0],m=p[1];return ((h%12)||12)+(m!=="00"?":"+m:"")+(h<12?"am":"pm");}
+function evDayLabel(d){return new Date(d+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});}
+function evMonthShift(n){var d=new Date(EV_MONTH+"-15T12:00:00");d.setMonth(d.getMonth()+n);EV_MONTH=d.toISOString().slice(0,7);EV_DAY=null;renderEvents();}
+function evPickDay(d){EV_DAY=EV_DAY===d?null:d;renderEvents();}
+
+function renderEvents(){
+  var el=document.getElementById("events-body");if(!el)return;
+  var all=evAll(),today=new Date().toISOString().slice(0,10);
+  if(!EV_MONTH)EV_MONTH=(all[0]?all[0].date:today).slice(0,7);
+  var byDay={};all.forEach(function(e){(byDay[e.date]=byDay[e.date]||[]).push(e);});
+  // month grid
+  var first=new Date(EV_MONTH+"-01T12:00:00"),startDow=first.getDay(),days=new Date(first.getFullYear(),first.getMonth()+1,0).getDate();
+  var cells="";for(var i=0;i<startDow;i++)cells+='<div></div>';
+  for(var d=1;d<=days;d++){
+    var ds=EV_MONTH+"-"+("0"+d).slice(-2),has=byDay[ds],past=ds<today,sel=EV_DAY===ds;
+    cells+='<button type="button" '+(has?'onclick="evPickDay(\''+ds+'\')"':'disabled')+' style="aspect-ratio:1;border-radius:10px;border:'+(sel?'2px solid #6B4699':'1px solid rgba(107,70,153,.12)')+';background:'+(has?'#F3E6C8':'#fff')+';color:'+(past?'#C9BFD8':'#2A1F3D')+';font-family:Georgia,serif;font-size:14px;cursor:'+(has?'pointer':'default')+';position:relative;padding:0">'+d+(has?'<span style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:#C9922A"></span>':'')+'</button>';
+  }
+  var monthName=first.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+  var grid='<div class="card" style="margin-bottom:18px;max-width:420px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><button class="btn btn-ghost" style="padding:4px 12px" onclick="evMonthShift(-1)" aria-label="Previous month">‹</button><div style="font-size:16px;color:#2A1F3D">'+monthName+'</div><button class="btn btn-ghost" style="padding:4px 12px" onclick="evMonthShift(1)" aria-label="Next month">›</button></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:11px;color:#A990C9;text-align:center;margin-bottom:4px">'+["S","M","T","W","T","F","S"].map(function(x){return '<div>'+x+'</div>';}).join("")+'</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">'+cells+'</div>'+(EV_DAY?'<button class="btn btn-ghost full-width" style="margin-top:10px;font-size:12px" onclick="evPickDay(\''+EV_DAY+'\')">Show all upcoming events</button>':'')+'</div>';
+  var shown=EV_DAY?(byDay[EV_DAY]||[]):all;
+  var list;
+  if(!all.length)list=emptyCard("No upcoming events yet. Healers, share your free gatherings from your dashboard's Events tab!");
+  else{
+    var groups={},order=[];shown.forEach(function(e){if(!groups[e.date]){groups[e.date]=[];order.push(e.date);}groups[e.date].push(e);});
+    list=order.map(function(day){return '<div class="section-title" style="margin-top:6px">'+evDayLabel(day).toUpperCase()+'</div>'+groups[day].map(evCard).join("");}).join("");
+  }
+  el.innerHTML='<div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start"><div style="flex:0 1 380px;min-width:260px">'+grid+'</div><div style="flex:1 1 360px;min-width:0">'+list+'</div></div>';
+}
+function evCard(e){
+  var time=e.start?evTime(e.start)+(e.end?"–"+evTime(e.end):""):"";
+  var spots=e.type==="healer"&&e.spots?(e.spotsLeft>0?'<span class="badge-open">'+e.spotsLeft+' spot'+(e.spotsLeft===1?'':'s')+' left</span>':'<span class="badge-busy">Full</span>'):"";
+  var action="";
+  if(e.type==="healer")action=(e.spots&&e.spotsLeft<=0)?'':'<button class="btn btn-gold" onclick="openRsvp(\''+e.id+'\')">Save my spot</button>';
+  else{var su=safeUrl(e.signupUrl);action=su?'<a class="btn btn-gold" href="'+escHtml(su)+'" target="_blank" rel="noopener" style="text-decoration:none">Sign up</a>':'';}
+  var host=e.type==="healer"?'<span style="cursor:pointer;color:#6B4699" onclick="openBooking(\''+e.healerId+'\')">'+escHtml(e.healerAvatar||"")+' '+escHtml(e.healerName)+'</span>':'<span style="color:#6B4699">REAL Holistic Network</span>';
+  return '<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="flex:1;min-width:180px"><div style="font-size:12px;color:#C9922A;font-weight:bold;letter-spacing:.05em">'+escHtml(time)+' · FREE</div><div style="font-weight:bold;font-size:17px;color:#2A1F3D;margin:3px 0">'+escHtml(e.title)+'</div><div class="text-soft" style="font-size:13px">Hosted by '+host+'</div><div style="font-size:13px;color:#2A1F3D;margin-top:4px">📍 '+escHtml(e.location||"")+'</div></div>'+spots+'</div>'+(e.description?'<div class="text-soft" style="font-size:14px;line-height:1.6;margin:10px 0">'+nl2br(e.description)+'</div>':'<div style="height:10px"></div>')+action+'</div>';
+}
+
+// ---------------- visitor saves a spot ----------------
+var RSVP_EV=null;
+function openRsvp(id){
+  RSVP_EV=(window.EVENTS||[]).find(function(e){return e.id===id;});if(!RSVP_EV)return;
+  var o=document.getElementById("rsvp-overlay");
+  if(!o){o=document.createElement("div");o.id="rsvp-overlay";o.style.cssText="position:fixed;inset:0;background:rgba(42,31,61,.55);z-index:9990;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto";document.body.appendChild(o);}
+  o.innerHTML='<div class="card" style="max-width:420px;width:100%;background:#fff"><div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:10px"><div><div style="font-weight:bold;font-size:17px;color:#2A1F3D">'+escHtml(RSVP_EV.title)+'</div><div class="text-soft" style="font-size:13px">'+evDayLabel(RSVP_EV.date)+' · '+evTime(RSVP_EV.start)+'</div></div><button class="btn btn-ghost" style="padding:4px 10px;height:fit-content" onclick="closeRsvp()">✕</button></div><div id="rsvp-body"><div class="field"><label>YOUR NAME</label><input id="rv-name"></div><div class="field"><label>YOUR EMAIL</label><input id="rv-email" type="email" placeholder="you@example.com"></div><div class="field"><label>HOW MANY PEOPLE (including you)</label><select id="rv-guests">'+[1,2,3,4,5,6].map(function(n){return '<option>'+n+'</option>';}).join("")+'</select></div><div class="text-soft" style="font-size:11px;line-height:1.5;margin-bottom:12px">Your name and email will be shared with '+escHtml(RSVP_EV.healerName)+' so they can send you any details about this event.</div><div id="rv-err" style="color:#C4727A;font-size:13px;margin-bottom:8px"></div><button class="btn btn-gold full-width" id="rv-btn" onclick="sendRsvp()">Save my spot</button></div></div>';
+  o.style.display="flex";
+}
+function closeRsvp(){var o=document.getElementById("rsvp-overlay");if(o)o.style.display="none";}
+async function sendRsvp(){
+  var btn=document.getElementById("rv-btn"),err=document.getElementById("rv-err");
+  btn.disabled=true;err.textContent="";
+  var j=await api("/api/events",{action:"rsvp",eventId:RSVP_EV.id,name:document.getElementById("rv-name").value,email:document.getElementById("rv-email").value,guests:document.getElementById("rv-guests").value});
+  if(!j.ok){err.textContent=j.error;btn.disabled=false;return;}
+  document.getElementById("rsvp-body").innerHTML='<div style="text-align:center;padding:10px 0"><div style="font-size:40px">🌿</div><div style="font-size:16px;color:#2A1F3D;margin:8px 0">'+(j.already?"You're already on the list!":"Your spot is saved!")+'</div><div class="text-soft" style="font-size:13px;line-height:1.6">'+escHtml(RSVP_EV.healerName)+' can see that you\'re coming and may email you more details.</div><button class="btn btn-outline" style="margin-top:14px" onclick="closeRsvp()">Done</button></div>';
+  refreshPublic();
+}
+
+// =====================================================================
+// HEALER: Events tab
+// =====================================================================
+async function openHealerEvents(){
+  document.getElementById("ptab-events").innerHTML='<div class="text-soft" style="padding:20px">Loading…</div>';
+  var j=await api("/api/healer",{action:"me"},AUTH_TOKEN);
+  if(j.ok){curUser=j.healer;MYB=j.bookings||[];MYEVENTS=j.events||[];}
+  renderHealerEvents();
+}
+function evStatusBadge(e){
+  if(e.status==="approved")return '<span class="status-confirmed">Live on the calendar</span>';
+  if(e.status==="declined")return '<span class="status-declined">Not approved</span>';
+  return '<span class="status-pending">Waiting for approval</span>';
+}
+function renderHealerEvents(){
+  var el=document.getElementById("ptab-events");if(!el)return;
+  var x=EV_EDIT||{},today=new Date().toISOString().slice(0,10);
+  var form='<div class="card card-gold" style="margin-bottom:20px"><h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin:0 0 6px">'+(x.id?'Edit your event':'Share a free event')+'</h3><p class="text-soft" style="font-size:13px;margin:0 0 14px;line-height:1.6">Post free local gatherings like community meditations, open circles or workshops. Events appear on the public calendar once REAL Holistic Network approves them'+(x.id?'. Editing sends it back for a quick review.':', usually within a day.')+'</p>'
+    +'<div class="field"><label>EVENT NAME</label><input id="he-title" value="'+v(x.title)+'" placeholder="e.g. Full Moon Sound Bath"></div>'
+    +'<div class="field"><label>DATE</label><input id="he-date" type="date" min="'+today+'" value="'+v(x.date)+'"></div>'
+    +'<div class="two-col"><div class="field"><label>STARTS</label><input id="he-start" type="time" value="'+v(x.start)+'"></div><div class="field"><label>ENDS <span style="text-transform:none;letter-spacing:0;color:#A990C9">(optional)</span></label><input id="he-end" type="time" value="'+v(x.end)+'"></div></div>'
+    +'<div class="field"><label>WHERE</label><input id="he-location" value="'+v(x.location)+'" placeholder="Address, park name, or &quot;Online (details sent to guests)&quot;"></div>'
+    +'<div class="field"><label>ABOUT THIS EVENT</label><textarea id="he-desc" rows="4" placeholder="What to expect, what to bring…">'+v(x.description)+'</textarea></div>'
+    +'<div class="field"><label>HOW MANY SPOTS <span style="text-transform:none;letter-spacing:0;color:#A990C9">(leave empty for no limit)</span></label><input id="he-spots" type="number" min="1" value="'+(x.spots?x.spots:'')+'"></div>'
+    +'<div class="text-soft" style="font-size:12px;margin-bottom:12px">Please no website links. Guests save their spot right here, and you\'ll see their names and emails below so you can send them details.</div>'
+    +'<div style="display:flex;gap:10px">'+(x.id?'<button class="btn btn-ghost" style="flex:1" onclick="EV_EDIT=null;renderHealerEvents()">Cancel</button>':'')+'<button class="btn btn-purple" style="flex:2" id="he-save" onclick="saveHealerEvent()">'+(x.id?'Save changes':'Send for approval')+'</button></div></div>';
+  var mine=MYEVENTS.slice().sort(function(a,b){return (a.date+a.start).localeCompare(b.date+b.start);});
+  var upcoming=mine.filter(function(e){return e.date>=today;}),past=mine.filter(function(e){return e.date<today;});
+  var row=function(e){
+    var r=e.rsvps||[],count=r.reduce(function(n,g){return n+(g.guests||1);},0);
+    return '<div class="booking-card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+escHtml(e.title)+'</div><div class="text-soft" style="font-size:12px">'+evDayLabel(e.date)+' · '+evTime(e.start)+(e.end?'–'+evTime(e.end):'')+'</div><div style="margin-top:6px">'+evStatusBadge(e)+'</div>'+(e.status==="declined"&&e.declineReason?'<div class="text-soft" style="font-size:12px;margin-top:4px">Note: '+escHtml(e.declineReason)+'</div>':'')+'</div><div style="display:flex;gap:6px">'+(e.date>=today?'<button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="editHealerEvent(\''+e.id+'\')">Edit</button>':'')+'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="deleteHealerEvent(\''+e.id+'\')">Remove</button></div></div>'
+      +(r.length?'<details style="margin-top:10px"><summary style="cursor:pointer;font-size:13px;color:#6B4699">👥 '+count+' coming'+(e.spots?' of '+e.spots+' spots':'')+'. See who</summary><div style="margin-top:8px;font-size:13px;line-height:1.8">'+r.map(function(g){return escHtml(g.name)+(g.guests>1?' (+'+(g.guests-1)+')':'')+' · <a href="mailto:'+escHtml(g.email)+'" style="color:#6B4699">'+escHtml(g.email)+'</a>';}).join("<br>")+'</div><button class="btn btn-ghost" style="margin-top:8px;font-size:12px;padding:6px 12px" onclick="copyGuestEmails(\''+e.id+'\')">Copy all emails</button></details>':'<div class="text-soft" style="font-size:12px;margin-top:8px">No sign-ups yet.</div>')+'</div>';
+  };
+  el.innerHTML='<div style="max-width:620px">'+form+'<div class="section-title">YOUR UPCOMING EVENTS ('+upcoming.length+')</div>'+(upcoming.length?upcoming.map(row).join(""):'<div class="text-soft" style="font-size:13px;margin-bottom:16px">None yet.</div>')+(past.length?'<div class="section-title" style="margin-top:18px">PAST EVENTS</div>'+past.slice(-10).reverse().map(row).join(""):'')+'</div>';
+}
+function editHealerEvent(id){EV_EDIT=MYEVENTS.find(function(e){return e.id===id;})||null;renderHealerEvents();window.scrollTo({top:0,behavior:"smooth"});}
+async function saveHealerEvent(){
+  var g=function(id){return document.getElementById(id).value;};
+  var ev={id:(EV_EDIT||{}).id,title:g("he-title"),date:g("he-date"),start:g("he-start"),end:g("he-end"),location:g("he-location"),description:g("he-desc"),spots:g("he-spots")};
+  if(blockedFieldsCheck([ev.title,ev.location,ev.description]))return;
+  var btn=document.getElementById("he-save");btn.disabled=true;
+  var j=await api("/api/healer",{action:"eventSave",event:ev},AUTH_TOKEN);
+  btn.disabled=false;
+  if(!j.ok){toast(j.error,"#C4727A");return;}
+  curUser=j.healer;MYB=j.bookings||[];MYEVENTS=j.events||[];EV_EDIT=null;
+  toast("Sent for approval ✓ You'll see it here once it's live","#4A9B8E");
+  emailjs.send("service_bl7o2cm","template_69wi3t9",{name:"REAL Holistic Network Admin",email:"bookings.realsound@gmail.com",message:"📣 NEW EVENT WAITING FOR APPROVAL | "+ev.title+" | by "+curUser.name+" | "+ev.date+" "+ev.start+" | "+ev.location+" | Approve it in your admin panel."}).catch(function(){});
+  renderHealerEvents();
+}
+async function deleteHealerEvent(id){
+  if(!confirm("Remove this event? Anyone who saved a spot won't be notified automatically, so please let them know."))return;
+  var j=await api("/api/healer",{action:"eventDelete",id:id},AUTH_TOKEN);
+  if(!j.ok){toast(j.error,"#C4727A");return;}
+  curUser=j.healer;MYB=j.bookings||[];MYEVENTS=j.events||[];toast("Event removed");renderHealerEvents();refreshPublic();
+}
+function copyGuestEmails(id){
+  var e=MYEVENTS.find(function(x){return x.id===id;});if(!e)return;
+  var list=(e.rsvps||[]).map(function(g){return g.email;}).join(", ");
+  if(navigator.clipboard)navigator.clipboard.writeText(list).then(function(){toast("Emails copied ✓ Paste them into the BCC line of an email","#4A9B8E");},function(){prompt("Copy these emails:",list);});else prompt("Copy these emails:",list);
+}
+
+// =====================================================================
+// ADMIN: approve events
+// =====================================================================
+function renderAdminEvents(){
+  var el=document.getElementById("admin-events");if(!el||!ADMIN_DATA)return;
+  var E=(ADMIN_DATA.events||[]),today=new Date().toISOString().slice(0,10);
+  var pending=E.filter(function(e){return e.status==="pending"&&e.date>=today;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  var live=E.filter(function(e){return e.status==="approved"&&e.date>=today;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+  var card=function(e,isPending){
+    var count=(e.rsvps||[]).reduce(function(n,g){return n+(g.guests||1);},0);
+    return '<div class="booking-card"><div style="font-weight:bold;color:#2A1F3D">'+escHtml(e.title)+'</div><div class="text-soft" style="font-size:12px">'+escHtml(e.healerName)+' · '+evDayLabel(e.date)+' · '+evTime(e.start)+(e.end?'–'+evTime(e.end):'')+'</div><div style="font-size:13px;margin-top:4px">📍 '+escHtml(e.location)+'</div>'+(e.description?'<div class="text-soft" style="font-size:13px;margin-top:6px;line-height:1.5">'+nl2br(e.description)+'</div>':'')+(isPending?'':'<div class="text-soft" style="font-size:12px;margin-top:6px">👥 '+count+' signed up'+(e.spots?' of '+e.spots:'')+'</div>')+'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">'+(isPending?'<button class="btn btn-gold" style="padding:6px 14px;font-size:12px" onclick="admEventStatus(\''+e.id+'\',\'approved\')">✓ Approve</button><button class="btn btn-danger" style="padding:6px 14px;font-size:12px" onclick="admEventStatus(\''+e.id+'\',\'declined\')">✗ Decline</button>':'<button class="btn btn-danger" style="padding:6px 14px;font-size:12px" onclick="admEventStatus(\''+e.id+'\',\'remove\')">Remove from calendar</button>')+'</div></div>';
+  };
+  el.innerHTML=(pending.length?'<div style="font-size:13px;color:#C9922A;font-weight:bold;margin-bottom:6px">⏳ WAITING FOR YOUR APPROVAL ('+pending.length+')</div>'+pending.map(function(e){return card(e,true);}).join(""):'<div class="text-soft" style="font-size:13px;margin-bottom:10px">No events waiting for approval.</div>')+(live.length?'<div style="font-size:13px;color:#6B4699;font-weight:bold;margin:14px 0 6px">LIVE ON THE CALENDAR ('+live.length+')</div>'+live.map(function(e){return card(e,false);}).join(""):'');
+}
+async function admEventStatus(id,status){
+  var reason="";
+  if(status==="declined"){reason=prompt("Optional: a short note to the healer about why (they'll see it in their dashboard)","");if(reason===null)return;}
+  if(status==="remove"&&!confirm("Remove this event from the public calendar?"))return;
+  if(await adminCall({action:"eventStatus",id:id,status:status,reason:reason})){toast(status==="approved"?"Approved ✓ It's live on the calendar":status==="declined"?"Declined":"Removed",status==="approved"?"#4A9B8E":"#6B4699");renderAdmin();refreshPublic();}
 }
 </script>
 </body>

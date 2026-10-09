@@ -173,3 +173,36 @@ export const LINK_RE = /(https?:\/\/|www\.|\b[a-z0-9-]+\.(com|net|org|io|co|us|b
 
 // ---------- Learn section content (journals, teachings, resources) ----------
 export const loadContent = () => getJSON('content', { journals: [], teachings: [], resources: [] });
+
+// ---------- Community events posted by healers (approved by the admin) ----------
+export const loadEvents = () => getJSON('events', []);
+export const saveEvents = E => setJSON('events', E);
+export function todayET() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+}
+// What anyone may see: never the sign-up list (names / emails).
+export function publicEvent(e) {
+  const taken = (e.rsvps || []).reduce((n, r) => n + (r.guests || 1), 0);
+  return {
+    id: e.id, healerId: e.healerId, healerName: e.healerName, healerAvatar: e.healerAvatar || '',
+    title: e.title, date: e.date, start: e.start, end: e.end || '', location: e.location, description: e.description,
+    spots: e.spots || 0, spotsLeft: e.spots ? Math.max(0, e.spots - taken) : null, going: taken
+  };
+}
+// Checks and cleans an event a healer submits. Returns { error } or { event }.
+export function cleanEvent(it) {
+  const ev = {
+    title: str(it.title, 120), date: str(it.date, 10), start: str(it.start, 5), end: str(it.end, 5),
+    location: str(it.location, 200), description: str(it.description, 3000),
+    spots: Math.max(0, Math.min(10000, parseInt(it.spots, 10) || 0))
+  };
+  if (!ev.title || !ev.date || !ev.start || !ev.location) return { error: 'Please fill in the title, date, start time and where it is' };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(ev.date) || !/^\d\d:\d\d$/.test(ev.start) || (ev.end && !/^\d\d:\d\d$/.test(ev.end))) return { error: 'Please check the date and times' };
+  if (ev.end && ev.end <= ev.start) return { error: 'The end time must be after the start time' };
+  const today = todayET();
+  if (ev.date < today) return { error: 'That date has already passed' };
+  const max = new Date(Date.now() + 366 * 86400000).toISOString().slice(0, 10);
+  if (ev.date > max) return { error: 'Events can be posted up to one year ahead' };
+  if ([ev.title, ev.location, ev.description].some(f => LINK_RE.test(f))) return { error: "Please remove website links. People sign up right here on REAL Holistic Network, and you'll see who's coming in your dashboard." };
+  return { event: ev };
+}
