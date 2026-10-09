@@ -228,3 +228,12 @@ export function reviewStats(R, healerId) {
     .map(r => ({ name: r.name, stars: r.stars, text: r.text, date: r.createdAt.slice(0, 10) }));
   return { rating: avg, reviewCount: count, recentReviews: recent };
 }
+
+// ---------- Shareable healer links: realholisticnetwork.com/h/tricia-4821 ----------
+export function healerSlug(p) {
+  const base = String(p.name || 'healer').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'healer';
+  return base + '-' + String(p.id).slice(-4);
+}
+export function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}

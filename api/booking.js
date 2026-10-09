@@ -48,7 +48,7 @@ export default async function handler(req, res) {
       venueType: str(b.venueType, 60), groupSize: str(b.groupSize, 10), notes: str(b.notes, 2000),
       sessionType: tier.name, price: tier.price, fee: tier.price - platformFee, platformFee, total: tier.price,
       status: 'pending', paymentMethodId: pi.payment_method || null, createdAt: new Date().toISOString(),
-      startUTC, durationMin, healerTz, lockId
+      startUTC, durationMin, healerTz, lockId, source: str(b.source, 40) || 'direct'
     };
     if (!bk.venueName || !bk.email || !bk.date) return res.json({ ok: false, error: 'Please fill in required fields' });
     B.push(bk);
