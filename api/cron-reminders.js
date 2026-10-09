@@ -7,7 +7,6 @@ export default async function handler(req, res) {
   const secret = process.env.CRON_SECRET;
   if (secret && (req.headers.authorization || '') !== 'Bearer ' + secret) return res.status(401).json({ ok: false });
   try {
-    if (!process.env.EMAILJS_NOTICE_TEMPLATE_ID) return res.json({ ok: true, sent: 0, note: 'EMAILJS_NOTICE_TEMPLATE_ID not set' });
     const today = todayET();
     const tomorrow = new Date(Date.parse(today + 'T12:00:00Z') + 86400000).toISOString().slice(0, 10);
     const [B, P] = await Promise.all([loadBookings(), loadHealers()]);

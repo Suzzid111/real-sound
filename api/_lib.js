@@ -240,11 +240,18 @@ export function esc(s) {
 
 // ---------- Emails to clients and healers (one general EmailJS template) ----------
 // Template fields: {{to_email}} {{to_name}} {{subject}} {{message}}
-export async function sendNotice(toEmail, toName, subject, message) {
-  const tpl = process.env.EMAILJS_NOTICE_TEMPLATE_ID;
-  if (!tpl || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(toEmail || ''))) return false;
-  try { return await sendEmail(tpl, { to_email: toEmail, email: toEmail, to_name: toName || '', name: toName || '', subject, message }); }
-  catch (e) { return false; }
+// EmailJS's free plan allows only 2 templates, so every email to a client or
+// healer goes through ONE template (the "Password Reset" one) that just shows
+// {{subject}} and {{{message_html}}}.
+export const NOTICE_TEMPLATE = () => process.env.EMAILJS_NOTICE_TEMPLATE_ID || process.env.EMAILJS_RESET_TEMPLATE_ID || 'template_jeavpos';
+export function textToHtml(t) {
+  return esc(t).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#6B4699">$1</a>').replace(/\n/g, '<br>');
+}
+export async function sendNotice(toEmail, toName, subject, message, html) {
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(toEmail || ''))) return false;
+  try {
+    return await sendEmail(NOTICE_TEMPLATE(), { to_email: toEmail, email: toEmail, to_name: toName || '', name: toName || '', subject, message, message_html: html || textToHtml(message) });
+  } catch (e) { return false; }
 }
 // "Tuesday, October 14 at 6:30 PM (Eastern time)" from a booking
 export function sessionWhen(b) {

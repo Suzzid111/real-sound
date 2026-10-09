@@ -3,7 +3,7 @@
 import {
   redis, getJSON, loadHealers, saveHealers, loadBookings, findByEmail, selfHealer,
   hashPassword, checkPassword, safeEqual, createSession, getSession, endSession,
-  tooManyTries, clientIp, logNote, newToken, sendEmail, siteUrl, str, LINK_RE
+  tooManyTries, clientIp, logNote, newToken, sendEmail, siteUrl, str, LINK_RE, NOTICE_TEMPLATE, esc
 } from './_lib.js';
 
 const RESET_SECONDS = 60 * 60; // reset links work for 1 hour
@@ -102,9 +102,10 @@ async function forgot(req, res, { email }) {
   const token = newToken();
   await redis(['SET', 'rs:reset:' + token, p.id, 'EX', RESET_SECONDS]);
   const link = `${siteUrl(req)}/?reset=${token}`;
-  const sent = await sendEmail(process.env.EMAILJS_RESET_TEMPLATE_ID || 'template_jeavpos', {
+  const html = `<p style="font-size:18px;margin:0 0 16px">Hi ${esc(p.name)},</p><p style="margin:0 0 22px">We received a request to reset your REAL Holistic Network password. Click the button below to choose a new one.</p><p style="text-align:center;margin:0 0 22px"><a href="${esc(link)}" style="background:#C9922A;color:#ffffff;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:bold;display:inline-block">Choose a New Password</a></p><p style="font-size:13px;color:#7A6E8A;margin:0 0 12px">This link works for 1 hour. If the button doesn't work, copy this link into your browser:<br><a href="${esc(link)}" style="color:#6B4699;word-break:break-all">${esc(link)}</a></p><p style="font-size:13px;color:#7A6E8A;margin:0">If you didn't ask for this, you can ignore this email. Your password won't change.</p>`;
+  const sent = await sendEmail(NOTICE_TEMPLATE(), {
     to_email: p.email, email: p.email, to_name: p.name, name: p.name, reset_link: link, link,
-    // the same text in one field, for templates that only use {{message}}
+    subject: 'Reset your REAL Holistic Network password', message_html: html,
     message: `Hi ${p.name}, click this link to choose a new password for REAL Holistic Network: ${link} — it works for 1 hour. If you didn't ask for this, you can ignore this email.`
   }).catch(() => false);
   await logNote(sent ? `🔑 Password reset email sent to ${p.name}` : `⚠️ Password reset requested by ${p.name} but the email could not be sent — check EmailJS setup`);
