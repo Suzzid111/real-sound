@@ -13,7 +13,8 @@ export default async function handler(req, res) {
     const content = {
       journals: (C.journals || []).filter(x => x.active !== false && x.filePath).map(x => ({ id: x.id, title: x.title, description: x.description, price: x.price, image: img(x) })),
       teachings: (C.teachings || []).filter(x => x.active !== false).map(x => ({ id: x.id, kind: x.kind, title: x.title, description: x.description, body: x.body, videoUrl: x.videoUrl, date: x.date, time: x.time, location: x.location, signupUrl: x.signupUrl, image: img(x), createdAt: x.createdAt })),
-      resources: (C.resources || []).filter(x => x.active !== false).map(x => ({ id: x.id, title: x.title, description: x.description, url: x.url, category: x.category }))
+      resources: (C.resources || []).filter(x => x.active !== false).map(x => ({ id: x.id, title: x.title, description: x.description, url: x.url, category: x.category })),
+      products: (C.products || []).filter(x => x.active !== false).map(x => ({ id: x.id, title: x.title, description: x.description, url: x.url, imageUrl: x.imageUrl, price: x.price, recommendedBy: x.recommendedBy, category: x.category }))
     };
     res.setHeader('Cache-Control', 'no-store');
     return res.json({ practitioners: P.map(publicHealer), bookings: B.map(publicBooking), content, events });

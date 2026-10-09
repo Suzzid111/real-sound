@@ -69,7 +69,7 @@ export default async function handler(req, res) {
       }
       case 'contentSave': {
         const sec = body.section;
-        if (!['journals', 'teachings', 'resources'].includes(sec)) return res.json({ ok: false, error: 'Unknown section' });
+        if (!['journals', 'teachings', 'resources', 'products'].includes(sec)) return res.json({ ok: false, error: 'Unknown section' });
         const it = body.item || {};
         const C = await loadContent();
         const clean = {
@@ -86,6 +86,10 @@ export default async function handler(req, res) {
         } else if (sec === 'teachings') {
           clean.kind = ['article', 'video', 'class'].includes(it.kind) ? it.kind : 'article';
           Object.assign(clean, { body: str(it.body, 30000), videoUrl: str(it.videoUrl, 400), date: str(it.date, 10), time: str(it.time, 5), location: str(it.location, 200), signupUrl: str(it.signupUrl, 400), imagePath: str(it.imagePath, 400) });
+        } else if (sec === 'products') {
+          Object.assign(clean, { url: str(it.url, 1000), imageUrl: str(it.imageUrl, 1000), price: str(it.price, 30), recommendedBy: str(it.recommendedBy, 80) || 'Suzzanna', category: str(it.category, 60) });
+          if (!/^https?:\/\//i.test(clean.url)) return res.json({ ok: false, error: 'Please paste the full affiliate link, starting with https://' });
+          if (clean.imageUrl && !/^https:\/\//i.test(clean.imageUrl)) return res.json({ ok: false, error: 'The picture address must start with https://' });
         } else {
           Object.assign(clean, { url: str(it.url, 500), category: str(it.category, 60) || 'General' });
           if (!/^https?:\/\//i.test(clean.url)) return res.json({ ok: false, error: 'Please add a full web address starting with https://' });

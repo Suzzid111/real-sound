@@ -225,6 +225,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
     <button class="pill learn-tab pill-gold" data-tab="journals" onclick="setLearnTab('journals')">📔 Journals</button>
     <button class="pill learn-tab" data-tab="teachings" onclick="setLearnTab('teachings')">🎓 Teachings</button>
     <button class="pill learn-tab" data-tab="resources" onclick="setLearnTab('resources')">🔗 Resources</button>
+    <button class="pill learn-tab" data-tab="products" onclick="setLearnTab('products')">🛍 Recommended</button>
   </div>
   <div id="learn-body"></div>
 </div>
@@ -897,7 +898,8 @@ async function removeP(id){
 window.addEventListener('load',function(){
   if(typeof Stripe!=='undefined')initStripe();
 });
-loadFromServer();
+// start once every script on the page has loaded
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadFromServer);else loadFromServer();
 </script>
 <script>
 // =====================================================================
@@ -1206,6 +1208,7 @@ function renderLearn(){
   document.querySelectorAll(".learn-tab").forEach(function(b){b.classList.toggle("pill-gold",b.getAttribute("data-tab")===LEARN_TAB);});
   if(LEARN_TAB==="journals")el.innerHTML=renderJournals(C.journals||[]);
   else if(LEARN_TAB==="teachings")el.innerHTML=renderTeachings(C.teachings||[]);
+  else if(LEARN_TAB==="products")el.innerHTML=renderProducts(C.products||[]);
   else el.innerHTML=renderResources(C.resources||[]);
 }
 function emptyCard(msg){return '<div class="card" style="text-align:center;color:#A990C9;padding:32px">'+msg+'</div>';}
@@ -1243,6 +1246,16 @@ function renderResources(list){
   if(!list.length)return emptyCard("Helpful resources are coming soon.");
   var groups={},order=[];list.forEach(function(r){var c=r.category||"General";if(!groups[c]){groups[c]=[];order.push(c);}groups[c].push(r);});
   return order.map(function(c){return '<div class="section-title" style="margin-top:8px">'+escHtml(c).toUpperCase()+'</div>'+groups[c].map(function(r){var u=safeUrl(r.url);return '<a href="'+escHtml(u)+'" target="_blank" rel="noopener" class="booking-card" style="display:block;text-decoration:none"><div style="font-weight:bold;color:#6B4699">'+escHtml(r.title)+' ↗</div>'+(r.description?'<div class="text-soft" style="font-size:13px;margin-top:3px">'+nl2br(r.description)+'</div>':'')+'</a>';}).join("");}).join("")+'<div class="text-soft" style="font-size:11px;margin-top:14px">These links go to other websites. REAL Holistic Network is not responsible for their content.</div>';
+}
+
+// ---------------- recommended products (affiliate links) ----------------
+var AFFILIATE_NOTE="Some of these are affiliate links. That means if you buy through them, REAL Holistic Network may earn a small commission at no extra cost to you. We only share products we truly love and believe in.";
+function renderProducts(list){
+  if(!list.length)return emptyCard("Favorite wellness products are coming soon.");
+  return '<div class="disclaimer-box" style="margin-bottom:16px"><span style="font-size:12px;color:#6B4699;line-height:1.6">💛 '+AFFILIATE_NOTE+'</span></div><div class="healer-grid">'+list.map(function(p){
+    var u=safeUrl(p.url),img=safeUrl(p.imageUrl);
+    return '<div class="card" style="display:flex;flex-direction:column;gap:8px">'+(img?'<img src="'+escHtml(img)+'" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:100%;aspect-ratio:1;object-fit:contain;border-radius:10px;background:#fff" onerror="this.style.display=\'none\'">':'')+'<div style="font-weight:bold;font-size:16px;color:#2A1F3D">'+escHtml(p.title)+'</div>'+(p.price?'<div class="text-gold" style="font-weight:bold">'+escHtml(p.price)+'</div>':'')+(p.description?'<div class="text-soft" style="font-size:13px;line-height:1.6;flex:1">'+nl2br(p.description)+'</div>':'<div style="flex:1"></div>')+'<div style="font-size:11px;color:#A990C9">Recommended by '+escHtml(p.recommendedBy||"Suzzanna")+' · affiliate link</div>'+(u?'<a class="btn btn-gold full-width" href="'+escHtml(u)+'" target="_blank" rel="sponsored noopener" style="text-decoration:none;text-align:center;display:block">Shop now ↗</a>':'')+'</div>';
+  }).join("")+'</div>';
 }
 
 // ---------------- buying a journal ----------------
@@ -1289,10 +1302,10 @@ function v(x){return escHtml(x==null?"":x);}
 function renderAdminLearn(){
   var el=document.getElementById("admin-learn");if(!el||!ADMIN_DATA)return;
   var C=ADMIN_DATA.content||{journals:[],teachings:[],resources:[]},list=C[ADM_LEARN]||[];
-  var tabs='<div class="pills" style="margin-bottom:12px">'+[["journals","📔 Journals"],["teachings","🎓 Teachings"],["resources","🔗 Resources"]].map(function(t){return '<button class="pill'+(ADM_LEARN===t[0]?' pill-gold':'')+'" onclick="admLearnTab(\''+t[0]+'\')">'+t[1]+'</button>';}).join("")+'</div>';
-  var form=ADM_EDIT?admForm(ADM_EDIT):'<button class="btn btn-purple full-width" onclick="admNewItem()">+ Add '+({journals:"a journal",teachings:"a teaching",resources:"a resource link"}[ADM_LEARN])+'</button>';
+  var tabs='<div class="pills" style="margin-bottom:12px">'+[["journals","📔 Journals"],["teachings","🎓 Teachings"],["resources","🔗 Resources"],["products","🛍 Recommended"]].map(function(t){return '<button class="pill'+(ADM_LEARN===t[0]?' pill-gold':'')+'" onclick="admLearnTab(\''+t[0]+'\')">'+t[1]+'</button>';}).join("")+'</div>';
+  var form=ADM_EDIT?admForm(ADM_EDIT):'<button class="btn btn-purple full-width" onclick="admNewItem()">+ Add '+({journals:"a journal",teachings:"a teaching",resources:"a resource link",products:"a recommended product"}[ADM_LEARN])+'</button>';
   var rows=list.length?list.map(function(x){
-    var sub=ADM_LEARN==="journals"?money(x.price)+(x.fileName?' · '+v(x.fileName):''):ADM_LEARN==="teachings"?({article:"Article",video:"Video",class:"Class"}[x.kind]||"")+(x.date?' · '+x.date:''):v(x.category)+' · '+v(x.url);
+    var sub=ADM_LEARN==="journals"?money(x.price)+(x.fileName?' · '+v(x.fileName):''):ADM_LEARN==="teachings"?({article:"Article",video:"Video",class:"Class"}[x.kind]||"")+(x.date?' · '+x.date:''):ADM_LEARN==="products"?(x.price?v(x.price)+' · ':'')+'Recommended by '+v(x.recommendedBy||"Suzzanna"):v(x.category)+' · '+v(x.url);
     return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+v(x.title)+(x.active===false?' <span class="text-soft" style="font-size:11px">(hidden)</span>':'')+'</div><div class="text-soft" style="font-size:12px;word-break:break-all">'+sub+'</div></div><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="admEditItem(\''+x.id+'\')">Edit</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="admDeleteItem(\''+x.id+'\')">Remove</button></div></div>';
   }).join(""):'<div class="text-soft" style="font-size:13px;margin:10px 0">Nothing added yet.</div>';
   var orders="";
@@ -1304,7 +1317,8 @@ function admForm(x){
   f+='<div class="field"><label>TITLE</label><input id="al-title" value="'+v(x.title)+'"></div>';
   if(ADM_LEARN==="teachings")f+='<div class="field"><label>TYPE</label><select id="al-kind" onchange="ADM_EDIT.kind=this.value;admKeep();renderAdminLearn()">'+[["article","Written article / lesson"],["video","Video"],["class","Class or workshop"]].map(function(k){return '<option value="'+k[0]+'"'+((x.kind||"article")===k[0]?' selected':'')+'>'+k[1]+'</option>';}).join("")+'</select></div>';
   if(ADM_LEARN==="resources")f+='<div class="field"><label>WEB ADDRESS</label><input id="al-url" placeholder="https://..." value="'+v(x.url)+'"></div><div class="field"><label>GROUP <span style="text-transform:none;letter-spacing:0;color:#A990C9">(e.g. Books, Apps, Crisis Support)</span></label><input id="al-category" value="'+v(x.category)+'"></div>';
-  f+='<div class="field"><label>SHORT DESCRIPTION</label><textarea id="al-desc" rows="3">'+v(x.description)+'</textarea></div>';
+  if(ADM_LEARN==="products")f+='<div class="field"><label>YOUR AFFILIATE LINK</label><input id="al-url" placeholder="https://..." value="'+v(x.url)+'"></div><div class="field"><label>PICTURE ADDRESS <span style="text-transform:none;letter-spacing:0;color:#A990C9">(optional: on the product page, press and hold the photo, choose "Copy Image Address," and paste here)</span></label><input id="al-imageurl" placeholder="https://..." value="'+v(x.imageUrl)+'"></div><div class="two-col"><div class="field"><label>PRICE <span style="text-transform:none;letter-spacing:0;color:#A990C9">(optional)</span></label><input id="al-price" placeholder="e.g. $24.99" value="'+v(x.price)+'"></div><div class="field"><label>RECOMMENDED BY</label><input id="al-recby" value="'+v(x.recommendedBy||"Suzzanna")+'"></div></div>';
+  f+='<div class="field"><label>SHORT DESCRIPTION'+(ADM_LEARN==="products"?' <span style="text-transform:none;letter-spacing:0;color:#A990C9">(why you love it)</span>':'')+'</label><textarea id="al-desc" rows="3">'+v(x.description)+'</textarea></div>';
   if(ADM_LEARN==="journals"){
     f+='<div class="field"><label>PRICE ($)</label><input id="al-price" type="number" min="1" step="0.01" value="'+v(x.price)+'"></div>';
     f+=upField("file","FILE PEOPLE WILL DOWNLOAD (PDF, audio, zip)",".pdf,.zip,.epub,.mp3,.m4a,.wav",ADM_UP.filePath?ADM_UP.fileName:(x.fileName||""));
@@ -1327,7 +1341,7 @@ function upField(kind,label,accept,status){
 // Remember what was typed when the form re-draws.
 function admKeep(){
   var g=function(id){var e=document.getElementById(id);return e?e.value:undefined;};
-  var map={title:"al-title",description:"al-desc",price:"al-price",url:"al-url",category:"al-category",body:"al-body",videoUrl:"al-video",date:"al-date",time:"al-time",location:"al-location",signupUrl:"al-signup"};
+  var map={title:"al-title",description:"al-desc",price:"al-price",url:"al-url",imageUrl:"al-imageurl",recommendedBy:"al-recby",category:"al-category",body:"al-body",videoUrl:"al-video",date:"al-date",time:"al-time",location:"al-location",signupUrl:"al-signup"};
   Object.keys(map).forEach(function(k){var val=g(map[k]);if(val!==undefined)ADM_EDIT[k]=val;});
 }
 var BLOB_CLIENT=null;
@@ -1352,6 +1366,7 @@ async function admSave(){
   if(ADM_LEARN==="journals")Object.assign(item,{price:x.price,filePath:ADM_UP.filePath||x.filePath||"",fileName:ADM_UP.fileName||x.fileName||"",imagePath:ADM_UP.imagePath||x.imagePath||""});
   if(ADM_LEARN==="teachings")Object.assign(item,{kind:x.kind||"article",body:x.body,videoUrl:x.videoUrl,date:x.date,time:x.time,location:x.location,signupUrl:x.signupUrl,imagePath:ADM_UP.imagePath||x.imagePath||""});
   if(ADM_LEARN==="resources")Object.assign(item,{url:x.url,category:x.category});
+  if(ADM_LEARN==="products")Object.assign(item,{url:x.url,imageUrl:x.imageUrl,price:x.price,recommendedBy:x.recommendedBy});
   if(await adminCall({action:"contentSave",section:ADM_LEARN,item:item})){toast("Saved ✓","#4A9B8E");ADM_EDIT=null;ADM_UP={};renderAdminLearn();refreshPublic();}
 }
 async function admDeleteItem(id){
