@@ -237,3 +237,27 @@ export function healerSlug(p) {
 export function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
+
+// ---------- Emails to clients and healers (one general EmailJS template) ----------
+// Template fields: {{to_email}} {{to_name}} {{subject}} {{message}}
+export async function sendNotice(toEmail, toName, subject, message) {
+  const tpl = process.env.EMAILJS_NOTICE_TEMPLATE_ID;
+  if (!tpl || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(toEmail || ''))) return false;
+  try { return await sendEmail(tpl, { to_email: toEmail, email: toEmail, to_name: toName || '', name: toName || '', subject, message }); }
+  catch (e) { return false; }
+}
+// "Tuesday, October 14 at 6:30 PM (Eastern time)" from a booking
+export function sessionWhen(b) {
+  if (b.startUTC) {
+    const tz = b.healerTz || 'America/New_York';
+    const d = new Date(b.startUTC);
+    const day = d.toLocaleDateString('en-US', { timeZone: tz, weekday: 'long', month: 'long', day: 'numeric' });
+    const time = d.toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' });
+    const zone = { 'America/New_York': 'Eastern', 'America/Chicago': 'Central', 'America/Denver': 'Mountain', 'America/Phoenix': 'Arizona', 'America/Los_Angeles': 'Pacific' }[tz] || tz.replace(/_/g, ' ');
+    return `${day} at ${time} (${zone} time)`;
+  }
+  const day = b.date ? new Date(b.date + 'T12:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC', weekday: 'long', month: 'long', day: 'numeric' }) : 'your chosen date';
+  if (!b.time) return day;
+  const [h, m] = b.time.split(':').map(Number);
+  return `${day} at ${((h % 12) || 12)}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+}

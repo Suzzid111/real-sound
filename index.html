@@ -179,8 +179,9 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
     <div class="grid-item" onclick="filterVenue('Retreats');showPage('find')"><div class="grid-icon">🌿</div><div class="grid-label">Retreats</div></div>
     <div class="grid-item" onclick="filterVenue('Nursing Homes');showPage('find')"><div class="grid-icon">🏥</div><div class="grid-label">Nursing Homes</div></div>
     <div class="grid-item" onclick="filterVenue('Private Events');showPage('find')"><div class="grid-icon">🎉</div><div class="grid-label">Private Events</div></div>
-    <div class="grid-item"><div class="grid-icon">🏨</div><div class="grid-label">Hotels & Spas</div></div>
+    <div class="grid-item" onclick="filterVenue('Hotels & Spas');showPage('find')"><div class="grid-icon">🏨</div><div class="grid-label">Hotels & Spas</div></div>
   </div>
+  <div class="card card-purple" style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:28px"><div style="flex:1;min-width:220px"><div style="font-size:18px;color:#2A1F3D;margin-bottom:4px">🏢 Bring wellness to your workplace or group</div><div class="text-soft" style="font-size:13px;line-height:1.6">Sound baths, Reiki, breathwork and meditation for teams, senior living, studios, schools and events. Tell us what you need and we'll match you with the right healers.</div></div><button class="btn btn-gold" onclick="showPage('workplace')">Request group wellness →</button></div>
   <div class="section-title">HOW IT WORKS</div>
   <div class="how-grid">
     <div class="how-card"><div class="how-num">1</div><div style="font-size:20px;margin-bottom:8px">🔍</div><div style="font-weight:bold;color:#2A1F3D;margin-bottom:6px">Discover</div><div style="font-size:13px;color:#A990C9">Search healers by modality, location or ZIP code</div></div>
@@ -192,6 +193,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
     <span style="color:#9B6BC9;cursor:pointer;font-size:13px" onclick="showPage('find')">See all →</span>
   </div>
   <div class="healer-grid" id="featured"></div>
+  <div id="home-newsletter"></div>
 </div>
 </div>
 
@@ -209,6 +211,15 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
   <div class="pills" id="venue-pills"></div>
   <div class="pills" id="mod-pills"></div>
   <div class="healer-grid" id="healer-list"></div>
+</div>
+</div>
+
+<!-- WORKPLACE -->
+<div id="page-workplace" class="page">
+<div class="wrap">
+  <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">Wellness for Your Workplace or Group</h2>
+  <p class="text-soft" style="margin-bottom:18px;font-size:14px;max-width:640px;line-height:1.7">From a calming sound bath for your team to a monthly Reiki circle for residents, our healers bring the experience to you. Tell us a little about your group and we'll put together options that fit your space, schedule and budget.</p>
+  <div id="workplace-body"></div>
 </div>
 </div>
 
@@ -233,6 +244,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
     <button class="pill learn-tab" data-tab="products" onclick="setLearnTab('products')">🛍 Recommended</button>
   </div>
   <div id="learn-body"></div>
+  <div id="learn-newsletter"></div>
 </div>
 </div>
 
@@ -373,6 +385,10 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
       <button id="admin-export-btn" class="btn btn-ghost" style="font-size:11px;padding:6px 12px;display:none" onclick="exportHealerEmails()">⬇ Export emails (CSV)</button>
     </div>
     <div id="admin-practitioners"></div>
+    <div class="section-title" style="margin-top:28px">🏢 GROUP & WORKPLACE REQUESTS</div>
+    <div id="admin-requests"></div>
+    <div class="section-title" style="margin-top:28px">💌 NEWSLETTER LIST</div>
+    <div id="admin-subscribers"></div>
     <div class="section-title" style="margin-top:28px">⭐ CLIENT REVIEWS</div>
     <div id="admin-reviews"></div>
     <div class="section-title" style="margin-top:28px">📣 COMMUNITY EVENTS</div>
@@ -392,6 +408,8 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
 <div class="footer">
   <div style="color:#C9922A;font-size:13px;letter-spacing:.12em">◉ REAL HOLISTIC NETWORK</div>
   <div style="color:#A990C9;font-size:11px;margin-top:4px">A REAL Golden Peace venture by Suzzanna</div>
+  <div id="footer-newsletter"></div>
+  <div style="margin-top:12px;font-size:12px"><span style="color:#F3D58A;cursor:pointer" onclick="showPage('workplace');window.scrollTo(0,0)">For workplaces &amp; groups</span> · <span style="color:#F3D58A;cursor:pointer" onclick="showPage('events');window.scrollTo(0,0)">Community events</span> · <span style="color:#F3D58A;cursor:pointer" onclick="showPage('join');window.scrollTo(0,0)">Join as a healer</span></div>
   <div style="margin-top:12px"><svg role="img" aria-label="Gold elephant with its trunk raised" viewBox="8 6 106 78" width="44" height="33" xmlns="http://www.w3.org/2000/svg"><g fill="#E8B84B"><ellipse cx="70" cy="50" rx="32" ry="22"/><rect x="46" y="58" width="9" height="22" rx="3"/><rect x="59" y="60" width="9" height="20" rx="3"/><rect x="78" y="60" width="9" height="20" rx="3"/><rect x="90" y="58" width="9" height="22" rx="3"/><circle cx="38" cy="38" r="15"/></g><path d="M101 46 q8 4 6 14" stroke="#E8B84B" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M26 44 C17 42 13 33 14 24 C15 15 21 10 27 12 C31 13 31 18 28 19 C24 20 22 17 23 15" stroke="#E8B84B" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M44 26 C58 22 62 40 56 50 C51 56 44 52 43 46 Z" fill="#C9922A"/><circle cx="33" cy="34" r="1.8" fill="#2A1F3D"/></svg></div>
   <div style="color:#A990C9;font-size:10px;margin-top:4px;font-style:italic">In loving memory of my father, who collected elephants — every elephant here is for him.</div>
   <div style="color:#7A6E8A;font-size:10px;margin-top:10px">© 2026 REAL Holistic Network · All Rights Reserved</div>
@@ -508,12 +526,13 @@ function showPage(p){
   var pg=document.getElementById("page-"+p);
   if(pg)pg.classList.add("active");
   var nb=document.getElementById("nav-"+p);
-  if(!nb)nb=document.getElementById("nav-login");
+  if(!nb&&p!=="workplace"&&p!=="booking")nb=document.getElementById("nav-login");
   if(nb)nb.classList.add("active");
   if(p==="home")renderHome();
   if(p==="find")renderFind();
   if(p==="learn")renderLearn();
   if(p==="events")renderEvents();
+  if(p==="workplace")renderWorkplace();
   if(p==="join")renderJoinPills();
   if(p==="login")renderLogin();
   if(p==="admin"){curAdminRole=null;editingHealerId=null;document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
@@ -597,7 +616,7 @@ function bkStep2(){
   var conflictWarning=hasConflict?'<div class="disclaimer-box" style="border-color:#C4727A;background:linear-gradient(135deg,#fde8ea,#fde8ea)"><span style="font-size:13px;color:#A45560">⚠️ '+selP.name+' already has something on their schedule this date. Consider messaging first or choosing another date.</span></div>':'';
   var fee=selTier.price,tot=fee;
   var rows=[["Venue/Org",v],["Session type",selTier.name],["Date",bkDisplayDate()],["Time",bkDisplayTime()],["Type",document.getElementById("b-vtype").value||"—"],["Group",document.getElementById("b-group").value?document.getElementById("b-group").value+" people":"—"],["Session fee","$"+fee]];
-  document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin-bottom:20px">Review your booking</h3>'+conflictWarning+''+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#2A1F3D">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">Your card is charged only after the healer confirms. Cancellation policy: cancel at least 24 hours before your session for a full refund; later cancellations and no-shows are not refunded. To cancel, email bookings.realsound@gmail.com. I understand that REAL Holistic Network is a marketplace platform. REAL Holistic Network is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Holistic Network bears no liability for any injury or damage arising from this session.</span></label></div><div class="stripe-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="card-element"></div><div id="card-errors"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" id="pay-btn" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">Pay $'+tot+' & Request →</button></div></div>';
+  document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin-bottom:20px">Review your booking</h3>'+conflictWarning+''+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#2A1F3D">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">Your card is charged only after the healer confirms. Cancellation policy: cancel at least 24 hours before your session for a full refund; later cancellations and no-shows are not refunded. To cancel, email bookings.realsound@gmail.com. I understand that REAL Holistic Network is a marketplace platform. REAL Holistic Network is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Holistic Network bears no liability for any injury or damage arising from this session.</span></label></div><label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#7A6E8A;margin:4px 0 12px;cursor:pointer"><input type="checkbox" id="b-news" style="width:auto;margin-top:2px;accent-color:#6B4699"><span>Send me healing tips, events and offers from REAL Holistic Network (optional, unsubscribe anytime)</span></label><div class="stripe-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="card-element"></div><div id="card-errors"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" id="pay-btn" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">Pay $'+tot+' & Request →</button></div></div>';
   document.getElementById("bk-step1").style.display="none";
   document.getElementById("bk-step2").style.display="block";
  if(!elements)initStripe();
@@ -641,6 +660,7 @@ async function confirmBooking(){
       return;
     }
     var saved=await api("/api/booking",{practitionerId:selP.id,tierId:selTier.id,sessionType:selTier.name,paymentIntentId:piData.paymentIntentId,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null,healerTz:useSlot?getAvail(selP).tz:null,lockId:useSlot?bkLockId:null,source:LANDING_SRC||"direct"});
+    if(saved.ok&&document.getElementById("b-news")&&document.getElementById("b-news").checked)api("/api/community",{action:"subscribe",email:document.getElementById("b-email").value,source:"booking"});
     if(!saved.ok){releaseHold();document.getElementById("card-errors").textContent=saved.error||"Something went wrong. Your card was not charged.";btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";return;}
     var bk={id:saved.booking.id,practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,sessionType:selTier.name,total:tot,healerTz:useSlot?getAvail(selP).tz:null,status:"pending",startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null};
     B.push({practitionerId:bk.practitionerId,status:"pending",date:bk.date,time:bk.time,startUTC:bk.startUTC,durationMin:bk.durationMin});
@@ -857,6 +877,7 @@ function renderAdmin(){
   renderAdminLearn();
   renderAdminEvents();
   renderAdminReviews();
+  renderAdminCommunity();
 }
 
 function healerEditForm(p){
@@ -1753,6 +1774,91 @@ function downloadBlob(blob,name){
   setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1500);
   toast("Image saved ✓ Post it with your link!","#4A9B8E");
 }
+</script>
+<script>
+// =====================================================================
+// NEWSLETTER SIGN-UP + WORKPLACE / GROUP WELLNESS REQUESTS
+// =====================================================================
+function newsletterBox(source,compact){
+  var id="nl-"+source;
+  if(compact)return '<div id="'+id+'" style="max-width:420px;margin:14px auto 0"><div style="color:#F3D58A;font-size:13px;margin-bottom:8px">💌 Join our community for healing tips, events &amp; offers</div><div style="display:flex;gap:6px"><input id="'+id+'-email" type="email" placeholder="Your email" style="flex:1;max-width:none;font-size:13px"><button class="btn btn-gold" style="padding:8px 14px;font-size:13px" onclick="joinNewsletter(\''+source+'\')">Join</button></div><div style="color:#A990C9;font-size:10px;margin-top:6px">No spam, ever. Unsubscribe anytime.</div></div>';
+  return '<div id="'+id+'" class="card card-gold" style="margin:28px 0;text-align:center"><div style="font-size:28px;margin-bottom:6px">💌</div><div style="font-size:20px;color:#2A1F3D;margin-bottom:6px">Join the REAL Holistic Network community</div><div class="text-soft" style="font-size:14px;line-height:1.6;margin:0 auto 14px;max-width:460px">Gentle healing tips, free community events, new healers near you, and first access to our journals and meditations.</div><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:460px;margin:0 auto"><input id="'+id+'-name" placeholder="First name" style="flex:1 1 130px;max-width:none"><input id="'+id+'-email" type="email" placeholder="Your email" style="flex:2 1 200px;max-width:none"><button class="btn btn-gold" style="flex:1 1 100%" onclick="joinNewsletter(\''+source+'\')">Join the community</button></div><div class="text-soft" style="font-size:11px;margin-top:8px">No spam, ever. Unsubscribe anytime.</div></div>';
+}
+async function joinNewsletter(source){
+  var id="nl-"+source,em=document.getElementById(id+"-email"),nm=document.getElementById(id+"-name");
+  var email=(em&&em.value||"").trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){toast("Please enter your email","#C4727A");return;}
+  var j=await api("/api/community",{action:"subscribe",email:email,name:nm?nm.value:"",source:source});
+  if(!j.ok){toast(j.error,"#C4727A");return;}
+  var box=document.getElementById(id);
+  if(box)box.innerHTML='<div style="text-align:center;padding:10px;color:'+(source==="footer"?'#F3D58A':'#2A1F3D')+'"><div style="font-size:24px">🌸</div>'+(j.already?"You're already part of our community. Thank you!":"Welcome to the community! We're so glad you're here.")+'</div>';
+}
+
+// ---------------- workplace / group wellness ----------------
+var WP_TYPES=["Workplace / Corporate","Nursing Home / Senior Living","Yoga or Fitness Studio","School or University","Hospital / Healthcare","Retreat","Private Event or Party","Church / Community Group","Other"];
+var WP_INT=[];
+function renderWorkplace(){
+  var el=document.getElementById("workplace-body");if(!el)return;
+  WP_INT=[];
+  el.innerHTML='<div class="card" style="max-width:640px">'
+    +'<div class="two-col"><div class="field"><label>ORGANIZATION NAME</label><input id="wp-org" placeholder="e.g. Sunrise Senior Living"></div><div class="field"><label>TYPE</label><select id="wp-type"><option value="">Select…</option>'+WP_TYPES.map(function(t){return '<option>'+t+'</option>';}).join("")+'</select></div></div>'
+    +'<div class="two-col"><div class="field"><label>YOUR NAME</label><input id="wp-contact"></div><div class="field"><label>PHONE <span style="text-transform:none;letter-spacing:0;color:#A990C9">(optional)</span></label><input id="wp-phone" type="tel"></div></div>'
+    +'<div class="field"><label>YOUR EMAIL</label><input id="wp-email" type="email" placeholder="you@company.com"></div>'
+    +'<div class="field"><label>WHAT ARE YOU INTERESTED IN?</label><div class="pills" id="wp-int"></div></div>'
+    +'<div class="two-col"><div class="field"><label>GROUP SIZE</label><input id="wp-size" placeholder="e.g. 25"></div><div class="field"><label>BUDGET <span style="text-transform:none;letter-spacing:0;color:#A990C9">(optional)</span></label><select id="wp-budget"><option value="">Not sure yet</option><option>Under $250</option><option>$250–$500</option><option>$500–$1,000</option><option>$1,000–$2,500</option><option>$2,500+</option><option>Ongoing monthly program</option></select></div></div>'
+    +'<div class="field"><label>WHEN?</label><input id="wp-when" placeholder="e.g. A Friday afternoon in November, or monthly"></div>'
+    +'<div class="field"><label>WHERE?</label><input id="wp-location" placeholder="City or address, or Online"></div>'
+    +'<div class="field"><label>ANYTHING ELSE WE SHOULD KNOW?</label><textarea id="wp-notes" rows="4" placeholder="Goals, space, accessibility needs, themes…"></textarea></div>'
+    +'<button class="btn btn-gold full-width" style="padding:14px;font-size:15px" id="wp-btn" onclick="sendWorkplace()">Send my request</button><div class="text-soft" style="font-size:12px;text-align:center;margin-top:8px">There\'s no cost to ask. We\'ll reply within 1–2 business days.</div></div>';
+  renderWpPills();
+}
+function renderWpPills(){
+  var el=document.getElementById("wp-int");if(!el)return;
+  el.innerHTML=MODS.map(function(m){return '<button type="button" class="pill'+(WP_INT.indexOf(m)>-1?' pill-gold':'')+'" onclick="toggle(WP_INT,\''+m+'\',\'wp-int\',renderWpPills)">'+m+'</button>';}).join("");
+}
+async function sendWorkplace(){
+  var g=function(id){return document.getElementById(id).value.trim();};
+  var r={action:"workplace",org:g("wp-org"),type:g("wp-type"),contact:g("wp-contact"),phone:g("wp-phone"),email:g("wp-email"),interests:WP_INT.slice(),groupSize:g("wp-size"),budget:g("wp-budget"),when:g("wp-when"),location:g("wp-location"),notes:g("wp-notes")};
+  if(!r.org||!r.contact||!r.email){toast("Please add your organization, your name and your email","#C4727A");return;}
+  var btn=document.getElementById("wp-btn");btn.disabled=true;
+  var j=await api("/api/community",r);
+  btn.disabled=false;
+  if(!j.ok){toast(j.error,"#C4727A");return;}
+  emailjs.send("service_bl7o2cm","template_69wi3t9",{name:r.contact+" ("+r.org+")",email:r.email,message:"🏢 NEW GROUP WELLNESS REQUEST | "+r.org+" ("+(r.type||"—")+") | Contact: "+r.contact+" "+r.email+" "+r.phone+" | Interested in: "+(r.interests.join(", ")||"—")+" | Group: "+(r.groupSize||"—")+" | Budget: "+(r.budget||"—")+" | When: "+(r.when||"—")+" | Where: "+(r.location||"—")+" | Notes: "+(r.notes||"—")}).catch(function(){});
+  document.getElementById("workplace-body").innerHTML='<div class="card card-gold" style="text-align:center;padding:36px;max-width:640px"><div style="font-size:48px;margin-bottom:12px">🌿</div><h2 class="text-gold" style="font-weight:normal;margin-bottom:8px">Thank you!</h2><p class="text-soft" style="font-size:14px;line-height:1.7">We\'ve received your request and will reach out within 1–2 business days with healers and options that fit your group.</p><button class="btn btn-outline" onclick="showPage(\'find\')">Browse our healers</button></div>';
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+// ---------------- admin: subscribers + requests ----------------
+function renderAdminCommunity(){
+  var el=document.getElementById("admin-subscribers");
+  if(el&&ADMIN_DATA){
+    var S=(ADMIN_DATA.subscribers||[]).slice().sort(function(a,b){return b.createdAt.localeCompare(a.createdAt);});
+    el.innerHTML='<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><div style="font-size:24px;color:#6B4699">'+S.length+'</div><div class="text-soft" style="font-size:12px">people on your list</div></div>'+(curAdminRole==="owner"&&S.length?'<button class="btn btn-ghost" style="font-size:12px;padding:6px 12px" onclick="exportSubscribers()">⬇ Export list (CSV)</button>':'')+'</div>'
+      +(S.length?'<details><summary style="cursor:pointer;font-size:13px;color:#6B4699;margin:6px 0">See newest sign-ups</summary>'+S.slice(0,50).map(function(s){return '<div style="display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:6px 0;border-bottom:1px solid rgba(107,70,153,.08)"><span>'+escHtml(s.name||"—")+' · '+escHtml(s.email)+' <span class="text-soft" style="font-size:11px">('+escHtml(s.source||"")+', '+new Date(s.createdAt).toLocaleDateString()+')</span></span>'+(curAdminRole==="owner"?'<button class="btn btn-ghost" style="padding:2px 8px;font-size:11px" onclick="admRemoveSub(\''+escHtml(s.email)+'\')">Remove</button>':'')+'</div>';}).join("")+'</details>':'')
+      +'<div class="text-soft" style="font-size:11px;margin-top:6px;line-height:1.5">Tip: when you email your list, send from a newsletter service (like Mailchimp or MailerLite, free to start) using the exported file. It includes each person\'s unsubscribe link, which the law requires in marketing emails.</div>';
+  }
+  var el2=document.getElementById("admin-requests");
+  if(el2&&ADMIN_DATA){
+    var W=ADMIN_DATA.workplaceRequests||[];
+    var badge={new:'<span class="status-pending">New</span>',contacted:'<span class="status-pending">Contacted</span>',booked:'<span class="status-confirmed">Booked</span>',closed:'<span class="status-declined">Closed</span>'};
+    el2.innerHTML=W.length?W.slice(0,40).map(function(r){return '<div class="booking-card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div style="flex:1;min-width:200px"><div style="font-weight:bold;color:#2A1F3D">'+escHtml(r.org)+' '+(badge[r.status]||'')+'</div><div class="text-soft" style="font-size:12px">'+escHtml(r.type||"")+' · '+new Date(r.createdAt).toLocaleDateString()+'</div><div style="font-size:13px;margin-top:6px;line-height:1.6">👤 '+escHtml(r.contact)+' · <a href="mailto:'+escHtml(r.email)+'" style="color:#6B4699">'+escHtml(r.email)+'</a>'+(r.phone?' · <a href="tel:'+escHtml(r.phone)+'" style="color:#6B4699">'+escHtml(r.phone)+'</a>':'')+'<br>'+(r.interests&&r.interests.length?'✨ '+escHtml(r.interests.join(", "))+'<br>':'')+(r.groupSize?'👥 '+escHtml(r.groupSize)+' people · ':'')+(r.budget?'💰 '+escHtml(r.budget):'')+(r.when?'<br>📅 '+escHtml(r.when):'')+(r.location?'<br>📍 '+escHtml(r.location):'')+(r.notes?'<br><span class="text-soft">“'+escHtml(r.notes)+'”</span>':'')+'</div></div><div style="display:flex;flex-direction:column;gap:6px;min-width:140px"><select onchange="admRequest(\''+r.id+'\',{status:this.value})">'+["new","contacted","booked","closed"].map(function(st){return '<option value="'+st+'"'+(r.status===st?' selected':'')+'>'+st.charAt(0).toUpperCase()+st.slice(1)+'</option>';}).join("")+'</select></div></div><textarea rows="2" placeholder="Your private notes…" style="margin-top:8px;font-size:12px" onchange="admRequest(\''+r.id+'\',{adminNote:this.value})">'+escHtml(r.adminNote||"")+'</textarea></div>';}).join(""):'<div class="text-soft" style="font-size:13px">No requests yet.</div>';
+  }
+}
+async function admRequest(id,changes){if(await adminCall(Object.assign({action:"requestUpdate",id:id},changes))){toast("Saved ✓","#4A9B8E");renderAdminCommunity();}}
+async function admRemoveSub(email){if(!confirm("Remove "+email+" from your list?"))return;if(await adminCall({action:"subRemove",email:email})){renderAdminCommunity();}}
+function exportSubscribers(){
+  var S=ADMIN_DATA.subscribers||[];
+  var rows=[["First name","Email","Signed up","Where","Unsubscribe link"]].concat(S.map(function(s){return [s.name||"",s.email,new Date(s.createdAt).toLocaleDateString(),s.source||"",location.origin+"/api/community?unsub="+s.unsub];}));
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c||"").replace(/"/g,'""')+'"';}).join(",");}).join("\n");
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="real-holistic-network-newsletter-list.csv";a.click();
+}
+// fill the sign-up boxes once the page is ready
+(function(){
+  var h=document.getElementById("home-newsletter");if(h)h.innerHTML=newsletterBox("home");
+  var l=document.getElementById("learn-newsletter");if(l)l.innerHTML=newsletterBox("learn");
+  var f=document.getElementById("footer-newsletter");if(f)f.innerHTML=newsletterBox("footer",true);
+})();
 </script>
 </body>
 </html>

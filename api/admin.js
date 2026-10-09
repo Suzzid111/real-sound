@@ -149,6 +149,21 @@ export default async function handler(req, res) {
         await logNote(`${r.hidden ? '🙈 Hid' : '👁 Showed'} a review for ${r.healerName}`);
         break;
       }
+      case 'subRemove': {
+        const S = await getJSON('subscribers', []);
+        await setJSON('subscribers', S.filter(x => x.email !== str(body.email, 200).toLowerCase()));
+        break;
+      }
+      case 'requestUpdate': {
+        const W = await getJSON('workplaceRequests', []);
+        const r = W.find(x => x.id === body.id);
+        if (!r) return res.json({ ok: false, error: 'Request not found' });
+        if (body.remove) { await setJSON('workplaceRequests', W.filter(x => x !== r)); break; }
+        if (['new', 'contacted', 'booked', 'closed'].includes(body.status)) r.status = body.status;
+        if (typeof body.adminNote === 'string') r.adminNote = str(body.adminNote, 2000);
+        await setJSON('workplaceRequests', W);
+        break;
+      }
       case 'orderLink': {
         const o = await getJSON('order:' + str(body.id, 80), null);
         if (!o) return res.json({ ok: false, error: 'Order not found' });
@@ -159,8 +174,8 @@ export default async function handler(req, res) {
         return res.status(400).json({ ok: false, error: 'Unknown action' });
     }
 
-    const [P, B, notes, teamActive, content, orders, E, R] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true), loadContent(), getJSON('orders', []), loadEvents(), loadReviews()]);
-    return res.json({ ok: true, role: s.role, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders, events: E, reviews: R });
+    const [P, B, notes, teamActive, content, orders, E, R, SUBS, W] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true), loadContent(), getJSON('orders', []), loadEvents(), loadReviews(), getJSON('subscribers', []), getJSON('workplaceRequests', [])]);
+    return res.json({ ok: true, role: s.role, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders, events: E, reviews: R, subscribers: SUBS.map(x => ({ email: x.email, name: x.name, source: x.source, createdAt: x.createdAt, unsub: x.token })), workplaceRequests: W });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });
   }

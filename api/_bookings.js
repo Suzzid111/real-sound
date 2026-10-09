@@ -1,7 +1,7 @@
 // api/_bookings.js — accepting/declining a booking (charges or releases the
 // card hold in Stripe). Used by both the healer dashboard and the admin panel.
 import Stripe from 'stripe';
-import { loadBookings, saveBookings, releaseSlot, logNote, newToken } from './_lib.js';
+import { loadBookings, saveBookings, releaseSlot, logNote, newToken, sendNotice, sessionWhen } from './_lib.js';
 
 export const stripe = () => new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -28,6 +28,14 @@ export async function setBookingStatus(id, status, onlyHealerId, who) {
   b.respondedAt = new Date().toISOString();
   await saveBookings(B);
   if (status === 'declined') await releaseSlot(b).catch(() => {});
+  // Let the client know right away.
+  if (status === 'confirmed') {
+    await sendNotice(b.email, b.venueName, `Your session with ${b.practitionerName} is confirmed`,
+      `Good news! ${b.practitionerName} has confirmed your ${b.sessionType || 'session'} on ${sessionWhen(b)}.\n\nYour card has now been charged $${b.total}. Need to cancel? Cancellations made at least 24 hours before your session get a full refund. Just reply to this email or write to bookings.realsound@gmail.com.\n\nWe'll send you a reminder the day before. We hope you enjoy your session!\n\nWith gratitude,\nREAL Holistic Network`);
+  } else {
+    await sendNotice(b.email, b.venueName, `About your booking request with ${b.practitionerName}`,
+      `Thank you for your booking request. Unfortunately ${b.practitionerName} isn't able to take this session on ${sessionWhen(b)}.\n\nYour card was NOT charged. The temporary hold has been released.\n\nYou're welcome to choose another time or another healer at realholisticnetwork.com.\n\nWith gratitude,\nREAL Holistic Network`);
+  }
   await logNote(`${status === 'confirmed' ? '✅ Confirmed' : '✗ Declined'}: ${b.venueName} → ${b.practitionerName} (${b.date}) by ${who}`);
   return { ok: true, booking: b };
 }

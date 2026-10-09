@@ -1,5 +1,8 @@
 {
   "rewrites": [
     { "source": "/h/:slug", "destination": "/api/h?s=:slug" }
+  ],
+  "crons": [
+    { "path": "/api/cron-reminders", "schedule": "0 14 * * *" }
   ]
 }
