@@ -16,8 +16,10 @@ export async function setBookingStatus(id, status, onlyHealerId, who) {
 
   if (b.paymentIntentId) {
     try {
-      if (status === 'confirmed') await stripe().paymentIntents.capture(b.paymentIntentId);
-      else await stripe().paymentIntents.cancel(b.paymentIntentId);
+      // bookings paid straight to a healer's Stripe account are handled in that account
+      const opt = b.stripeAccount ? { stripeAccount: b.stripeAccount } : undefined;
+      if (status === 'confirmed') await stripe().paymentIntents.capture(b.paymentIntentId, {}, opt);
+      else await stripe().paymentIntents.cancel(b.paymentIntentId, {}, opt);
     } catch (err) {
       // e.g. the 7-day card hold expired — tell them instead of pretending it worked
       if (status === 'confirmed') return { ok: false, error: "The client's card could not be charged (" + err.message + "). The card hold may have expired — please contact the client." };

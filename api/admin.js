@@ -5,7 +5,7 @@ import {
   selfHealer, hashPassword, logNote, str
 } from './_lib.js';
 import { setBookingStatus } from './_bookings.js';
-import { loadContent, loadEvents, saveEvents, cleanPhoto, savePhoto, loadReviews, saveReviews } from './_lib.js';
+import { loadContent, loadEvents, saveEvents, cleanPhoto, savePhoto, loadReviews, saveReviews, stripeMode } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -40,6 +40,12 @@ export default async function handler(req, res) {
         const on = !!body.on;
         await setJSON('teamAdminActive', on);
         await logNote(`👥 Team admin access turned ${on ? 'ON' : 'OFF'}`);
+        break;
+      }
+      case 'requireConnect': {
+        if (!isOwner) return res.json({ ok: false, error: 'Only the owner can change this' });
+        await setJSON('requireConnect', !!body.on);
+        await logNote(`💳 Online booking now ${body.on ? 'REQUIRES healers to connect Stripe' : 'allowed for healers without Stripe (payments come to the main account)'}`);
         break;
       }
       case 'edit': {
@@ -174,8 +180,8 @@ export default async function handler(req, res) {
         return res.status(400).json({ ok: false, error: 'Unknown action' });
     }
 
-    const [P, B, notes, teamActive, content, orders, E, R, SUBS, W] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true), loadContent(), getJSON('orders', []), loadEvents(), loadReviews(), getJSON('subscribers', []), getJSON('workplaceRequests', [])]);
-    return res.json({ ok: true, role: s.role, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders, events: E, reviews: R, subscribers: SUBS.map(x => ({ email: x.email, name: x.name, source: x.source, createdAt: x.createdAt, unsub: x.token })), workplaceRequests: W });
+    const [P, B, notes, teamActive, content, orders, E, R, SUBS, W, requireConnect] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true), loadContent(), getJSON('orders', []), loadEvents(), loadReviews(), getJSON('subscribers', []), getJSON('workplaceRequests', []), getJSON('requireConnect', false)]);
+    return res.json({ ok: true, role: s.role, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders, events: E, reviews: R, subscribers: SUBS.map(x => ({ email: x.email, name: x.name, source: x.source, createdAt: x.createdAt, unsub: x.token })), workplaceRequests: W, requireConnect, stripeMode: stripeMode() });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });
   }

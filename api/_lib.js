@@ -83,6 +83,8 @@ export function publicHealer(p) {
     available: !!p.available,
     photo: p.photoV ? '/api/photo?id=' + encodeURIComponent(p.id) + '&v=' + p.photoV : '',
     availability: p.availability || null,
+    // Stripe account id (not secret: the card form needs it to pay the healer directly)
+    payAcct: payAccount(p) || '',
     // only the busy times, never the healer's private notes
     schedule: (p.schedule || []).map(s => ({ date: s.date, time: s.time || '', end: s.end || '' }))
   };
@@ -90,6 +92,7 @@ export function publicHealer(p) {
 // What the signed-in healer sees about themselves (everything but the hash).
 export function selfHealer(p) {
   const { pwHash, ...rest } = p;
+  rest.payStatus = Object.assign({ mode: stripeMode() }, connectOf(p) || {});
   return rest;
 }
 // What anyone may see about bookings: only that a time is taken.
@@ -268,3 +271,13 @@ export function sessionWhen(b) {
   const [h, m] = b.time.split(':').map(Number);
   return `${day} at ${((h % 12) || 12)}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
 }
+
+// ---------- Stripe Connect (healers get paid straight to their own bank) ----------
+// Test ("sandbox") and live accounts are kept apart, so trying things out in
+// the sandbox can never mix with real money.
+export const stripeMode = () => (String(process.env.STRIPE_SECRET_KEY || '').startsWith('sk_test') ? 'test' : 'live');
+export const connectOf = p => ((p && p.connect) || {})[stripeMode()] || null;
+// The healer's Stripe account, only once Stripe says it can take card payments.
+export const payAccount = p => { const c = connectOf(p); return c && c.id && c.charges ? c.id : null; };
+export const PLATFORM_PCT = 15;
+export const platformFeeCents = dollars => Math.round(Math.round(dollars * 100) * PLATFORM_PCT / 100);

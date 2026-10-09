@@ -416,14 +416,20 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
 
 <script>
 var STRIPE_KEY='pk_live_51TnlMs894Qiq0mRbZg2MOFCVWTJlMS2L9vREUi6ao75pjFApinQbgywlxOWppO7jXQ5OyEp7ZXXQt9kX6NkeOwPH00XfxPhdVa';
-var stripe,cardElement,elements;
+var stripe,cardElement,elements,STRIPE_ACCT=null,STRIPE_KEY_USED=null;
 
-function initStripe(){
-  stripe=Stripe(STRIPE_KEY);
+// acct = the healer's own Stripe account (payments go straight to them), or '' for the main account.
+function ensureStripe(acct){
+  acct=acct||'';
+  if(stripe&&STRIPE_ACCT===acct&&STRIPE_KEY_USED===STRIPE_KEY)return;
+  try{if(cardElement)cardElement.unmount();}catch(e){}
+  stripe=acct?Stripe(STRIPE_KEY,{stripeAccount:acct}):Stripe(STRIPE_KEY);
+  STRIPE_ACCT=acct;STRIPE_KEY_USED=STRIPE_KEY;
   elements=stripe.elements();
   cardElement=elements.create('card',{style:{base:{fontFamily:'Georgia,serif',fontSize:'14px',color:'#2A1F3D','::placeholder':{color:'#A990C9'}},invalid:{color:'#C4727A'}}});
-  cardElement.on('change',function(e){document.getElementById('card-errors').textContent=e.error?e.error.message:'';});
+  cardElement.on('change',function(e){var ce=document.getElementById('card-errors');if(ce)ce.textContent=e.error?e.error.message:'';});
 }
+function initStripe(){ensureStripe('');}
 
 // Source tracking
 function getSrc(){
@@ -482,7 +488,7 @@ async function api(path,body,token){
   }catch(e){return {ok:false,error:"Couldn't reach the server. Check your connection and try again."};}
 }
 async function refreshPublic(){
-  try{var r=await fetch("/api/public",{cache:"no-store"});var j=await r.json();if(j&&j.practitioners){P=j.practitioners;B=j.bookings;window.CONTENT=j.content||window.CONTENT;window.EVENTS=j.events||window.EVENTS;var ep=document.getElementById("page-events");if(ep&&ep.classList.contains("active")&&!(document.getElementById("rsvp-overlay")&&document.getElementById("rsvp-overlay").style.display!=="none"))renderEvents();var lp=document.getElementById("page-learn");if(lp&&lp.classList.contains("active")&&!(document.getElementById("buy-overlay")&&document.getElementById("buy-overlay").style.display!=="none"))renderLearn();}}catch(e){}
+  try{var r=await fetch("/api/public",{cache:"no-store"});var j=await r.json();if(j&&j.practitioners){if(j.stripePk)STRIPE_KEY=j.stripePk;window.REQUIRE_CONNECT=!!j.requireConnect;P=j.practitioners;B=j.bookings;window.CONTENT=j.content||window.CONTENT;window.EVENTS=j.events||window.EVENTS;var ep=document.getElementById("page-events");if(ep&&ep.classList.contains("active")&&!(document.getElementById("rsvp-overlay")&&document.getElementById("rsvp-overlay").style.display!=="none"))renderEvents();var lp=document.getElementById("page-learn");if(lp&&lp.classList.contains("active")&&!(document.getElementById("buy-overlay")&&document.getElementById("buy-overlay").style.display!=="none"))renderLearn();}}catch(e){}
   return B;
 }
 
@@ -493,6 +499,7 @@ async function loadFromServer(){
   checkResetLink();
   checkReviewLink();
   checkBookLink();
+  checkConnectReturn();
 }
 var P=[];
 var B=[];
@@ -611,6 +618,7 @@ function bkStep2(){
   var v=document.getElementById("b-venue").value,e=document.getElementById("b-email").value,d=document.getElementById("b-date").value;
   if(hasCalendar(selP)&&!bkSlot){toast("Please choose a date and time","#C4727A");return;}
   if(!v||!e||!d){toast("Please fill in required fields","#C4727A");return;}
+  if(window.REQUIRE_CONNECT&&!selP.payAcct){toast(selP.name+" is still finishing their payment setup. Please check back soon or choose another healer.","#C4727A");return;}
   var hasConflict=(selP.schedule||[]).some(function(s){return s.date===d;})||B.some(function(b){return b.practitionerId===selP.id&&b.status==="confirmed"&&b.date===d;});
   var conflictWarning=hasConflict?'<div class="disclaimer-box" style="border-color:#C4727A;background:linear-gradient(135deg,#fde8ea,#fde8ea)"><span style="font-size:13px;color:#A45560">⚠️ '+selP.name+' already has something on their schedule this date. Consider messaging first or choosing another date.</span></div>':'';
   var fee=selTier.price,tot=fee;
@@ -618,8 +626,9 @@ function bkStep2(){
   document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin-bottom:20px">Review your booking</h3>'+conflictWarning+''+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#2A1F3D">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">Your card is charged only after the healer confirms. Cancellation policy: cancel at least 24 hours before your session for a full refund; later cancellations and no-shows are not refunded. To cancel, email bookings.realsound@gmail.com. I understand that REAL Holistic Network is a marketplace platform. REAL Holistic Network is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Holistic Network bears no liability for any injury or damage arising from this session.</span></label></div><label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#7A6E8A;margin:4px 0 12px;cursor:pointer"><input type="checkbox" id="b-news" style="width:auto;margin-top:2px;accent-color:#6B4699"><span>Send me healing tips, events and offers from REAL Holistic Network (optional, unsubscribe anytime)</span></label><div class="stripe-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="card-element"></div><div id="card-errors"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" id="pay-btn" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">Pay $'+tot+' & Request →</button></div></div>';
   document.getElementById("bk-step1").style.display="none";
   document.getElementById("bk-step2").style.display="block";
- if(!elements)initStripe();
+  ensureStripe(selP.payAcct||'');
   setTimeout(function(){
+    try{cardElement.unmount();}catch(e){}
     if(!cardElement){
       cardElement=elements.create('card',{style:{base:{fontFamily:'Georgia,serif',fontSize:'14px',color:'#2A1F3D','::placeholder':{color:'#A990C9'}},invalid:{color:'#C4727A'}}});
       cardElement.on('change',function(e){document.getElementById('card-errors').textContent=e.error?e.error.message:'';});
@@ -645,8 +654,9 @@ async function confirmBooking(){
   }
   var releaseHold=function(){if(useSlot&&bkLockId)reserveSlot("release").catch(function(){});};
   try{
-    var piRes=await fetch('/api/create-payment-intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:tot,email:document.getElementById("b-email").value,metadata:{practitioner:selP.name,session:selTier.name,start:useSlot?bkSlot.toISOString():(document.getElementById("b-date").value+" "+document.getElementById("b-time").value)}})});
+    var piRes=await fetch('/api/create-payment-intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({practitionerId:selP.id,tierId:selTier.id,sessionType:selTier.name,email:document.getElementById("b-email").value,start:useSlot?bkSlot.toISOString():(document.getElementById("b-date").value+" "+document.getElementById("b-time").value)})});
     var piData=await piRes.json();
+    if(!piData.error&&(piData.stripeAccount||'')!==STRIPE_ACCT)piData.error="This healer's payment setup just changed. Please refresh the page and try again. Your card was not charged.";
     if(piData.error){
       document.getElementById("card-errors").textContent=piData.error;releaseHold();
       btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
@@ -658,7 +668,7 @@ async function confirmBooking(){
       btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
       return;
     }
-    var saved=await api("/api/booking",{practitionerId:selP.id,tierId:selTier.id,sessionType:selTier.name,paymentIntentId:piData.paymentIntentId,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null,healerTz:useSlot?getAvail(selP).tz:null,lockId:useSlot?bkLockId:null,source:LANDING_SRC||"direct"});
+    var saved=await api("/api/booking",{practitionerId:selP.id,tierId:selTier.id,sessionType:selTier.name,paymentIntentId:piData.paymentIntentId,stripeAccount:piData.stripeAccount||"",venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null,healerTz:useSlot?getAvail(selP).tz:null,lockId:useSlot?bkLockId:null,source:LANDING_SRC||"direct"});
     if(saved.ok&&document.getElementById("b-news")&&document.getElementById("b-news").checked)api("/api/community",{action:"subscribe",email:document.getElementById("b-email").value,source:"booking"});
     if(!saved.ok){releaseHold();document.getElementById("card-errors").textContent=saved.error||"Something went wrong. Your card was not charged.";btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";return;}
     var bk={id:saved.booking.id,practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,sessionType:selTier.name,total:tot,healerTz:useSlot?getAvail(selP).tz:null,status:"pending",startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null};
@@ -765,9 +775,61 @@ async function healerSave(fields,action){
 }
 function myEarned(){return myB().filter(function(b){return b.status==="confirmed";}).reduce(function(s,b){return s+b.fee;},0);}
 
+// ----- Getting paid: each healer connects their own Stripe account -----
+var PAY_CHECKED=false;
+function renderPayCard(){
+  var el=document.getElementById("pay-card");if(!el||!curUser)return;
+  var c=curUser.payStatus||{},test=c.mode==="test"?' <span style="font-size:11px;background:#F0EAF8;color:#6B4699;padding:2px 8px;border-radius:8px">sandbox test</span>':'';
+  var box=function(cls,title,body,btns){return '<div class="card '+cls+'" style="margin-bottom:16px"><div style="font-weight:bold;color:#2A1F3D;font-size:16px;margin-bottom:6px">'+title+test+'</div><div class="text-soft" style="font-size:13px;line-height:1.7;margin-bottom:12px">'+body+'</div><div style="display:flex;gap:8px;flex-wrap:wrap">'+btns+'</div></div>';};
+  var dash='<a class="btn btn-ghost" style="font-size:12px;padding:8px 14px;text-decoration:none" href="https://dashboard.stripe.com/" target="_blank" rel="noopener">Open my Stripe dashboard</a>';
+  if(!c.id){
+    el.innerHTML=box("card-gold","💳 Connect your bank to get paid","Clients pay through our site when they book. To receive that money, connect a free Stripe account. Payments go straight to your own Stripe account, and Stripe sends them to your bank.<br>It takes about 10 minutes. Stripe will ask for your bank details and some ID information to confirm it is you.",'<button class="btn btn-gold" id="connect-btn" onclick="startConnect()">Connect my bank with Stripe →</button>');
+  }else if(!c.charges){
+    var waiting=c.details&&!c.due;
+    el.innerHTML=box("card-gold",waiting?"⏳ Stripe is checking your information":"💳 Almost done! Finish your Stripe setup",waiting?"You sent everything Stripe asked for. Stripe usually finishes checking within a few minutes, sometimes a day or two. Clients can book you online as soon as it is done.":"Stripe needs a little more information before clients can pay you. Click below to pick up where you left off.",(waiting?'':'<button class="btn btn-gold" id="connect-btn" onclick="startConnect()">Finish Stripe setup →</button>')+'<button class="btn btn-ghost" style="font-size:12px;padding:8px 14px" onclick="checkConnect(true)">Check again</button>');
+  }else{
+    el.innerHTML=box("card-purple","✓ You are set up to get paid","When you accept a booking, the client is charged and you receive 85% of your price (Stripe\'s card fee comes out of your share). Stripe sends your money to your bank."+(c.payouts?"":"<br><strong>Stripe still needs your bank details before it can send payouts.</strong> Open your Stripe dashboard to add them."),dash);
+  }
+  if(c.id&&!c.charges&&!PAY_CHECKED){PAY_CHECKED=true;checkConnect(false);}
+}
+async function startConnect(){
+  var b=document.getElementById("connect-btn");if(b){b.disabled=true;b.textContent="Opening Stripe…";}
+  var j=await api("/api/connect",{action:"start"},AUTH_TOKEN);
+  if(!j.ok||!j.url){toast(j.error||"Couldn't open Stripe. Please try again.","#C4727A");renderPayCard();return;}
+  try{sessionStorage.setItem("rs:ct",AUTH_TOKEN);}catch(e){}
+  location.href=j.url;
+}
+async function checkConnect(loud){
+  var j=await api("/api/connect",{action:"status"},AUTH_TOKEN);
+  if(!j.ok){if(loud)toast(j.error||"Couldn't reach Stripe. Please try again.","#C4727A");return;}
+  curUser=j.healer;MYB=j.bookings||MYB;renderPayCard();
+  if(loud)toast(curUser.payStatus&&curUser.payStatus.charges?"You're all set to get paid ✓":"Stripe isn't finished yet. Please check again a little later.",curUser.payStatus&&curUser.payStatus.charges?"#4A9B8E":"#C9922A");
+}
+// Coming back from Stripe's sign-up pages (same browser tab).
+async function checkConnectReturn(){
+  var m=location.search.match(/[?&]connect=(done|retry)/);if(!m)return;
+  try{history.replaceState(null,"",location.pathname);}catch(e){}
+  var tok=null;try{tok=sessionStorage.getItem("rs:ct");sessionStorage.removeItem("rs:ct");}catch(e){}
+  showPage("login");
+  if(!tok){toast("Please log in to see your Stripe setup","#C9922A");return;}
+  if(m[1]==="retry"){
+    var s=await api("/api/connect",{action:"start"},tok);
+    if(s.ok&&s.url){try{sessionStorage.setItem("rs:ct",tok);}catch(e){}location.href=s.url;return;}
+  }
+  var j=await api("/api/connect",{action:"status"},tok);
+  if(!j.ok){toast("Please log in to see your Stripe setup","#C9922A");return;}
+  AUTH_TOKEN=tok;curUser=j.healer;MYB=j.bookings||[];PAY_CHECKED=true;
+  renderLogin();
+  api("/api/healer",{action:"me"},AUTH_TOKEN).then(function(x){if(x.ok){MYB=x.bookings||MYB;MYREVIEWS=x.reviews||[];MYEVENTS=x.events||[];}});
+  var ok=curUser.payStatus&&curUser.payStatus.charges;
+  toast(ok?"Stripe is connected! You're all set to get paid ✓":"Thanks! Stripe may need a little more time or information. See the box at the top.",ok?"#4A9B8E":"#C9922A");
+  if(needsPayTerms(curUser))showPayTermsGate();else if(curUser.mustChangePassword)showChangePwGate();
+}
+
 function renderOverview(){
   var mb=myB(),pend=mb.filter(function(b){return b.status==="pending";}),conf=mb.filter(function(b){return b.status==="confirmed";});
-  document.getElementById("ptab-overview").innerHTML='<div id="share-card"></div><div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#6B4699">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+(b.sessionType?b.sessionType+' · ':'')+b.date+' · '+b.venueType+' · '+b.groupSize+' people</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No pending requests yet.</div>');
+  document.getElementById("ptab-overview").innerHTML='<div id="pay-card"></div><div id="share-card"></div><div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#6B4699">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+(b.sessionType?b.sessionType+' · ':'')+b.date+' · '+b.venueType+' · '+b.groupSize+' people</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No pending requests yet.</div>');
+  renderPayCard();
   renderShareCard();
 }
 
@@ -851,6 +913,14 @@ function exportHealerEmails(){
   a.click();
 }
 
+function stripeBadge(p){var c=p.payStatus||{};return '<div style="font-size:11px;color:'+(c.charges?'#4A9B8E':c.id?'#C9922A':'#A990C9')+'">💳 '+(c.charges?'Stripe connected, can take payments'+(c.payouts?'':' (no bank for payouts yet)'):c.id?'Stripe setup started, not finished':'Stripe not connected yet')+'</div>';}
+async function toggleRequireConnect(){
+  var on=!ADMIN_DATA.requireConnect;
+  if(on){var ready=ADMIN_DATA.practitioners.filter(function(p){return p.payStatus&&p.payStatus.charges;}).length;if(!confirm("Turn ON? Only "+ready+" of "+ADMIN_DATA.practitioners.length+" healers have connected Stripe. Everyone else will not be bookable online until they connect."))return;}
+  var j=await api("/api/admin",{action:"requireConnect",on:on},ADMIN_TOKEN);
+  if(!j.ok){toast(j.error||"Couldn't save","#C4727A");return;}
+  ADMIN_DATA=j;renderAdmin();toast("Saved ✓","#4A9B8E");
+}
 function renderAdmin(){
   if(!ADMIN_DATA)return;
   var P=ADMIN_DATA.practitioners,B=ADMIN_DATA.bookings,ADMIN_NOTES=ADMIN_DATA.notes||[],TEAM_ADMIN_ACTIVE=ADMIN_DATA.teamActive;
@@ -859,7 +929,7 @@ function renderAdmin(){
   document.getElementById("admin-export-btn").style.display=isOwner?"inline-block":"none";
   document.getElementById("admin-owner-controls").style.display=isOwner?"block":"none";
   if(isOwner){
-    document.getElementById("admin-owner-controls").innerHTML='<div class="card card-purple" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div><div style="font-weight:bold;color:#2A1F3D;font-size:13px">Team Admin Access</div><div class="text-soft" style="font-size:11px">Team code is currently '+(TEAM_ADMIN_ACTIVE?"ON — helpers can log in":"OFF — helper code is locked out")+'</div></div><div style="display:flex;gap:8px"><button class="btn '+(TEAM_ADMIN_ACTIVE?"btn-danger":"btn-teal")+'" style="font-size:12px;padding:7px 14px" onclick="toggleTeamAccess()">Turn '+(TEAM_ADMIN_ACTIVE?"OFF":"ON")+'</button><button class="btn btn-ghost" style="font-size:12px;padding:7px 14px" onclick="sendTestEmail()">✉ Send test email</button></div></div>';
+    document.getElementById("admin-owner-controls").innerHTML='<div class="card card-purple" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div><div style="font-weight:bold;color:#2A1F3D;font-size:13px">Team Admin Access</div><div class="text-soft" style="font-size:11px">Team code is currently '+(TEAM_ADMIN_ACTIVE?"ON — helpers can log in":"OFF — helper code is locked out")+'</div></div><div style="display:flex;gap:8px"><button class="btn '+(TEAM_ADMIN_ACTIVE?"btn-danger":"btn-teal")+'" style="font-size:12px;padding:7px 14px" onclick="toggleTeamAccess()">Turn '+(TEAM_ADMIN_ACTIVE?"OFF":"ON")+'</button><button class="btn btn-ghost" style="font-size:12px;padding:7px 14px" onclick="sendTestEmail()">✉ Send test email</button></div></div>'+'<div class="card card-gold" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:12px"><div><div style="font-weight:bold;color:#2A1F3D;font-size:13px">Require Stripe for online booking'+(ADMIN_DATA.stripeMode==="test"?' (sandbox)':'')+'</div><div class="text-soft" style="font-size:11px">'+(ADMIN_DATA.requireConnect?"ON: only healers who connected Stripe can be booked online. Their money goes straight to them.":"OFF: healers without Stripe can still be booked, and their payments come to YOUR Stripe account (you would pay them yourself).")+'</div></div><button class="btn '+(ADMIN_DATA.requireConnect?"btn-ghost":"btn-gold")+'" style="font-size:12px;padding:7px 14px" onclick="toggleRequireConnect()">Turn '+(ADMIN_DATA.requireConnect?"OFF":"ON")+'</button></div>';
   }
   var conf=B.filter(function(b){return b.status==="confirmed";});
   var rev=conf.reduce(function(s,b){return s+b.platformFee;},0);
@@ -871,7 +941,7 @@ function renderAdmin(){
   document.getElementById("admin-bookings").innerHTML=(srcHtml?'<div style="margin-bottom:16px"><div class="section-title">SIGNUP SOURCES</div>'+srcHtml+'</div>':'')+(B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:2px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.practitionerName+(b.sessionType?' · '+b.sessionType:'')+' · '+b.date+' · '+b.venueType+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span></div></div><span class="status-'+b.status+'">'+b.status+'</span>'+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>');
   document.getElementById("admin-practitioners").innerHTML=P.map(function(p){
     if(editingHealerId===p.id)return healerEditForm(p);
-    return '<div class="booking-card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+avatarHtml(p,40)+'<div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · '+priceLabel(p)+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+'</div><div class="text-soft" style="font-size:12px">✉ <a href="mailto:'+p.email+'" style="color:#6B4699">'+p.email+'</a></div>'+payTermsBadge(p)+(hasCalendar(p)?'<div style="font-size:11px;color:#6B4699">⏰ Booking calendar on</div>':'')+'</div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="copyText(shareUrlFor({id:\''+p.id+'\',name:'+JSON.stringify(p.name).replace(/"/g,"&quot;")+'}))" title="Copy this healer\'s booking link">🔗 Link</button><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="editHealer(\''+p.id+'\')">Edit</button>'+(isOwner?'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button>':'')+'</div></div>';
+    return '<div class="booking-card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+avatarHtml(p,40)+'<div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · '+priceLabel(p)+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+'</div><div class="text-soft" style="font-size:12px">✉ <a href="mailto:'+p.email+'" style="color:#6B4699">'+p.email+'</a></div>'+payTermsBadge(p)+stripeBadge(p)+(hasCalendar(p)?'<div style="font-size:11px;color:#6B4699">⏰ Booking calendar on</div>':'')+'</div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="copyText(shareUrlFor({id:\''+p.id+'\',name:'+JSON.stringify(p.name).replace(/"/g,"&quot;")+'}))" title="Copy this healer\'s booking link">🔗 Link</button><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="editHealer(\''+p.id+'\')">Edit</button>'+(isOwner?'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button>':'')+'</div></div>';
   }).join("");
   renderAdminLearn();
   renderAdminEvents();
@@ -1299,7 +1369,7 @@ function openBuy(id){
   if(!o){o=document.createElement("div");o.id="buy-overlay";o.style.cssText="position:fixed;inset:0;background:rgba(42,31,61,.55);z-index:9990;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto";document.body.appendChild(o);}
   o.innerHTML='<div class="card" style="max-width:440px;width:100%;background:#fff;max-height:92vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px"><div><div style="font-weight:bold;font-size:17px;color:#2A1F3D">'+escHtml(BUY_ITEM.title)+'</div><div class="text-gold" style="font-weight:bold;font-size:18px">'+money(BUY_ITEM.price)+'</div></div><button class="btn btn-ghost" style="padding:4px 10px" onclick="closeBuy()">✕</button></div><div id="buy-body"><div class="field"><label>YOUR EMAIL (for your receipt)</label><input id="buy-email" type="email" placeholder="you@example.com"></div><div class="stripe-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="buy-card"></div><div id="buy-errors" style="color:#C4727A;font-size:13px;margin-top:6px"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div class="text-soft" style="font-size:11px;line-height:1.5;margin:8px 0">This is a digital download, available right after payment. Because it is delivered instantly, sales are final. If you have any trouble with your file, email bookings.realsound@gmail.com.</div><button class="btn btn-gold full-width" id="buy-btn" style="padding:14px" onclick="payJournal()">Pay '+money(BUY_ITEM.price)+'</button></div></div>';
   o.style.display="flex";
-  if(!elements)initStripe();
+  ensureStripe('');
   setTimeout(function(){
     if(!cardElement){cardElement=elements.create('card',{style:{base:{fontFamily:'Georgia,serif',fontSize:'14px',color:'#2A1F3D','::placeholder':{color:'#A990C9'}},invalid:{color:'#C4727A'}}});}
     try{cardElement.unmount();}catch(e){}

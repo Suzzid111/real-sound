@@ -1,7 +1,7 @@
 // api/booking.js — saves a new booking request after the client's card has
 // been authorized. The server checks the real Stripe payment (amount and
 // status) against the healer's actual price before saving anything.
-import { loadHealers, loadBookings, saveBookings, logNote, redis, str, tooManyTries, clientIp } from './_lib.js';
+import { loadHealers, loadBookings, saveBookings, logNote, redis, str, tooManyTries, clientIp, connectOf, platformFeeCents } from './_lib.js';
 import { stripe } from './_bookings.js';
 
 export default async function handler(req, res) {
@@ -20,9 +20,16 @@ export default async function handler(req, res) {
     if (!/^pi_[A-Za-z0-9]+$/.test(piId)) return res.json({ ok: false, error: 'Missing payment' });
     const B = await loadBookings();
     if (B.some(x => x.paymentIntentId === piId)) return res.json({ ok: false, error: 'This payment was already used' });
-    const pi = await stripe().paymentIntents.retrieve(piId);
-    if (pi.status !== 'requires_capture' || pi.amount !== Math.round(tier.price * 100)) {
-      try { await stripe().paymentIntents.cancel(piId); } catch (e) {}
+    // Payments made straight to the healer's Stripe account live in THEIR account.
+    const acct = str(b.stripeAccount, 60);
+    const mine = connectOf(p);
+    if (acct && !(mine && mine.id === acct)) return res.json({ ok: false, error: 'Payment did not match this healer. Your card was not charged. Please try again.' });
+    const opt = acct ? { stripeAccount: acct } : undefined;
+    const cancel = async () => { try { await stripe().paymentIntents.cancel(piId, {}, opt); } catch (e) {} };
+    const pi = await stripe().paymentIntents.retrieve(piId, {}, opt);
+    const feeOk = acct ? pi.application_fee_amount === platformFeeCents(tier.price) : true;
+    if (pi.status !== 'requires_capture' || pi.amount !== Math.round(tier.price * 100) || !feeOk) {
+      await cancel();
       return res.json({ ok: false, error: 'Payment did not match this session. Your card was not charged. Please try again.' });
     }
 
@@ -36,7 +43,7 @@ export default async function handler(req, res) {
       const cell = Math.floor(Date.parse(startUTC) / 60000 / 15) * 15;
       const holder = await redis(['GET', `rs:lock:${p.id}:${cell}`]);
       if (holder !== lockId) {
-        try { await stripe().paymentIntents.cancel(piId); } catch (e) {}
+        await cancel();
         return res.json({ ok: false, error: 'Your time slot reservation expired. Your card was not charged — please pick a time again.' });
       }
     }
@@ -48,7 +55,8 @@ export default async function handler(req, res) {
       venueType: str(b.venueType, 60), groupSize: str(b.groupSize, 10), notes: str(b.notes, 2000),
       sessionType: tier.name, price: tier.price, fee: tier.price - platformFee, platformFee, total: tier.price,
       status: 'pending', paymentMethodId: pi.payment_method || null, createdAt: new Date().toISOString(),
-      startUTC, durationMin, healerTz, lockId, source: str(b.source, 40) || 'direct'
+      startUTC, durationMin, healerTz, lockId, source: str(b.source, 40) || 'direct',
+      stripeAccount: acct || null
     };
     if (!bk.venueName || !bk.email || !bk.date) return res.json({ ok: false, error: 'Please fill in required fields' });
     B.push(bk);
