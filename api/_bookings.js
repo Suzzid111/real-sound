@@ -1,7 +1,7 @@
 // api/_bookings.js — accepting/declining a booking (charges or releases the
 // card hold in Stripe). Used by both the healer dashboard and the admin panel.
 import Stripe from 'stripe';
-import { loadBookings, saveBookings, releaseSlot, logNote } from './_lib.js';
+import { loadBookings, saveBookings, releaseSlot, logNote, newToken } from './_lib.js';
 
 export const stripe = () => new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -24,6 +24,7 @@ export async function setBookingStatus(id, status, onlyHealerId, who) {
     }
   }
   b.status = status;
+  if (status === 'confirmed' && !b.reviewKey) b.reviewKey = newToken().slice(0, 24);
   b.respondedAt = new Date().toISOString();
   await saveBookings(B);
   if (status === 'declined') await releaseSlot(b).catch(() => {});

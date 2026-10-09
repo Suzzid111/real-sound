@@ -5,7 +5,7 @@ import {
   selfHealer, hashPassword, logNote, str
 } from './_lib.js';
 import { setBookingStatus } from './_bookings.js';
-import { loadContent, loadEvents, saveEvents } from './_lib.js';
+import { loadContent, loadEvents, saveEvents, cleanPhoto, savePhoto, loadReviews, saveReviews } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -128,6 +128,27 @@ export default async function handler(req, res) {
         await logNote(`${body.status === 'approved' ? '✅ Approved' : '✗ Declined'} event "${ev.title}" by ${ev.healerName}`);
         break;
       }
+      case 'photo': {
+        const c = cleanPhoto(body.photo);
+        if (c.error) return res.json({ ok: false, error: c.error });
+        const P = await loadHealers();
+        const p = P.find(x => x.id === body.id);
+        if (!p) return res.json({ ok: false, error: 'Healer not found' });
+        await savePhoto(p.id, c.data);
+        p.photoV = Date.now();
+        await saveHealers(P);
+        await logNote(`📷 Photo updated for ${p.name}`);
+        break;
+      }
+      case 'reviewHide': {
+        const R = await loadReviews();
+        const r = R.find(x => x.id === body.id);
+        if (!r) return res.json({ ok: false, error: 'Review not found' });
+        r.hidden = !!body.hidden;
+        await saveReviews(R);
+        await logNote(`${r.hidden ? '🙈 Hid' : '👁 Showed'} a review for ${r.healerName}`);
+        break;
+      }
       case 'orderLink': {
         const o = await getJSON('order:' + str(body.id, 80), null);
         if (!o) return res.json({ ok: false, error: 'Order not found' });
@@ -138,8 +159,8 @@ export default async function handler(req, res) {
         return res.status(400).json({ ok: false, error: 'Unknown action' });
     }
 
-    const [P, B, notes, teamActive, content, orders, E] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true), loadContent(), getJSON('orders', []), loadEvents()]);
-    return res.json({ ok: true, role: s.role, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders, events: E });
+    const [P, B, notes, teamActive, content, orders, E, R] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true), loadContent(), getJSON('orders', []), loadEvents(), loadReviews()]);
+    return res.json({ ok: true, role: s.role, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders, events: E, reviews: R });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });
   }

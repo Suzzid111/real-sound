@@ -80,7 +80,8 @@ export function publicHealer(p) {
     id: p.id, name: p.name, location: p.location, zip: p.zip, avatar: p.avatar, bio: p.bio,
     instruments: p.instruments || [], venueTypes: p.venueTypes || [], modalities: p.modalities || [],
     rate: p.rate, sessionTypes: p.sessionTypes || [], calendlyUrl: p.calendlyUrl || '',
-    rating: p.rating, reviews: p.reviews, available: !!p.available,
+    available: !!p.available,
+    photo: p.photoV ? '/api/photo?id=' + encodeURIComponent(p.id) + '&v=' + p.photoV : '',
     availability: p.availability || null,
     // only the busy times, never the healer's private notes
     schedule: (p.schedule || []).map(s => ({ date: s.date, time: s.time || '', end: s.end || '' }))
@@ -205,4 +206,25 @@ export function cleanEvent(it) {
   if (ev.date > max) return { error: 'Events can be posted up to one year ahead' };
   if ([ev.title, ev.location, ev.description].some(f => LINK_RE.test(f))) return { error: "Please remove website links. People sign up right here on REAL Holistic Network, and you'll see who's coming in your dashboard." };
   return { event: ev };
+}
+
+// ---------- Healer photos (small JPEGs kept in the database) ----------
+export function cleanPhoto(dataUrl) {
+  const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(String(dataUrl || ''));
+  if (!m) return { error: 'Please choose a photo (JPG or PNG)' };
+  if (m[1].length > 400000) return { error: 'That photo is too large. Please try a smaller one.' };
+  return { data: m[1] };
+}
+export async function savePhoto(id, data) { await redis(['SET', 'rs:photo:' + id, data]); }
+
+// ---------- Client reviews (only from real, confirmed bookings) ----------
+export const loadReviews = () => getJSON('reviews', []);
+export const saveReviews = R => setJSON('reviews', R);
+export function reviewStats(R, healerId) {
+  const mine = R.filter(r => r.healerId === healerId && !r.hidden);
+  const count = mine.length;
+  const avg = count ? Math.round((mine.reduce((n, r) => n + r.stars, 0) / count) * 10) / 10 : null;
+  const recent = mine.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 6)
+    .map(r => ({ name: r.name, stars: r.stars, text: r.text, date: r.createdAt.slice(0, 10) }));
+  return { rating: avg, reviewCount: count, recentReviews: recent };
 }

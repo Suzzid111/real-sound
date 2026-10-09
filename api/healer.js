@@ -1,7 +1,7 @@
 // api/healer.js — everything a signed-in healer can do to their OWN account:
 // reload their data, save schedule / booking hours, acknowledge the payment
 // terms, change their password, accept or decline their bookings.
-import { getSession, loadHealers, saveHealers, loadBookings, selfHealer, hashPassword, checkPassword, logNote, str, loadEvents, saveEvents, cleanEvent, todayET } from './_lib.js';
+import { getSession, loadHealers, saveHealers, loadBookings, selfHealer, hashPassword, checkPassword, logNote, str, loadEvents, saveEvents, cleanEvent, todayET, cleanPhoto, savePhoto, loadReviews, saveBookings, newToken } from './_lib.js';
 import { setBookingStatus } from './_bookings.js';
 
 export default async function handler(req, res) {
@@ -77,6 +77,16 @@ export default async function handler(req, res) {
       if (!old) E.push(ev);
       await saveEvents(E);
       await logNote(`📣 Event waiting for your approval: "${ev.title}" by ${p.name} (${ev.date})`);
+    } else if (body.action === 'photo') {
+      const c = cleanPhoto(body.photo);
+      if (c.error) return res.json({ ok: false, error: c.error });
+      const P = await loadHealers();
+      const p = P.find(x => x.id === s.id);
+      if (!p) return res.status(401).json({ ok: false, error: 'Account not found', relogin: true });
+      await savePhoto(p.id, c.data);
+      p.photoV = Date.now();
+      await saveHealers(P);
+      await logNote(`📷 ${p.name} added a profile photo`);
     } else if (body.action === 'eventDelete') {
       const E = await loadEvents();
       const ev = E.find(x => x.id === body.id && x.healerId === s.id);
@@ -90,8 +100,12 @@ export default async function handler(req, res) {
     const P = await loadHealers();
     const p = P.find(x => x.id === s.id);
     if (!p) return res.status(401).json({ ok: false, error: 'Account not found', relogin: true });
-    const [B, E] = await Promise.all([loadBookings(), loadEvents()]);
-    return res.json({ ok: true, healer: selfHealer(p), bookings: B.filter(b => b.practitionerId === s.id), events: E.filter(e => e.healerId === s.id) });
+    const [B, E, R] = await Promise.all([loadBookings(), loadEvents(), loadReviews()]);
+    // older confirmed bookings get their private review link the first time it's needed
+    let addedKeys = false;
+    B.forEach(b => { if (b.practitionerId === s.id && b.status === 'confirmed' && !b.reviewKey) { b.reviewKey = newToken().slice(0, 24); addedKeys = true; } });
+    if (addedKeys) await saveBookings(B);
+    return res.json({ ok: true, healer: selfHealer(p), bookings: B.filter(b => b.practitionerId === s.id), events: E.filter(e => e.healerId === s.id), reviews: R.filter(r => r.healerId === s.id && !r.hidden) });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });
   }

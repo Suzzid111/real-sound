@@ -368,6 +368,8 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
       <button id="admin-export-btn" class="btn btn-ghost" style="font-size:11px;padding:6px 12px;display:none" onclick="exportHealerEmails()">⬇ Export emails (CSV)</button>
     </div>
     <div id="admin-practitioners"></div>
+    <div class="section-title" style="margin-top:28px">⭐ CLIENT REVIEWS</div>
+    <div id="admin-reviews"></div>
     <div class="section-title" style="margin-top:28px">📣 COMMUNITY EVENTS</div>
     <div id="admin-events"></div>
     <div class="section-title" style="margin-top:28px">📚 LEARN SECTION (journals, teachings, resources)</div>
@@ -467,6 +469,7 @@ async function loadFromServer(){
   renderHome();
   var fp=document.getElementById("page-find");if(fp&&fp.classList.contains("active"))renderFind();
   checkResetLink();
+  checkReviewLink();
 }
 var P=[];
 var B=[];
@@ -538,8 +541,8 @@ function renderHome(){
 
 function healerCard(p,mini){
   var tags=p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("");
-  if(mini)return '<div class="healer-card" onclick="openBooking(\''+p.id+'\')"><div class="healer-top"><div class="avatar">'+p.avatar+'</div><div><div class="healer-name">'+p.name+'</div><div class="healer-loc">'+p.location+'</div></div><div style="margin-left:auto;color:#C9922A;font-weight:bold">'+priceLabel(p)+'</div></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><div style="font-size:13px;color:#A990C9;line-height:1.5">'+p.bio.slice(0,80)+'...</div></div></div>';
-  return '<div class="healer-card"><div class="healer-top"><div class="avatar">'+p.avatar+'</div><div style="flex:1"><div class="healer-name">'+p.name+'</div><div class="healer-loc">📍 '+p.location+'</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"● Open":"○ Busy")+'</span></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><p style="font-size:13px;color:#A990C9;margin:0 0 10px;line-height:1.5">'+p.bio+'</p><div style="display:flex;align-items:center;justify-content:space-between"><div><span style="font-size:20px;font-weight:bold;color:#2A1F3D">'+priceLabel(p)+'</span><span class="text-soft" style="font-size:12px">'+(getTiers(p).length>1?"":"/session")+'</span><div style="color:#C9922A;font-size:12px;margin-top:2px">'+stars(p.rating)+' <span class="text-soft">('+p.reviews+')</span></div></div>'+(p.available?'<button class="btn btn-gold" onclick="openBooking(\''+p.id+'\')">Book →</button>':'<button class="btn btn-ghost" disabled>Unavailable</button>')+'</div></div></div>';
+  if(mini)return '<div class="healer-card" onclick="openBooking(\''+p.id+'\')"><div class="healer-top">'+avatarHtml(p,46)+'<div><div class="healer-name">'+p.name+'</div><div class="healer-loc">'+p.location+'</div><div style="font-size:11px;margin-top:2px">'+ratingHtml(p)+'</div></div><div style="margin-left:auto;color:#C9922A;font-weight:bold">'+priceLabel(p)+'</div></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><div style="font-size:13px;color:#A990C9;line-height:1.5">'+p.bio.slice(0,80)+'...</div></div></div>';
+  return '<div class="healer-card"><div class="healer-top">'+avatarHtml(p,46)+'<div style="flex:1"><div class="healer-name">'+p.name+'</div><div class="healer-loc">📍 '+p.location+'</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"● Open":"○ Busy")+'</span></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><p style="font-size:13px;color:#A990C9;margin:0 0 10px;line-height:1.5">'+p.bio+'</p><div style="display:flex;align-items:center;justify-content:space-between"><div><span style="font-size:20px;font-weight:bold;color:#2A1F3D">'+priceLabel(p)+'</span><span class="text-soft" style="font-size:12px">'+(getTiers(p).length>1?"":"/session")+'</span><div style="font-size:12px;margin-top:2px">'+ratingHtml(p)+'</div></div>'+(p.available?'<button class="btn btn-gold" onclick="openBooking(\''+p.id+'\')">Book →</button>':'<button class="btn btn-ghost" disabled>Unavailable</button>')+'</div></div></div>';
 }
 
 function renderFind(){
@@ -568,10 +571,10 @@ function openBooking(id){
   if(!selP)return;
   var tiers=getTiers(selP);
   selTier=tiers[0];
-  document.getElementById("bk-healer").innerHTML='<div style="font-size:30px">'+selP.avatar+'</div><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D">'+selP.name+'</div><div class="text-soft" style="font-size:12px">'+selP.location+'</div><div class="mod-tags" style="margin-top:4px">'+selP.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div style="text-align:right"><div style="font-size:20px;color:#C9922A;font-weight:bold" id="bk-price-display">$'+selTier.price+'</div><div class="text-soft" style="font-size:11px">per session</div></div>';
+  document.getElementById("bk-healer").innerHTML=avatarHtml(selP,64)+'<div style="flex:1"><div style="font-weight:bold;color:#2A1F3D">'+selP.name+'</div><div style="font-size:12px;margin:2px 0">'+ratingHtml(selP)+'</div><div class="text-soft" style="font-size:12px">'+selP.location+'</div><div class="mod-tags" style="margin-top:4px">'+selP.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div style="text-align:right"><div style="font-size:20px;color:#C9922A;font-weight:bold" id="bk-price-display">$'+selTier.price+'</div><div class="text-soft" style="font-size:11px">per session</div></div>';
   var tierField=tiers.length>1?'<div class="field"><label>SESSION TYPE</label><select id="b-tier" onchange="updateBkTierPrice()">'+tiers.map(function(t){return '<option value="'+t.id+'">'+t.name+' — $'+t.price+'</option>';}).join("")+'</select></div>':'';
   var calendlyBtn=selP.calendlyUrl?'<a href="'+(/^https?:\/\//.test(selP.calendlyUrl)?selP.calendlyUrl:'https://'+selP.calendlyUrl)+'" target="_blank" rel="noopener" class="btn btn-outline full-width" style="margin-bottom:14px;text-align:center;display:block;text-decoration:none">📅 Schedule a call with '+selP.name+' first</a>':'';
-  document.getElementById("bk-step1").innerHTML='<div class="card">'+calendlyBtn+'<h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin-bottom:20px">Tell us about your event</h3>'+tierField+'<div class="field"><label>VENUE / ORGANIZATION NAME</label><input id="b-venue" placeholder="e.g. Lotus Yoga Studio or Sunrise Nursing Home"></div><div class="field"><label>YOUR EMAIL</label><input id="b-email" type="email" placeholder="you@example.com"></div>'+bkDateTimeField()+'<div class="field"><label>VENUE TYPE</label><select id="b-vtype"><option value="">Select...</option>'+VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<option>'+v+'</option>';}).join("")+'</select></div><div class="field"><label>GROUP SIZE</label><input id="b-group" type="number" placeholder="e.g. 20"></div><div class="field"><label>NOTES FOR THE HEALER</label><textarea id="b-notes" rows="3" placeholder="Themes, intentions, accessibility needs, special requests..."></textarea></div><button class="btn btn-purple full-width" style="padding:14px;font-size:15px" onclick="bkStep2()">Review Booking →</button></div>';
+  document.getElementById("bk-step1").innerHTML=reviewsListHtml(selP)+'<div class="card">'+calendlyBtn+'<h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin-bottom:20px">Tell us about your event</h3>'+tierField+'<div class="field"><label>VENUE / ORGANIZATION NAME</label><input id="b-venue" placeholder="e.g. Lotus Yoga Studio or Sunrise Nursing Home"></div><div class="field"><label>YOUR EMAIL</label><input id="b-email" type="email" placeholder="you@example.com"></div>'+bkDateTimeField()+'<div class="field"><label>VENUE TYPE</label><select id="b-vtype"><option value="">Select...</option>'+VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<option>'+v+'</option>';}).join("")+'</select></div><div class="field"><label>GROUP SIZE</label><input id="b-group" type="number" placeholder="e.g. 20"></div><div class="field"><label>NOTES FOR THE HEALER</label><textarea id="b-notes" rows="3" placeholder="Themes, intentions, accessibility needs, special requests..."></textarea></div><button class="btn btn-purple full-width" style="padding:14px;font-size:15px" onclick="bkStep2()">Review Booking →</button></div>';
   document.getElementById("bk-step1").style.display="block";
   document.getElementById("bk-step2").style.display="none";
   document.getElementById("bk-step3").style.display="none";
@@ -710,6 +713,7 @@ async function doLogin(){
   if(!j.ok){err.textContent=j.error||"Email or password not recognised.";err.style.display="block";return;}
   AUTH_TOKEN=j.token;curUser=j.healer;MYB=j.bookings||[];
   err.style.display="none";document.getElementById("p-password").value="";renderLogin();
+  api("/api/healer",{action:"me"},AUTH_TOKEN).then(function(m){if(m.ok){MYB=m.bookings||MYB;MYREVIEWS=m.reviews||[];MYEVENTS=m.events||[];}});
   if(needsPayTerms(curUser))showPayTermsGate();else if(curUser.mustChangePassword)showChangePwGate();
 }
 
@@ -730,7 +734,7 @@ function myB(){return MYB;}
 async function healerSave(fields,action){
   var j=await api("/api/healer",Object.assign({action:action||"update"},fields?{fields:fields}:{}),AUTH_TOKEN);
   if(!j.ok){toast(j.error||"Couldn't save. Please try again.","#C4727A");return false;}
-  curUser=j.healer;MYB=j.bookings||[];
+  curUser=j.healer;MYB=j.bookings||[];if(j.reviews)MYREVIEWS=j.reviews;
   refreshPublic();
   return true;
 }
@@ -750,7 +754,7 @@ async function respond(id,status){
 
 function renderMyBookings(){
   var mb=myB();
-  document.getElementById("ptab-bookings").innerHTML='<div class="section-title">ALL BOOKINGS ('+mb.length+')</div>'+(mb.length?mb.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+(b.sessionType?b.sessionType+' · ':'')+b.date+' · '+b.venueType+'</div></div><div style="text-align:right"><span class="status-'+b.status+'">'+b.status+'</span><div class="text-teal" style="font-size:13px;margin-top:6px">$'+b.fee+' your cut</div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No bookings yet.</div>');
+  document.getElementById("ptab-bookings").innerHTML='<div class="section-title">ALL BOOKINGS ('+mb.length+')</div>'+(mb.length?mb.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+(b.sessionType?b.sessionType+' · ':'')+b.date+' · '+b.venueType+'</div></div><div style="text-align:right"><span class="status-'+b.status+'">'+b.status+'</span><div class="text-teal" style="font-size:13px;margin-top:6px">$'+b.fee+' your cut</div>'+(b.status==="confirmed"&&b.reviewKey&&!b.reviewed?'<button class="btn btn-ghost" style="margin-top:8px;padding:5px 10px;font-size:12px" onclick="askForReview(\''+b.id+'\')">⭐ Ask for a review</button>':(b.reviewed?'<div class="text-soft" style="font-size:11px;margin-top:6px">⭐ Reviewed</div>':''))+'</div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No bookings yet.</div>');
 }
 
 function renderEarnings(){
@@ -763,7 +767,7 @@ function renderEarnings(){
 function renderMyProfile(){
   var p=curUser;
   var tierRows=getTiers(p).map(function(t){return '<div class="review-row"><span class="review-key">'+t.name.toUpperCase()+'</span><span style="color:#2A1F3D">$'+t.price+'</span></div>';}).join("");
-  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px"><div style="font-size:38px;background:linear-gradient(135deg,#F0EAF8,#E8E0F4);border-radius:50%;width:58px;height:58px;display:flex;align-items:center;justify-content:center">'+p.avatar+'</div><div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">'+priceLabel(p)+'</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div class="card"><div class="section-title">YOUR SESSION TYPES & PRICING</div>'+tierRows+(p.calendlyUrl?'<div class="review-row"><span class="review-key">CALENDLY</span><span style="color:#2A1F3D">'+p.calendlyUrl+'</span></div>':'')+'<div class="text-soft" style="font-size:12px;margin-top:10px">To change your session types, pricing, or Calendly link, contact REAL Holistic Network admin.</div></div>'+changePwCard(false)+'</div>';
+  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card" style="margin-bottom:16px"><div class="section-title">YOUR PHOTO</div>'+photoPickerHtml(p,'uploadMyPhoto(this)')+'</div><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">'+avatarHtml(p,58)+'<div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">'+priceLabel(p)+'</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div class="card"><div class="section-title">YOUR SESSION TYPES & PRICING</div>'+tierRows+(p.calendlyUrl?'<div class="review-row"><span class="review-key">CALENDLY</span><span style="color:#2A1F3D">'+p.calendlyUrl+'</span></div>':'')+'<div class="text-soft" style="font-size:12px;margin-top:10px">To change your session types, pricing, or Calendly link, contact REAL Holistic Network admin.</div></div>'+myReviewsCard()+changePwCard(false)+'</div>';
 }
 
 // Schedule entry ids are "sch" + the moment they were created, so we can show when old entries were added.
@@ -841,15 +845,17 @@ function renderAdmin(){
   document.getElementById("admin-bookings").innerHTML=(srcHtml?'<div style="margin-bottom:16px"><div class="section-title">SIGNUP SOURCES</div>'+srcHtml+'</div>':'')+(B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:2px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.practitionerName+(b.sessionType?' · '+b.sessionType:'')+' · '+b.date+' · '+b.venueType+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span></div></div><span class="status-'+b.status+'">'+b.status+'</span>'+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>');
   document.getElementById("admin-practitioners").innerHTML=P.map(function(p){
     if(editingHealerId===p.id)return healerEditForm(p);
-    return '<div class="booking-card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><div style="font-size:22px">'+p.avatar+'</div><div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · '+priceLabel(p)+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+'</div><div class="text-soft" style="font-size:12px">✉ <a href="mailto:'+p.email+'" style="color:#6B4699">'+p.email+'</a></div>'+payTermsBadge(p)+(hasCalendar(p)?'<div style="font-size:11px;color:#6B4699">⏰ Booking calendar on</div>':'')+'</div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="editHealer(\''+p.id+'\')">Edit</button>'+(isOwner?'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button>':'')+'</div></div>';
+    return '<div class="booking-card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+avatarHtml(p,40)+'<div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · '+priceLabel(p)+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+'</div><div class="text-soft" style="font-size:12px">✉ <a href="mailto:'+p.email+'" style="color:#6B4699">'+p.email+'</a></div>'+payTermsBadge(p)+(hasCalendar(p)?'<div style="font-size:11px;color:#6B4699">⏰ Booking calendar on</div>':'')+'</div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="editHealer(\''+p.id+'\')">Edit</button>'+(isOwner?'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button>':'')+'</div></div>';
   }).join("");
   renderAdminLearn();
   renderAdminEvents();
+  renderAdminReviews();
 }
 
 function healerEditForm(p){
   var tiers=getTiers(p);
   return '<div class="card card-purple">'
+    +photoPickerHtml(p,'uploadHealerPhotoAdmin(\''+p.id+'\',this)')
     +'<div class="field"><label>NAME</label><input id="eh-name" value="'+p.name.replace(/"/g,'&quot;')+'"></div>'
     +'<div class="field"><label>LOCATION</label><input id="eh-location" value="'+p.location.replace(/"/g,'&quot;')+'"></div>'
     +'<div class="field"><label>EMAIL (admin-only)</label><input id="eh-email" value="'+p.email.replace(/"/g,'&quot;')+'"></div>'
@@ -1428,7 +1434,7 @@ function evCard(e){
   var action="";
   if(e.type==="healer")action=(e.spots&&e.spotsLeft<=0)?'':'<button class="btn btn-gold" onclick="openRsvp(\''+e.id+'\')">Save my spot</button>';
   else{var su=safeUrl(e.signupUrl);action=su?'<a class="btn btn-gold" href="'+escHtml(su)+'" target="_blank" rel="noopener" style="text-decoration:none">Sign up</a>':'';}
-  var host=e.type==="healer"?'<span style="cursor:pointer;color:#6B4699" onclick="openBooking(\''+e.healerId+'\')">'+escHtml(e.healerAvatar||"")+' '+escHtml(e.healerName)+'</span>':'<span style="color:#6B4699">REAL Holistic Network</span>';
+  var host=e.type==="healer"?'<span style="cursor:pointer;color:#6B4699;display:inline-flex;align-items:center;gap:6px;vertical-align:middle" onclick="openBooking(\''+e.healerId+'\')">'+avatarHtml(e,22)+escHtml(e.healerName)+'</span>':'<span style="color:#6B4699">REAL Holistic Network</span>';
   return '<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="flex:1;min-width:180px"><div style="font-size:12px;color:#C9922A;font-weight:bold;letter-spacing:.05em">'+escHtml(time)+' · FREE</div><div style="font-weight:bold;font-size:17px;color:#2A1F3D;margin:3px 0">'+escHtml(e.title)+'</div><div class="text-soft" style="font-size:13px">Hosted by '+host+'</div><div style="font-size:13px;color:#2A1F3D;margin-top:4px">📍 '+escHtml(e.location||"")+'</div></div>'+spots+'</div>'+(e.description?'<div class="text-soft" style="font-size:14px;line-height:1.6;margin:10px 0">'+nl2br(e.description)+'</div>':'<div style="height:10px"></div>')+action+'</div>';
 }
 
@@ -1531,6 +1537,122 @@ async function admEventStatus(id,status){
   if(status==="declined"){reason=prompt("Optional: a short note to the healer about why (they'll see it in their dashboard)","");if(reason===null)return;}
   if(status==="remove"&&!confirm("Remove this event from the public calendar?"))return;
   if(await adminCall({action:"eventStatus",id:id,status:status,reason:reason})){toast(status==="approved"?"Approved ✓ It's live on the calendar":status==="declined"?"Declined":"Removed",status==="approved"?"#4A9B8E":"#6B4699");renderAdmin();refreshPublic();}
+}
+</script>
+<script>
+// =====================================================================
+// HEALER PHOTOS + CLIENT REVIEWS
+// =====================================================================
+var MYREVIEWS=[];
+// Round photo if the healer has one, otherwise their emoji.
+function avatarHtml(p,size){
+  size=size||46;
+  var photo=p&&(p.photo||p.healerPhoto||(p.photoV?'/api/photo?id='+encodeURIComponent(p.id)+'&v='+p.photoV:''));
+  if(photo)return '<img src="'+escHtml(photo)+'" alt="'+escHtml(p.name||p.healerName||"")+'" style="width:'+size+'px;height:'+size+'px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #F3E6C8;background:#F0EAF8">';
+  return '<div style="font-size:'+Math.round(size*0.6)+'px;background:linear-gradient(135deg,#F0EAF8,#E8E0F4);border-radius:50%;width:'+size+'px;height:'+size+'px;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+escHtml((p&&(p.avatar||p.healerAvatar))||"🌿")+'</div>';
+}
+function starStr(n){var r=Math.round(n);return "★★★★★".slice(0,r)+"☆☆☆☆☆".slice(0,5-r);}
+// Real stars when there are reviews; a warm "New" badge when there aren't.
+function ratingHtml(p){
+  if(p.reviewCount>0)return '<span style="color:#C9922A">'+starStr(p.rating)+'</span> <span class="text-soft">'+p.rating.toFixed(1)+' ('+p.reviewCount+' review'+(p.reviewCount===1?'':'s')+')</span>';
+  return '<span style="display:inline-block;background:#F3E6C8;color:#8A6416;border-radius:10px;padding:2px 9px;font-size:11px">✨ New to REAL Holistic Network</span>';
+}
+function reviewsListHtml(p){
+  var list=p.recentReviews||[];
+  if(!list.length)return '';
+  return '<div class="card" style="margin-bottom:16px"><div class="section-title">WHAT CLIENTS SAY · '+starStr(p.rating)+' '+p.rating.toFixed(1)+'</div>'+list.map(function(r){return '<div style="border-top:1px solid rgba(107,70,153,.08);padding:10px 0"><div style="color:#C9922A;font-size:13px">'+starStr(r.stars)+'</div>'+(r.text?'<div style="font-size:14px;color:#2A1F3D;line-height:1.6;margin:3px 0">“'+escHtml(r.text)+'”</div>':'')+'<div class="text-soft" style="font-size:12px">— '+escHtml(r.name)+' · '+new Date(r.date+"T12:00:00").toLocaleDateString("en-US",{month:"short",year:"numeric"})+'</div></div>';}).join("")+'</div>';
+}
+
+// ---------------- photo upload (resized in the browser) ----------------
+function resizePhoto(file){
+  return new Promise(function(resolve,reject){
+    if(!file||!/^image\//.test(file.type)){reject(new Error("Please choose a photo"));return;}
+    var img=new Image(),url=URL.createObjectURL(file);
+    img.onload=function(){
+      var S=400,c=document.createElement("canvas");c.width=S;c.height=S;
+      var g=c.getContext("2d"),side=Math.min(img.width,img.height);
+      g.fillStyle="#fff";g.fillRect(0,0,S,S);
+      g.drawImage(img,(img.width-side)/2,(img.height-side)/2,side,side,0,0,S,S);
+      URL.revokeObjectURL(url);resolve(c.toDataURL("image/jpeg",0.85));
+    };
+    img.onerror=function(){reject(new Error("That photo couldn't be opened. Please try a JPG or PNG."));};
+    img.src=url;
+  });
+}
+function photoPickerHtml(p,onchange){
+  return '<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">'+avatarHtml(p,72)+'<div><label class="btn btn-outline" style="display:inline-block;cursor:pointer;padding:8px 14px;font-size:13px;margin:0">📷 '+(p.photoV?'Change photo':'Add your photo')+'<input type="file" accept="image/*" style="display:none" onchange="'+onchange+'"></label><div class="text-soft" style="font-size:11px;margin-top:6px;max-width:240px">A friendly, clear photo of your face helps clients feel comfortable booking with you.</div></div></div>';
+}
+async function uploadMyPhoto(input){
+  try{
+    toast("Uploading photo…");
+    var data=await resizePhoto(input.files[0]);
+    var j=await api("/api/healer",{action:"photo",photo:data},AUTH_TOKEN);
+    if(!j.ok){toast(j.error,"#C4727A");return;}
+    curUser=j.healer;MYB=j.bookings||[];if(j.reviews)MYREVIEWS=j.reviews;toast("Photo added ✓","#4A9B8E");renderMyProfile();refreshPublic();
+  }catch(e){toast(e.message,"#C4727A");}
+}
+async function uploadHealerPhotoAdmin(id,input){
+  try{
+    toast("Uploading photo…");
+    var data=await resizePhoto(input.files[0]);
+    if(await adminCall({action:"photo",id:id,photo:data})){toast("Photo updated ✓","#4A9B8E");renderAdmin();refreshPublic();}
+  }catch(e){toast(e.message,"#C4727A");}
+}
+
+// ---------------- healer: ask a client for a review ----------------
+function reviewLinkFor(b){return location.origin+"/?review="+b.id+"."+b.reviewKey;}
+function askForReview(id){
+  var b=MYB.find(function(x){return x.id===id;});if(!b||!b.reviewKey)return;
+  var link=reviewLinkFor(b);
+  var subject="How was your session with "+curUser.name+"?";
+  var body="Hi "+(b.venueName||"")+",\n\nThank you so much for your session with me! If you have a moment, I'd be so grateful if you'd share a quick review. It helps others find the healing they're looking for.\n\n"+link+"\n\nWith gratitude,\n"+curUser.name+"\nReal Holistic Network";
+  var o=document.getElementById("askrev-overlay");
+  if(!o){o=document.createElement("div");o.id="askrev-overlay";o.style.cssText="position:fixed;inset:0;background:rgba(42,31,61,.55);z-index:9990;display:flex;align-items:center;justify-content:center;padding:16px";document.body.appendChild(o);}
+  o.innerHTML='<div class="card" style="max-width:420px;width:100%;background:#fff"><div style="font-weight:bold;font-size:17px;color:#2A1F3D;margin-bottom:6px">⭐ Ask for a review</div><div class="text-soft" style="font-size:13px;line-height:1.6;margin-bottom:12px">Send this private link to your client. It only works once, for this session.</div><input readonly value="'+escHtml(link)+'" onclick="this.select()" style="max-width:none;font-size:12px;margin-bottom:10px"><a class="btn btn-gold full-width" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px" href="mailto:'+encodeURIComponent(b.email||"")+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body)+'">✉ Email it to '+escHtml(b.email||"your client")+'</a><button class="btn btn-ghost full-width" onclick="copyText(\''+link+'\')">Copy link</button><button class="btn btn-ghost full-width" style="margin-top:8px" onclick="document.getElementById(\'askrev-overlay\').style.display=\'none\'">Close</button></div>';
+  o.style.display="flex";
+}
+function copyText(t){if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){toast("Copied ✓","#4A9B8E");},function(){prompt("Copy this:",t);});else prompt("Copy this:",t);}
+
+// ---------------- client: leave a review (/?review=...) ----------------
+var REVIEW_STARS=0;
+async function checkReviewLink(){
+  var m=location.search.match(/[?&]review=([\w.]+)/);if(!m)return;
+  var code=m[1];
+  try{history.replaceState(null,"",location.pathname);}catch(e){}
+  var o=document.createElement("div");o.id="review-overlay";o.style.cssText="position:fixed;inset:0;background:rgba(42,31,61,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto";
+  o.innerHTML='<div class="card" style="max-width:440px;width:100%;background:#fff" id="review-card"><div class="text-soft">Loading…</div></div>';
+  document.body.appendChild(o);
+  var card=document.getElementById("review-card");
+  var j=await api("/api/reviews",{action:"info",code:code});
+  if(!j.ok){card.innerHTML='<div style="text-align:center;padding:10px"><div style="font-size:15px;color:#2A1F3D;margin-bottom:14px">'+escHtml(j.error)+'</div><button class="btn btn-outline" onclick="document.getElementById(\'review-overlay\').remove()">Close</button></div>';return;}
+  REVIEW_STARS=0;
+  card.innerHTML='<div style="font-weight:bold;font-size:18px;color:#2A1F3D">How was your session with '+escHtml(j.healerName)+'?</div><div class="text-soft" style="font-size:13px;margin:4px 0 14px">'+escHtml(j.sessionType||"")+(j.date?' · '+escHtml(j.date):'')+'</div><div id="rv-stars" style="font-size:36px;letter-spacing:4px;color:#E0D3EE;cursor:pointer;margin-bottom:12px;user-select:none">'+[1,2,3,4,5].map(function(n){return '<span onclick="setReviewStars('+n+')" role="button" aria-label="'+n+' star'+(n>1?'s':'')+'">★</span>';}).join("")+'</div><div class="field"><label>YOUR REVIEW <span style="text-transform:none;letter-spacing:0;color:#A990C9">(optional)</span></label><textarea id="rv-text" rows="4" placeholder="What did you love about your session?"></textarea></div><div class="field"><label>YOUR FIRST NAME</label><input id="rv-fname"></div><div class="text-soft" style="font-size:11px;margin-bottom:10px">Your first name, star rating and words will be shown publicly on '+escHtml(j.healerName)+'\'s profile.</div><div id="rvw-err" style="color:#C4727A;font-size:13px;margin-bottom:8px"></div><button class="btn btn-gold full-width" id="rvw-btn" onclick="submitReview(\''+code+'\')">Share my review</button>';
+}
+function setReviewStars(n){REVIEW_STARS=n;var s=document.querySelectorAll("#rv-stars span");s.forEach(function(el,i){el.style.color=i<n?"#C9922A":"#E0D3EE";});}
+async function submitReview(code){
+  var err=document.getElementById("rvw-err"),btn=document.getElementById("rvw-btn");err.textContent="";
+  if(!REVIEW_STARS){err.textContent="Please tap the stars to choose a rating";return;}
+  btn.disabled=true;
+  var j=await api("/api/reviews",{action:"submit",code:code,stars:REVIEW_STARS,text:document.getElementById("rv-text").value,name:document.getElementById("rv-fname").value});
+  if(!j.ok){err.textContent=j.error;btn.disabled=false;return;}
+  document.getElementById("review-card").innerHTML='<div style="text-align:center;padding:10px"><div style="font-size:42px">💜</div><div style="font-size:17px;color:#2A1F3D;margin:8px 0">Thank you for your review!</div><div class="text-soft" style="font-size:13px;line-height:1.6;margin-bottom:14px">Your kind words help others find the healing they\'re looking for.</div><button class="btn btn-outline" onclick="document.getElementById(\'review-overlay\').remove();refreshPublic()">Close</button></div>';
+}
+
+// ---------------- admin: reviews ----------------
+function renderAdminReviews(){
+  var el=document.getElementById("admin-reviews");if(!el||!ADMIN_DATA)return;
+  var R=(ADMIN_DATA.reviews||[]).slice().sort(function(a,b){return b.createdAt.localeCompare(a.createdAt);});
+  el.innerHTML=R.length?R.slice(0,40).map(function(r){return '<div class="booking-card" style="'+(r.hidden?'opacity:.55':'')+'"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><span style="color:#C9922A">'+starStr(r.stars)+'</span> <strong style="color:#2A1F3D">'+escHtml(r.healerName)+'</strong> <span class="text-soft" style="font-size:12px">from '+escHtml(r.name)+' · '+new Date(r.createdAt).toLocaleDateString()+'</span></div><button class="btn btn-ghost" style="padding:4px 10px;font-size:11px" onclick="admHideReview(\''+r.id+'\','+(!r.hidden)+')">'+(r.hidden?'Show again':'Hide')+'</button></div>'+(r.text?'<div style="font-size:13px;margin-top:6px;line-height:1.5">“'+escHtml(r.text)+'”</div>':'')+(r.hidden?'<div class="text-soft" style="font-size:11px;margin-top:4px">Hidden from the public</div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:13px">No reviews yet.</div>';
+}
+async function admHideReview(id,hidden){
+  if(hidden&&!confirm("Hide this review from the public? Only hide reviews that are abusive, fake or include private information. Hiding honest negative reviews isn't fair to clients and can break consumer protection rules."))return;
+  if(await adminCall({action:"reviewHide",id:id,hidden:hidden})){renderAdmin();refreshPublic();}
+}
+function myReviewsCard(){
+  var R=MYREVIEWS||[];
+  if(!R.length)return '<div class="card" style="margin-bottom:16px"><div class="section-title">YOUR REVIEWS</div><div style="margin-bottom:8px">'+ratingHtml({reviewCount:0})+'</div><div class="text-soft" style="font-size:13px;line-height:1.6">No reviews yet. After a session, open your Bookings tab and tap "⭐ Ask for a review" to send your client a private link.</div></div>';
+  var avg=R.reduce(function(n,r){return n+r.stars;},0)/R.length;
+  return '<div class="card" style="margin-bottom:16px"><div class="section-title">YOUR REVIEWS · '+starStr(avg)+' '+avg.toFixed(1)+' ('+R.length+')</div>'+R.slice().reverse().slice(0,10).map(function(r){return '<div style="border-top:1px solid rgba(107,70,153,.08);padding:8px 0"><span style="color:#C9922A">'+starStr(r.stars)+'</span> <span class="text-soft" style="font-size:12px">'+escHtml(r.name)+'</span>'+(r.text?'<div style="font-size:13px;margin-top:3px">“'+escHtml(r.text)+'”</div>':'')+'</div>';}).join("")+'</div>';
 }
 </script>
 </body>

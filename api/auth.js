@@ -63,7 +63,7 @@ async function signup(req, res, b) {
     id: 'p' + Date.now(), name, email, pwHash: hashPassword(password), location, zip,
     rate: Math.min(...tiers.map(t => t.price)), sessionTypes: tiers, calendlyUrl,
     instruments: list(b.instruments), venueTypes: list(b.venueTypes), modalities: list(b.modalities),
-    bio, rating: 5.0, reviews: 0, available: true, avatar: avatars[Math.floor(Math.random() * avatars.length)],
+    bio, available: true, avatar: avatars[Math.floor(Math.random() * avatars.length)],
     source: str(b.source, 60) || 'direct', joinedAt: now,
     payTermsVersion: str(b.payTermsVersion, 40), payTermsAcceptedAt: now
   };
