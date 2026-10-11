@@ -3,7 +3,7 @@
 // terms, change their password, accept or decline their bookings.
 import { getSession, loadHealers, saveHealers, loadBookings, selfHealer, hashPassword, checkPassword, logNote, str, loadEvents, saveEvents, cleanEvent, todayET, cleanPhoto, savePhoto, loadReviews, saveBookings, newToken } from './_lib.js';
 import { setBookingStatus, proposeTime } from './_bookings.js';
-import { cleanServices, LINK_RE, loadServices, siteUrl } from './_lib.js';
+import { cleanServices, LINK_RE, loadServices, siteUrl, tierName, normalizeServices, currentServices } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -55,22 +55,27 @@ export default async function handler(req, res) {
       }
       if ('sessionTypes' in f) {
         const old = p.sessionTypes || [];
-        const tiers = (Array.isArray(f.sessionTypes) ? f.sessionTypes : []).slice(0, 20).map((t, i) => {
-          const name = str(t.name, 80), price = parseInt(t.price, 10);
-          const keep = old.find(o => o.id === t.id) || old.find(o => o.name === name);
-          return { id: keep ? keep.id : 't' + Date.now() + i, name, price };
-        });
-        if (!tiers.length) return res.json({ ok: false, error: 'Please keep at least one session type' });
-        for (const t of tiers) {
-          if (!t.name) return res.json({ ok: false, error: 'Each session type needs a name' });
-          if (!Number.isFinite(t.price) || t.price < 1 || t.price > 10000) return res.json({ ok: false, error: `Please enter a price in whole dollars for "${t.name}"` });
-          if (LINK_RE.test(t.name)) return res.json({ ok: false, error: "Session type names can't include website links" });
-          if (/massage/i.test(t.name)) return res.json({ ok: false, error: 'Massage therapy is not offered on REAL Holistic Network' });
+        const tiers = [];
+        for (const [i, t] of (Array.isArray(f.sessionTypes) ? f.sessionTypes : []).slice(0, 20).entries()) {
+          const service = str(t.service, 60), details = str(t.details, 60).replace(/\s+/g, ' '), price = parseInt(t.price, 10);
+          if (!currentServices().includes(service)) return res.json({ ok: false, error: 'Please choose a healing service for each session' });
+          if (details && (LINK_RE.test(details) || /massage/i.test(details))) return res.json({ ok: false, error: /massage/i.test(details) ? 'Massage therapy is not offered on REAL Holistic Network' : "Session details can't include website links" });
+          if (!Number.isFinite(price) || price < 1 || price > 10000) return res.json({ ok: false, error: `Please enter a price in whole dollars for ${service}` });
+          const keep = old.find(o => o.id === t.id);
+          tiers.push({ id: keep ? keep.id : 't' + Date.now() + i, name: tierName(service, details), service, details, price });
         }
-        if (new Set(tiers.map(t => t.name.toLowerCase())).size !== tiers.length) return res.json({ ok: false, error: 'Two session types have the same name' });
+        if (!tiers.length) return res.json({ ok: false, error: 'Please keep at least one session' });
+        if (new Set(tiers.map(t => t.name.toLowerCase())).size !== tiers.length) return res.json({ ok: false, error: 'Two sessions are the same. Add details (like "30 min" and "60 min") to tell them apart.' });
+        // keep each session's length setting when its name changes
+        if (p.availability && p.availability.durations) {
+          const d = p.availability.durations;
+          tiers.forEach(t => { const o = old.find(x => x.id === t.id); if (o && o.name !== t.name && d[o.name] && !d[t.name]) d[t.name] = d[o.name]; });
+        }
         p.sessionTypes = tiers;
         p.rate = Math.min(...tiers.map(t => t.price));
-        await logNote(`💲 ${p.name} updated their session types & prices`);
+        // every service they sell a session for is one of their healing services
+        p.modalities = normalizeServices((p.modalities || []).concat(tiers.map(t => t.service)));
+        await logNote(`💲 ${p.name} updated their sessions & prices`);
       }
       if ('modalities' in f) {
         const mods = cleanServices(f.modalities);

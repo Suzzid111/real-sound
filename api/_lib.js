@@ -79,7 +79,7 @@ export function publicHealer(p) {
   return {
     id: p.id, name: p.name, location: p.location, zip: p.zip, avatar: p.avatar, bio: p.bio,
     instruments: p.instruments || [], venueTypes: p.venueTypes || [], modalities: normalizeServices(p.modalities),
-    rate: p.rate, sessionTypes: p.sessionTypes || [], calendlyUrl: p.calendlyUrl || '',
+    rate: p.rate, sessionTypes: (p.sessionTypes || []).map(tierView), calendlyUrl: p.calendlyUrl || '',
     available: !!p.available,
     photo: p.photoV ? '/api/photo?id=' + encodeURIComponent(p.id) + '&v=' + p.photoV : '',
     availability: p.availability || null,
@@ -94,6 +94,7 @@ export function selfHealer(p) {
   const { pwHash, ...rest } = p;
   rest.payStatus = Object.assign({ mode: stripeMode() }, connectOf(p) || {});
   rest.modalities = normalizeServices(p.modalities);
+  rest.sessionTypes = (p.sessionTypes || []).map(tierView);
   return rest;
 }
 // What anyone may see about bookings: only that a time is taken.
@@ -290,6 +291,7 @@ export const platformFeeCents = dollars => Math.round(Math.round(dollars * 100) 
 export const DEFAULT_SERVICES = ['Sound Bath & Gong Bath', 'Reiki & Crystal Healing', 'Breathwork', 'Meditation', 'Art Therapy', 'Herbalist', 'Life Coach', 'Astrology & Birth Charts', 'Tarot'];
 // The live list is kept in the database so the owner can add services from the admin page.
 let SERVICES = DEFAULT_SERVICES.slice();
+export const currentServices = () => SERVICES;
 export async function loadServices() {
   const list = await getJSON('services', null);
   SERVICES = Array.isArray(list) && list.length ? list : DEFAULT_SERVICES.slice();
@@ -335,3 +337,18 @@ export function cleanServices(list) {
   }
   return { list: normalizeServices(raw).slice(0, 15) };
 }
+
+// A session type is tied to one official healing service, plus optional details (like "30 min").
+// Older sessions only had a typed name: we work out their service from it where we can.
+export function tierView(t) {
+  let service = t.service && SERVICES.includes(t.service) ? t.service : '';
+  if (!service) { const g = officialService(t.name || ''); if (SERVICES.includes(g)) service = g; }
+  let details = t.service ? (t.details || '') : (t.name === service ? '' : (t.name || ''));
+  if (!t.service && service && details) {
+    // "30 min Reiki" -> "30 min", "Tarot Reading" -> "" (the service already says it)
+    const m = SERVICE_MATCH.find(([re, name]) => name === service);
+    if (m) details = details.replace(new RegExp(m[0].source + '\\w*', 'ig'), ' ').replace(/\b(reading|session)s?\b/ig, ' ').replace(/[\s·,&-]+/g, ' ').trim();
+  }
+  return { id: t.id, name: t.name, price: t.price, service, details };
+}
+export function tierName(service, details) { return details ? `${service} · ${details}` : service; }
