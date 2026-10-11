@@ -861,8 +861,38 @@ function renderEarnings(){
 function renderMyProfile(){
   var p=curUser;
   var tierRows=getTiers(p).map(function(t){return '<div class="review-row"><span class="review-key">'+t.name.toUpperCase()+'</span><span style="color:#2A1F3D">$'+t.price+'</span></div>';}).join("");
-  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card" style="margin-bottom:16px"><div class="section-title">YOUR PHOTO</div>'+photoPickerHtml(p,'uploadMyPhoto(this)')+'</div><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">'+avatarHtml(p,58)+'<div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">'+priceLabel(p)+'</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div class="card" style="margin-bottom:16px" id="my-services"></div><div class="card"><div class="section-title">YOUR SESSION TYPES & PRICING</div>'+tierRows+(p.calendlyUrl?'<div class="review-row"><span class="review-key">CALENDLY</span><span style="color:#2A1F3D">'+p.calendlyUrl+'</span></div>':'')+'<div class="text-soft" style="font-size:12px;margin-top:10px">To change your session types, pricing, or Calendly link, contact REAL Holistic Network admin.</div></div>'+myReviewsCard()+changePwCard(false)+'</div>';
-  MOD_DRAFT=null;renderMyServices();
+  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card" style="margin-bottom:16px"><div class="section-title">YOUR PHOTO</div>'+photoPickerHtml(p,'uploadMyPhoto(this)')+'</div><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">'+avatarHtml(p,58)+'<div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">'+priceLabel(p)+'</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div class="card" style="margin-bottom:16px" id="my-services"></div><div class="card" style="margin-bottom:16px" id="my-tiers"></div>'+myReviewsCard()+changePwCard(false)+'</div>';
+  MOD_DRAFT=null;renderMyServices();TIER_DRAFT=null;renderMyTiers();
+}
+
+// ----- Healers set their own session types & prices -----
+var TIER_DRAFT=null;
+function renderMyTiers(){
+  var el=document.getElementById("my-tiers");if(!el||!curUser)return;
+  if(!TIER_DRAFT)TIER_DRAFT=getTiers(curUser).filter(function(t){return t.id!=="legacy";}).map(function(t){return {id:t.id,name:t.name,price:t.price};});
+  var orig=JSON.stringify(getTiers(curUser).filter(function(t){return t.id!=="legacy";}).map(function(t){return {id:t.id,name:t.name,price:t.price};}));
+  var changed=JSON.stringify(TIER_DRAFT)!==orig;
+  el.innerHTML='<div class="section-title">YOUR SESSION TYPES & PRICES</div><div class="text-soft" style="font-size:13px;margin-bottom:12px;line-height:1.6">Clients pay exactly the price you set here. You keep 85% (Stripe\'s card fee comes out of your share).</div>'
+    +TIER_DRAFT.map(function(t,i){return '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input aria-label="Session name" value="'+escHtml(t.name)+'" oninput="TIER_DRAFT['+i+'].name=this.value;tierSaveBtn()" style="flex:1;min-width:0" maxlength="80"><span style="color:#7A6E8A">$</span><input aria-label="Price in dollars" type="number" min="1" step="1" inputmode="numeric" value="'+t.price+'" oninput="TIER_DRAFT['+i+'].price=this.value;tierSaveBtn()" style="width:84px"><button type="button" class="btn btn-danger" style="padding:6px 10px;font-size:12px" aria-label="Remove '+escHtml(t.name)+'" onclick="TIER_DRAFT.splice('+i+',1);renderMyTiers()">✕</button></div>';}).join("")
+    +'<div style="display:flex;gap:8px;align-items:center;margin:12px 0"><input id="my-tier-name" placeholder="New session (e.g. 60-min Sound Bath)" maxlength="80" style="flex:1;min-width:0"><span style="color:#7A6E8A">$</span><input id="my-tier-price" type="number" min="1" step="1" inputmode="numeric" placeholder="Price" style="width:84px"><button type="button" class="btn btn-ghost" style="padding:8px 12px;font-size:13px" onclick="addMyTier()">+ Add</button></div>'
+    +'<button id="my-tier-save" class="btn btn-purple full-width" onclick="saveMyTiers()">Save my session types & prices</button>'
+    +(curUser.calendlyUrl?'<div class="review-row" style="margin-top:12px"><span class="review-key">CALENDLY</span><span style="color:#2A1F3D">'+escHtml(curUser.calendlyUrl)+'</span></div>':'');
+  tierSaveBtn(changed);
+}
+function tierSaveBtn(changed){var b=document.getElementById("my-tier-save");if(!b)return;if(changed===undefined)changed=true;b.disabled=!changed;b.style.opacity=changed?"1":".5";b.textContent=changed?"Save my session types & prices":"Saved ✓";}
+function addMyTier(){
+  var n=document.getElementById("my-tier-name").value.trim(),pr=parseInt(document.getElementById("my-tier-price").value,10);
+  if(!n||!(pr>=1)){toast("Please enter a session name and a price in whole dollars","#C4727A");return;}
+  if(containsLink(n)){toast("Session type names can't include website links","#C4727A");return;}
+  if(/massage/i.test(n)){toast("Massage therapy is not offered on REAL Holistic Network","#C4727A");return;}
+  TIER_DRAFT.push({id:"",name:n,price:pr});renderMyTiers();
+}
+async function saveMyTiers(){
+  var pn=document.getElementById("my-tier-name"),pp=document.getElementById("my-tier-price");
+  if(pn&&pn.value.trim()&&pp&&pp.value){addMyTier();}
+  if(!TIER_DRAFT.length){toast("Please keep at least one session type","#C4727A");return;}
+  for(var i=0;i<TIER_DRAFT.length;i++){var t=TIER_DRAFT[i];t.name=String(t.name||"").trim();t.price=parseInt(t.price,10);if(!t.name||!(t.price>=1)){toast("Each session needs a name and a price in whole dollars","#C4727A");return;}}
+  if(await healerSave({sessionTypes:TIER_DRAFT.map(function(t){return {id:t.id,name:t.name,price:t.price};})})){TIER_DRAFT=null;toast("Session types & prices saved ✓","#4A9B8E");renderMyProfile();}
 }
 
 // ----- Healers choose the healing services they offer -----

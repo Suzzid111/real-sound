@@ -3,7 +3,7 @@
 // terms, change their password, accept or decline their bookings.
 import { getSession, loadHealers, saveHealers, loadBookings, selfHealer, hashPassword, checkPassword, logNote, str, loadEvents, saveEvents, cleanEvent, todayET, cleanPhoto, savePhoto, loadReviews, saveBookings, newToken } from './_lib.js';
 import { setBookingStatus } from './_bookings.js';
-import { cleanServices } from './_lib.js';
+import { cleanServices, LINK_RE } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -48,6 +48,25 @@ export default async function handler(req, res) {
             updatedAt: new Date().toISOString()
           };
         }
+      }
+      if ('sessionTypes' in f) {
+        const old = p.sessionTypes || [];
+        const tiers = (Array.isArray(f.sessionTypes) ? f.sessionTypes : []).slice(0, 20).map((t, i) => {
+          const name = str(t.name, 80), price = parseInt(t.price, 10);
+          const keep = old.find(o => o.id === t.id) || old.find(o => o.name === name);
+          return { id: keep ? keep.id : 't' + Date.now() + i, name, price };
+        });
+        if (!tiers.length) return res.json({ ok: false, error: 'Please keep at least one session type' });
+        for (const t of tiers) {
+          if (!t.name) return res.json({ ok: false, error: 'Each session type needs a name' });
+          if (!Number.isFinite(t.price) || t.price < 1 || t.price > 10000) return res.json({ ok: false, error: `Please enter a price in whole dollars for "${t.name}"` });
+          if (LINK_RE.test(t.name)) return res.json({ ok: false, error: "Session type names can't include website links" });
+          if (/massage/i.test(t.name)) return res.json({ ok: false, error: 'Massage therapy is not offered on REAL Holistic Network' });
+        }
+        if (new Set(tiers.map(t => t.name.toLowerCase())).size !== tiers.length) return res.json({ ok: false, error: 'Two session types have the same name' });
+        p.sessionTypes = tiers;
+        p.rate = Math.min(...tiers.map(t => t.price));
+        await logNote(`💲 ${p.name} updated their session types & prices`);
       }
       if ('modalities' in f) {
         const mods = cleanServices(f.modalities);
