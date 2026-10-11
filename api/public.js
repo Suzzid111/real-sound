@@ -1,11 +1,12 @@
 // api/public.js — the only data any visitor can read: healer profiles
 // (no emails, passwords or private notes) and which times are already taken.
-import { loadHealers, loadBookings, publicHealer, publicBooking, getJSON } from './_lib.js';
+import { loadHealers, loadBookings, publicHealer, publicBooking, getJSON, loadServices } from './_lib.js';
 import { loadContent, loadEvents, publicEvent, todayET, loadReviews, reviewStats } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   try {
+    await loadServices();
     const [P, B, C, E, R, requireConnect] = await Promise.all([loadHealers(), loadBookings(), loadContent(), loadEvents(), loadReviews(), getJSON('requireConnect', false)]);
     const photoOf = {}; P.forEach(p => { if (p.photoV) photoOf[p.id] = '/api/photo?id=' + encodeURIComponent(p.id) + '&v=' + p.photoV; });
     const today = todayET();
@@ -18,7 +19,7 @@ export default async function handler(req, res) {
       products: (C.products || []).filter(x => x.active !== false).map(x => ({ id: x.id, title: x.title, description: x.description, url: x.url, imageUrl: x.imageUrl, price: x.price, recommendedBy: x.recommendedBy, category: x.category }))
     };
     res.setHeader('Cache-Control', 'no-store');
-    return res.json({ stripePk: process.env.STRIPE_PUBLISHABLE_KEY || '', requireConnect: !!requireConnect, practitioners: P.map(p => Object.assign(publicHealer(p), reviewStats(R, p.id))), bookings: B.map(publicBooking), content, events });
+    return res.json({ services: await loadServices(), stripePk: process.env.STRIPE_PUBLISHABLE_KEY || '', requireConnect: !!requireConnect, practitioners: P.map(p => Object.assign(publicHealer(p), reviewStats(R, p.id))), bookings: B.map(publicBooking), content, events });
   } catch (err) {
     return res.status(500).json({ error: 'Server error' });
   }

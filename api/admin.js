@@ -5,11 +5,12 @@ import {
   selfHealer, hashPassword, logNote, str
 } from './_lib.js';
 import { setBookingStatus } from './_bookings.js';
-import { loadContent, loadEvents, saveEvents, cleanPhoto, savePhoto, loadReviews, saveReviews, stripeMode, cleanServices } from './_lib.js';
+import { loadContent, loadEvents, saveEvents, cleanPhoto, savePhoto, loadReviews, saveReviews, stripeMode, cleanServices, loadServices, cleanServiceName } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
   try {
+    await loadServices();
     const s = await getSession(req);
     if (!s || (s.role !== 'owner' && s.role !== 'team')) return res.status(401).json({ ok: false, error: 'Please enter the admin code again.', relogin: true });
     // If the owner turns team access off, team sessions stop working right away.
@@ -40,6 +41,20 @@ export default async function handler(req, res) {
         const on = !!body.on;
         await setJSON('teamAdminActive', on);
         await logNote(`👥 Team admin access turned ${on ? 'ON' : 'OFF'}`);
+        break;
+      }
+      case 'servicesSave': {
+        if (!isOwner) return res.json({ ok: false, error: 'Only the owner can change the healing services list' });
+        const list = [];
+        for (const x of (Array.isArray(body.services) ? body.services : []).slice(0, 40)) {
+          const c = cleanServiceName(x);
+          if (c.error) return res.json({ ok: false, error: c.error });
+          if (!list.some(l => l.toLowerCase() === c.name.toLowerCase())) list.push(c.name);
+        }
+        if (!list.length) return res.json({ ok: false, error: 'Please keep at least one healing service' });
+        await setJSON('services', list);
+        await loadServices();
+        await logNote(`🌿 Healing services list updated (${list.length} services)`);
         break;
       }
       case 'requireConnect': {
@@ -186,7 +201,7 @@ export default async function handler(req, res) {
     }
 
     const [P, B, notes, teamActive, content, orders, E, R, SUBS, W, requireConnect] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true), loadContent(), getJSON('orders', []), loadEvents(), loadReviews(), getJSON('subscribers', []), getJSON('workplaceRequests', []), getJSON('requireConnect', false)]);
-    return res.json({ ok: true, role: s.role, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders, events: E, reviews: R, subscribers: SUBS.map(x => ({ email: x.email, name: x.name, source: x.source, createdAt: x.createdAt, unsub: x.token })), workplaceRequests: W, requireConnect, stripeMode: stripeMode() });
+    return res.json({ ok: true, role: s.role, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders, events: E, reviews: R, subscribers: SUBS.map(x => ({ email: x.email, name: x.name, source: x.source, createdAt: x.createdAt, unsub: x.token })), workplaceRequests: W, requireConnect, stripeMode: stripeMode(), services: await loadServices() });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });
   }

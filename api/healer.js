@@ -3,11 +3,12 @@
 // terms, change their password, accept or decline their bookings.
 import { getSession, loadHealers, saveHealers, loadBookings, selfHealer, hashPassword, checkPassword, logNote, str, loadEvents, saveEvents, cleanEvent, todayET, cleanPhoto, savePhoto, loadReviews, saveBookings, newToken } from './_lib.js';
 import { setBookingStatus } from './_bookings.js';
-import { cleanServices, LINK_RE } from './_lib.js';
+import { cleanServices, LINK_RE, loadServices } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
   try {
+    await loadServices();
     const s = await getSession(req);
     if (!s || s.role !== 'healer') return res.status(401).json({ ok: false, error: 'Please log in again.', relogin: true });
     const body = req.body || {};

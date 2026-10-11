@@ -163,15 +163,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
 <div class="wrap">
   <div class="stats" id="home-stats"></div>
   <div class="section-title">WHAT WE OFFER</div>
-  <div class="grid6">
-    <div class="grid-item" onclick="filterMod('Sound Bath & Gong Bath');showPage('find')"><div class="grid-icon">🎵</div><div class="grid-label">Sound Bath & Gong Bath</div></div>
-    <div class="grid-item" onclick="filterMod('Reiki & Crystal Healing');showPage('find')"><div class="grid-icon">🙌</div><div class="grid-label">Reiki & Crystal Healing</div></div>
-    <div class="grid-item" onclick="filterMod('Breathwork');showPage('find')"><div class="grid-icon">🌬️</div><div class="grid-label">Breathwork</div></div>
-    <div class="grid-item" onclick="filterMod('Meditation');showPage('find')"><div class="grid-icon">🧘</div><div class="grid-label">Meditation</div></div>
-    <div class="grid-item" onclick="filterMod('Art Therapy');showPage('find')"><div class="grid-icon">🎨</div><div class="grid-label">Art Therapy</div></div>
-    <div class="grid-item" onclick="filterMod('Herbalist');showPage('find')"><div class="grid-icon">🌿</div><div class="grid-label">Herbalist</div></div>
-    <div class="grid-item" onclick="filterMod('Life Coach');showPage('find')"><div class="grid-icon">✨</div><div class="grid-label">Life Coach</div></div>
-    <div class="grid-item" onclick="filterMod('Astrology & Birth Charts');showPage('find')"><div class="grid-icon">🌙</div><div class="grid-label">Astrology & Birth Charts</div></div>
+  <div class="grid6" id="home-services">
   </div>
   <div class="section-title">WHO IT'S FOR</div>
   <div class="grid6">
@@ -471,6 +463,9 @@ function blockedFieldsCheck(fields){
 }
 
 var VENUES=["All","Yoga Studios","Martial Arts Studios","Corporate","Retreats","Nursing Homes","Private Events","Hotels & Spas"];
+var SVC_ICONS={"Sound Bath & Gong Bath":"🎵","Reiki & Crystal Healing":"🙌","Breathwork":"🌬️","Meditation":"🧘","Art Therapy":"🎨","Herbalist":"🌿","Life Coach":"✨","Astrology & Birth Charts":"🌙"};
+// The official healing services list comes from the server (the owner edits it on the admin page).
+function renderHomeServices(){var el=document.getElementById("home-services");if(!el)return;el.innerHTML=MODS.map(function(m,i){return '<button type="button" class="grid-item" style="font-family:inherit;width:100%" onclick="filterMod(MODS['+i+']);showPage(\'find\')"><div class="grid-icon">'+(SVC_ICONS[m]||"💜")+'</div><div class="grid-label">'+escHtml(m)+'</div></button>';}).join("");}
 var MODS=["Sound Bath & Gong Bath","Reiki & Crystal Healing","Breathwork","Meditation","Art Therapy","Herbalist","Life Coach","Astrology & Birth Charts"];
 var INSTR=["Crystal Bowls","Gong","Tibetan Bowls","Tuning Forks","Chimes","Voice","Steel Tongue Drum","Rain Drum","Drums"];
 var zipFilter="";
@@ -491,7 +486,7 @@ async function api(path,body,token){
   }catch(e){return {ok:false,error:"Couldn't reach the server. Check your connection and try again."};}
 }
 async function refreshPublic(){
-  try{var r=await fetch("/api/public",{cache:"no-store"});var j=await r.json();if(j&&j.practitioners){if(j.stripePk)STRIPE_KEY=j.stripePk;window.REQUIRE_CONNECT=!!j.requireConnect;P=j.practitioners;B=j.bookings;window.CONTENT=j.content||window.CONTENT;window.EVENTS=j.events||window.EVENTS;var ep=document.getElementById("page-events");if(ep&&ep.classList.contains("active")&&!(document.getElementById("rsvp-overlay")&&document.getElementById("rsvp-overlay").style.display!=="none"))renderEvents();var lp=document.getElementById("page-learn");if(lp&&lp.classList.contains("active")&&!(document.getElementById("buy-overlay")&&document.getElementById("buy-overlay").style.display!=="none"))renderLearn();}}catch(e){}
+  try{var r=await fetch("/api/public",{cache:"no-store"});var j=await r.json();if(j&&j.practitioners){if(j.stripePk)STRIPE_KEY=j.stripePk;if(Array.isArray(j.services)&&j.services.length){MODS=j.services;renderHomeServices();}window.REQUIRE_CONNECT=!!j.requireConnect;P=j.practitioners;B=j.bookings;window.CONTENT=j.content||window.CONTENT;window.EVENTS=j.events||window.EVENTS;var ep=document.getElementById("page-events");if(ep&&ep.classList.contains("active")&&!(document.getElementById("rsvp-overlay")&&document.getElementById("rsvp-overlay").style.display!=="none"))renderEvents();var lp=document.getElementById("page-learn");if(lp&&lp.classList.contains("active")&&!(document.getElementById("buy-overlay")&&document.getElementById("buy-overlay").style.display!=="none"))renderLearn();}}catch(e){}
   return B;
 }
 
@@ -565,6 +560,7 @@ function clearZip(){
 }
 
 function renderHome(){
+  renderHomeServices();
   document.getElementById("home-stats").innerHTML='<div class="stat"><div class="stat-num">'+P.length+'</div><div class="stat-label">Verified healers</div></div><div class="stat"><div class="stat-num">'+B.length+'</div><div class="stat-label">Sessions booked</div></div><div class="stat"><div class="stat-num">15%</div><div class="stat-label">Platform fee only</div></div>';
   var avail=P.filter(function(p){return p.available;}).slice(0,3);
   document.getElementById("featured").innerHTML=avail.map(function(p){return healerCard(p,true);}).join("");
@@ -954,7 +950,7 @@ async function checkAdmin(){
 async function adminCall(body){
   var j=await api("/api/admin",body,ADMIN_TOKEN);
   if(!j.ok){toast(j.error||"Something went wrong. Please try again.","#C4727A");return false;}
-  ADMIN_DATA=j;curAdminRole=j.role;return true;
+  ADMIN_DATA=j;curAdminRole=j.role;if(Array.isArray(j.services)&&j.services.length)MODS=j.services;return true;
 }
 
 function lockAdmin(){if(ADMIN_TOKEN)api("/api/auth",{action:"logout"},ADMIN_TOKEN);ADMIN_TOKEN=null;ADMIN_DATA=null;curAdminRole=null;editingHealerId=null;document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
@@ -984,6 +980,17 @@ function exportHealerEmails(){
 }
 
 function stripeBadge(p){var c=p.payStatus||{};return '<div style="font-size:11px;color:'+(c.charges?'#4A9B8E':c.id?'#C9922A':'#A990C9')+'">💳 '+(c.charges?'Stripe connected, can take payments'+(c.payouts?'':' (no bank for payouts yet)'):c.id?'Stripe setup started, not finished':'Stripe not connected yet')+'</div>';}
+// ----- Owner: the official list of healing services -----
+function adminServicesCard(){
+  var L=(ADMIN_DATA.services||MODS);
+  return '<div class="card" style="margin-top:12px"><div style="font-weight:bold;color:#2A1F3D;font-size:13px">Healing services list</div><div class="text-soft" style="font-size:11px;margin:2px 0 10px;line-height:1.5">Only you can add services. Healers pick from this list, and clients search by it. Removing one hides it from healers\' profiles and search (you can add it back anytime).</div><div class="pills" style="margin-bottom:10px">'
+    +L.map(function(m,i){return '<span class="pill pill-teal" style="display:inline-flex;align-items:center;gap:6px">'+escHtml(m)+'<button type="button" aria-label="Remove '+escHtml(m)+'" onclick="removeService('+i+')" style="border:none;background:none;cursor:pointer;color:#A45560;font-size:13px;padding:0 2px">✕</button></span>';}).join("")
+    +'</div><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="adm-svc-new" placeholder="New service (e.g. Tarot Reading)" maxlength="50" style="flex:1;min-width:180px" onkeydown="if(event.key===\'Enter\')addService()"><button type="button" class="btn btn-gold" style="font-size:12px;padding:7px 14px" onclick="addService()">+ Add service</button></div></div>';
+}
+async function saveServices(list,msg){var j=await api("/api/admin",{action:"servicesSave",services:list},ADMIN_TOKEN);if(!j.ok){toast(j.error||"Couldn't save","#C4727A");return;}ADMIN_DATA=j;MODS=j.services;renderAdmin();renderHomeServices();toast(msg,"#4A9B8E");}
+function addService(){var v=(document.getElementById("adm-svc-new").value||"").trim();if(!v)return;var L=(ADMIN_DATA.services||MODS).slice();if(L.some(function(m){return m.toLowerCase()===v.toLowerCase();})){toast("That service is already on the list","#C4727A");return;}L.push(v);saveServices(L,"Added \""+v+"\" ✓");}
+function removeService(i){var L=(ADMIN_DATA.services||MODS).slice(),m=L[i];if(!confirm("Remove \""+m+"\"? It will be hidden from healers' profiles and search until you add it back."))return;L.splice(i,1);saveServices(L,"Removed \""+m+"\"");}
+
 async function toggleRequireConnect(){
   var on=!ADMIN_DATA.requireConnect;
   if(on){var ready=ADMIN_DATA.practitioners.filter(function(p){return p.payStatus&&p.payStatus.charges;}).length;if(!confirm("Turn ON? Only "+ready+" of "+ADMIN_DATA.practitioners.length+" healers have connected Stripe. Everyone else will not be bookable online until they connect."))return;}
@@ -999,7 +1006,7 @@ function renderAdmin(){
   document.getElementById("admin-export-btn").style.display=isOwner?"inline-block":"none";
   document.getElementById("admin-owner-controls").style.display=isOwner?"block":"none";
   if(isOwner){
-    document.getElementById("admin-owner-controls").innerHTML='<div class="card card-purple" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div><div style="font-weight:bold;color:#2A1F3D;font-size:13px">Team Admin Access</div><div class="text-soft" style="font-size:11px">Team code is currently '+(TEAM_ADMIN_ACTIVE?"ON — helpers can log in":"OFF — helper code is locked out")+'</div></div><div style="display:flex;gap:8px"><button class="btn '+(TEAM_ADMIN_ACTIVE?"btn-danger":"btn-teal")+'" style="font-size:12px;padding:7px 14px" onclick="toggleTeamAccess()">Turn '+(TEAM_ADMIN_ACTIVE?"OFF":"ON")+'</button><button class="btn btn-ghost" style="font-size:12px;padding:7px 14px" onclick="sendTestEmail()">✉ Send test email</button></div></div>'+'<div class="card card-gold" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:12px"><div><div style="font-weight:bold;color:#2A1F3D;font-size:13px">Require Stripe for online booking'+(ADMIN_DATA.stripeMode==="test"?' (sandbox)':'')+'</div><div class="text-soft" style="font-size:11px">'+(ADMIN_DATA.requireConnect?"ON: only healers who connected Stripe can be booked online. Their money goes straight to them.":"OFF: healers without Stripe can still be booked, and their payments come to YOUR Stripe account (you would pay them yourself).")+'</div></div><button class="btn '+(ADMIN_DATA.requireConnect?"btn-ghost":"btn-gold")+'" style="font-size:12px;padding:7px 14px" onclick="toggleRequireConnect()">Turn '+(ADMIN_DATA.requireConnect?"OFF":"ON")+'</button></div>';
+    document.getElementById("admin-owner-controls").innerHTML='<div class="card card-purple" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div><div style="font-weight:bold;color:#2A1F3D;font-size:13px">Team Admin Access</div><div class="text-soft" style="font-size:11px">Team code is currently '+(TEAM_ADMIN_ACTIVE?"ON — helpers can log in":"OFF — helper code is locked out")+'</div></div><div style="display:flex;gap:8px"><button class="btn '+(TEAM_ADMIN_ACTIVE?"btn-danger":"btn-teal")+'" style="font-size:12px;padding:7px 14px" onclick="toggleTeamAccess()">Turn '+(TEAM_ADMIN_ACTIVE?"OFF":"ON")+'</button><button class="btn btn-ghost" style="font-size:12px;padding:7px 14px" onclick="sendTestEmail()">✉ Send test email</button></div></div>'+'<div class="card card-gold" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:12px"><div><div style="font-weight:bold;color:#2A1F3D;font-size:13px">Require Stripe for online booking'+(ADMIN_DATA.stripeMode==="test"?' (sandbox)':'')+'</div><div class="text-soft" style="font-size:11px">'+(ADMIN_DATA.requireConnect?"ON: only healers who connected Stripe can be booked online. Their money goes straight to them.":"OFF: healers without Stripe can still be booked, and their payments come to YOUR Stripe account (you would pay them yourself).")+'</div></div><button class="btn '+(ADMIN_DATA.requireConnect?"btn-ghost":"btn-gold")+'" style="font-size:12px;padding:7px 14px" onclick="toggleRequireConnect()">Turn '+(ADMIN_DATA.requireConnect?"OFF":"ON")+'</button></div>'+adminServicesCard();
   }
   var conf=B.filter(function(b){return b.status==="confirmed";});
   var rev=conf.reduce(function(s,b){return s+b.platformFee;},0);

@@ -3,13 +3,14 @@
 import {
   redis, getJSON, loadHealers, saveHealers, loadBookings, findByEmail, selfHealer,
   hashPassword, checkPassword, safeEqual, createSession, getSession, endSession,
-  tooManyTries, clientIp, logNote, newToken, sendEmail, siteUrl, str, LINK_RE, NOTICE_TEMPLATE, esc, normalizeServices
+  tooManyTries, clientIp, logNote, newToken, sendEmail, siteUrl, str, LINK_RE, NOTICE_TEMPLATE, esc, normalizeServices, loadServices
 } from './_lib.js';
 
 const RESET_SECONDS = 60 * 60; // reset links work for 1 hour
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
+  await loadServices().catch(() => {});
   const body = req.body || {};
   try {
     switch (body.action) {

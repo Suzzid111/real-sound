@@ -287,7 +287,22 @@ export const platformFeeCents = dollars => Math.round(Math.round(dollars * 100) 
 // One official list, so search never shows the same service three different ways.
 // Anything a healer typed that clearly means one of these is matched to it.
 // Massage therapy is never offered on REAL Holistic Network (it needs a state license).
-export const SERVICES = ['Sound Bath & Gong Bath', 'Reiki & Crystal Healing', 'Breathwork', 'Meditation', 'Art Therapy', 'Herbalist', 'Life Coach', 'Astrology & Birth Charts'];
+export const DEFAULT_SERVICES = ['Sound Bath & Gong Bath', 'Reiki & Crystal Healing', 'Breathwork', 'Meditation', 'Art Therapy', 'Herbalist', 'Life Coach', 'Astrology & Birth Charts'];
+// The live list is kept in the database so the owner can add services from the admin page.
+let SERVICES = DEFAULT_SERVICES.slice();
+export async function loadServices() {
+  const list = await getJSON('services', null);
+  SERVICES = Array.isArray(list) && list.length ? list : DEFAULT_SERVICES.slice();
+  return SERVICES;
+}
+export function cleanServiceName(m) {
+  const t = str(m, 50).replace(/\s+/g, ' ');
+  if (!t) return { error: 'Please type a service name' };
+  if (!/^[A-Za-z0-9 &,\/().+-]+$/.test(t)) return { error: 'Please use only letters, numbers, spaces and & , / ( ) - in the name' };
+  if (LINK_RE.test(t)) return { error: "Service names can't include website links" };
+  if (/massage/i.test(t)) return { error: 'Massage therapy is not offered on REAL Holistic Network' };
+  return { name: t };
+}
 const SERVICE_MATCH = [
   [/astrolog|birth\s*chart|natal/i, 'Astrology & Birth Charts'],
   [/reiki|crystal/i, 'Reiki & Crystal Healing'],
@@ -302,12 +317,13 @@ export function officialService(m) {
   const t = str(m, 80);
   const exact = SERVICES.find(x => x.toLowerCase() === t.toLowerCase());
   if (exact) return exact;
-  const hit = SERVICE_MATCH.find(([re]) => re.test(t));
+  const hit = SERVICE_MATCH.find(([re, name]) => re.test(t) && SERVICES.includes(name));
   return hit ? hit[1] : t;
 }
 export function normalizeServices(list) {
   const out = [];
-  for (const m of (Array.isArray(list) ? list : [])) { const o = officialService(m); if (o && !out.includes(o)) out.push(o); }
+  // only services on the owner's official list are shown or searchable
+  for (const m of (Array.isArray(list) ? list : [])) { const o = officialService(m); if (o && SERVICES.includes(o) && !out.includes(o)) out.push(o); }
   return out;
 }
 export function cleanServices(list) {
