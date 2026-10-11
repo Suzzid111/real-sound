@@ -1,6 +1,7 @@
 // api/cron-reminders.js — runs once a day (see "crons" in vercel.json).
 // Emails the client and the healer the day before each confirmed session.
-import { loadBookings, saveBookings, loadHealers, sendNotice, sessionWhen, logNote, todayET } from './_lib.js';
+import { loadBookings, saveBookings, loadHealers, sendNotice, sessionWhen, logNote, todayET, releaseSlot } from './_lib.js';
+import { stripe } from './_bookings.js';
 
 export default async function handler(req, res) {
   // Vercel adds this secret to its own scheduled calls; nobody else can trigger it.
@@ -25,6 +26,18 @@ export default async function handler(req, res) {
       sent++;
     }
     if (sent) { await saveBookings(B); await logNote(`⏰ Sent ${sent} session reminder${sent > 1 ? 's' : ''} for tomorrow`); }
+    // Suggested new times nobody answered before the card hold ran out: close them.
+    let closed = 0;
+    for (const b of B) {
+      if (b.status !== 'proposed' || Date.now() - Date.parse(b.createdAt || 0) < 6.5 * 86400000) continue;
+      const opt = b.stripeAccount ? { stripeAccount: b.stripeAccount } : undefined;
+      if (b.paymentIntentId) { try { await stripe().paymentIntents.cancel(b.paymentIntentId, {}, opt); } catch (e) {} }
+      b.status = 'declined'; b.respondedAt = new Date().toISOString(); if (b.proposal) b.proposal.answer = 'expired';
+      await releaseSlot(b).catch(() => {});
+      await sendNotice(b.email, b.venueName, `Your booking request with ${b.practitionerName} has closed`, `We didn't hear back about the new time ${b.practitionerName} suggested, so this request has closed. Your card was NOT charged.\n\nYou're welcome to book again anytime at realholisticnetwork.com.\n\nREAL Holistic Network`);
+      closed++;
+    }
+    if (closed) { await saveBookings(B); await logNote(`⌛ Closed ${closed} unanswered new-time request${closed > 1 ? 's' : ''} (client not charged)`); }
     return res.json({ ok: true, sent });
   } catch (err) {
     return res.status(500).json({ ok: false, error: err.message });

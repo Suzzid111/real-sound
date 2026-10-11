@@ -100,6 +100,7 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
 .booking-card{background:#fff;border-radius:12px;padding:16px;border:1px solid rgba(107,70,153,.12);margin-bottom:10px}
 .status-pending{background:#F0EAF8;color:#6B4699;font-size:11px;padding:3px 8px;border-radius:8px}
 .status-confirmed{background:#e6f9ee;color:#2d8a50;font-size:11px;padding:3px 8px;border-radius:8px}
+.status-proposed{background:#FFF4DC;color:#8A5F10;font-size:11px;padding:3px 8px;border-radius:8px}
 .status-declined{background:#fde8ea;color:#b84a52;font-size:11px;padding:3px 8px;border-radius:8px}
 .stripe-box{background:linear-gradient(135deg,#FAF8FF,#F0EAF8);border:1px solid rgba(107,70,153,.15);border-radius:8px;padding:14px;margin:12px 0}
 #card-element{background:#fff;border:1px solid rgba(107,70,153,.2);border-radius:8px;padding:12px}
@@ -496,6 +497,7 @@ async function loadFromServer(){
   var fp=document.getElementById("page-find");if(fp&&fp.classList.contains("active"))renderFind();
   checkResetLink();
   checkReviewLink();
+  checkReschedLink();
   checkBookLink();
   checkConnectReturn();
 }
@@ -835,11 +837,29 @@ async function checkConnectReturn(){
 
 function renderOverview(){
   var mb=myB(),pend=mb.filter(function(b){return b.status==="pending";}),conf=mb.filter(function(b){return b.status==="confirmed";});
-  document.getElementById("ptab-overview").innerHTML='<div id="pay-card"></div><div id="share-card"></div><div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#6B4699">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+(b.sessionType?b.sessionType+' · ':'')+b.date+' · '+b.venueType+' · '+b.groupSize+' people</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No pending requests yet.</div>');
+  document.getElementById("ptab-overview").innerHTML='<div id="pay-card"></div><div id="share-card"></div><div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#6B4699">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+(b.sessionType?b.sessionType+' · ':'')+b.date+' · '+b.venueType+' · '+b.groupSize+' people</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div></div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div><div style="margin-top:10px"><button class="btn btn-ghost" style="padding:7px 12px;font-size:12px" onclick="openPropose(\''+b.id+'\')">📅 Can\'t make it? Suggest a new time</button><div id="prop-'+b.id+'"></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No pending requests yet.</div>');
   renderPayCard();
   renderShareCard();
 }
 
+// ----- Healer suggests a different time instead of declining -----
+function openPropose(id){
+  var el=document.getElementById("prop-"+id);if(!el)return;
+  if(el.innerHTML){el.innerHTML="";return;}
+  var tz=(getAvail(curUser)||{}).tz||"America/New_York";
+  el.innerHTML='<div class="card" style="margin-top:10px;padding:14px"><div class="text-soft" style="font-size:12px;margin-bottom:10px;line-height:1.6">The client gets an email to accept or decline. Their card is only charged if they accept. Times are in '+escHtml(tzLabel(tz))+'.</div><div class="two-col"><div class="field"><label for="pd-'+id+'">NEW DATE</label><input id="pd-'+id+'" type="date"></div><div class="field"><label for="pt-'+id+'">NEW TIME</label><input id="pt-'+id+'" type="time"></div></div><div class="field"><label for="pm-'+id+'">NOTE TO CLIENT (optional)</label><textarea id="pm-'+id+'" rows="2" maxlength="500" placeholder="e.g. I\'m so sorry, I have a family event that day. Would this work instead?"></textarea></div><button class="btn btn-gold full-width" id="pb-'+id+'" onclick="sendPropose(\''+id+'\')">Send new time to client</button></div>';
+}
+async function sendPropose(id){
+  var d=document.getElementById("pd-"+id).value,t=document.getElementById("pt-"+id).value,m=document.getElementById("pm-"+id).value;
+  if(!d||!t){toast("Please choose a new date and time","#C4727A");return;}
+  var tz=(getAvail(curUser)||{}).tz||"America/New_York",start=zonedToDate(d,t,tz);
+  if(start.getTime()<Date.now()+3600000){toast("Please choose a time in the future","#C4727A");return;}
+  var btn=document.getElementById("pb-"+id);btn.disabled=true;btn.textContent="Sending…";
+  var j=await api("/api/healer",{action:"propose",bookingId:id,date:d,time:t,startUTC:start.toISOString(),tz:tz,message:m},AUTH_TOKEN);
+  if(!j.ok){toast(j.error||"Couldn't send. Please try again.","#C4727A");btn.disabled=false;btn.textContent="Send new time to client";return;}
+  curUser=j.healer;MYB=j.bookings||[];refreshPublic();
+  toast("New time sent to the client ✓","#4A9B8E");renderOverview();
+}
 async function respond(id,status){
   var j=await api("/api/healer",{action:"respond",bookingId:id,status:status},AUTH_TOKEN);
   if(!j.ok){toast(j.error||"Couldn't update the booking. Please try again.","#C4727A");return;}
@@ -849,7 +869,7 @@ async function respond(id,status){
 
 function renderMyBookings(){
   var mb=myB();
-  document.getElementById("ptab-bookings").innerHTML='<div class="section-title">ALL BOOKINGS ('+mb.length+')</div>'+(mb.length?mb.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+(b.sessionType?b.sessionType+' · ':'')+b.date+' · '+b.venueType+'</div></div><div style="text-align:right"><span class="status-'+b.status+'">'+b.status+'</span><div class="text-teal" style="font-size:13px;margin-top:6px">$'+b.fee+' your cut</div>'+(b.status==="confirmed"&&b.reviewKey&&!b.reviewed?'<button class="btn btn-ghost" style="margin-top:8px;padding:5px 10px;font-size:12px" onclick="askForReview(\''+b.id+'\')">⭐ Ask for a review</button>':(b.reviewed?'<div class="text-soft" style="font-size:11px;margin-top:6px">⭐ Reviewed</div>':''))+'</div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No bookings yet.</div>');
+  document.getElementById("ptab-bookings").innerHTML='<div class="section-title">ALL BOOKINGS ('+mb.length+')</div>'+(mb.length?mb.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+(b.sessionType?b.sessionType+' · ':'')+b.date+' · '+b.venueType+'</div></div><div style="text-align:right"><span class="status-'+b.status+'">'+(b.status==="proposed"?"new time sent":b.status)+'</span>'+(b.status==="proposed"&&b.proposal?'<div class="text-soft" style="font-size:11px;margin-top:4px">Waiting for client to answer</div>':'')+'<div class="text-teal" style="font-size:13px;margin-top:6px">$'+b.fee+' your cut</div>'+(b.status==="confirmed"&&b.reviewKey&&!b.reviewed?'<button class="btn btn-ghost" style="margin-top:8px;padding:5px 10px;font-size:12px" onclick="askForReview(\''+b.id+'\')">⭐ Ask for a review</button>':(b.reviewed?'<div class="text-soft" style="font-size:11px;margin-top:6px">⭐ Reviewed</div>':''))+'</div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No bookings yet.</div>');
 }
 
 function renderEarnings(){
@@ -1790,6 +1810,26 @@ function copyText(t){if(navigator.clipboard)navigator.clipboard.writeText(t).the
 
 // ---------------- client: leave a review (/?review=...) ----------------
 var REVIEW_STARS=0;
+async function checkReschedLink(){
+  var m=location.search.match(/[?&]resched=([\w.]+)/);if(!m)return;
+  var code=m[1];
+  try{history.replaceState(null,"",location.pathname);}catch(e){}
+  var o=document.createElement("div");o.id="resched-overlay";o.style.cssText="position:fixed;inset:0;background:rgba(42,31,61,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto";
+  o.innerHTML='<div class="card" style="max-width:460px;width:100%;background:#fff" id="rs-box"><div class="text-soft">Loading…</div></div>';
+  document.body.appendChild(o);
+  var box=document.getElementById("rs-box"),close='<button class="btn btn-ghost full-width" style="margin-top:12px" onclick="document.getElementById(\'resched-overlay\').remove()">Close</button>';
+  var info=await api("/api/reschedule",{action:"info",code:code});
+  if(!info.ok){box.innerHTML='<div style="color:#2A1F3D;margin-bottom:6px">'+escHtml(info.error)+'</div>'+close;return;}
+  if(info.status!=="proposed"){box.innerHTML='<div style="color:#2A1F3D">'+(info.status==="confirmed"?"Your session is confirmed for "+escHtml(info.newWhen)+". See you there! 💜":"This request has already been answered. Your card was not charged.")+'</div>'+close;return;}
+  box.innerHTML='<div class="section-title">A NEW TIME FOR YOUR SESSION</div><p style="color:#2A1F3D;line-height:1.6;margin:0 0 10px">'+escHtml(info.healerName)+' can\'t make '+escHtml(info.oldWhen)+', but suggested:</p><div style="font-size:18px;font-weight:bold;color:#6B4699;margin-bottom:12px">'+escHtml(info.newWhen)+'</div>'+(info.message?'<p style="font-style:italic;color:#4A3F5C;margin:0 0 12px">"'+escHtml(info.message)+'"</p>':'')+'<p class="text-soft" style="font-size:13px;line-height:1.6;margin:0 0 16px">'+escHtml(info.sessionType||"Session")+' · $'+escHtml(info.total)+'. If you accept, your session is confirmed and your card is charged. If not, your card is not charged.</p><div style="display:flex;gap:10px"><button class="btn btn-ghost" style="flex:1" id="rs-no">No thanks</button><button class="btn btn-gold" style="flex:2" id="rs-yes">Accept new time</button></div>';
+  var answer=async function(yes){
+    document.getElementById("rs-yes").disabled=true;document.getElementById("rs-no").disabled=true;
+    var j=await api("/api/reschedule",{action:"answer",code:code,yes:yes});
+    box.innerHTML='<div style="font-size:36px;text-align:center;margin-bottom:8px">'+(j.ok&&yes?"✨":"💜")+'</div><div style="color:#2A1F3D;text-align:center;line-height:1.6">'+(j.ok?(yes?"You're all set! Your session is confirmed for "+escHtml(j.when)+". A confirmation email is on its way.":"No problem. Your card was not charged and the hold has been released. You're welcome to book another time anytime."):escHtml(j.error))+'</div>'+close;
+  };
+  document.getElementById("rs-yes").onclick=function(){answer(true);};
+  document.getElementById("rs-no").onclick=function(){answer(false);};
+}
 async function checkReviewLink(){
   var m=location.search.match(/[?&]review=([\w.]+)/);if(!m)return;
   var code=m[1];

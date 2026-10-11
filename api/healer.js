@@ -2,8 +2,8 @@
 // reload their data, save schedule / booking hours, acknowledge the payment
 // terms, change their password, accept or decline their bookings.
 import { getSession, loadHealers, saveHealers, loadBookings, selfHealer, hashPassword, checkPassword, logNote, str, loadEvents, saveEvents, cleanEvent, todayET, cleanPhoto, savePhoto, loadReviews, saveBookings, newToken } from './_lib.js';
-import { setBookingStatus } from './_bookings.js';
-import { cleanServices, LINK_RE, loadServices } from './_lib.js';
+import { setBookingStatus, proposeTime } from './_bookings.js';
+import { cleanServices, LINK_RE, loadServices, siteUrl } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -15,6 +15,9 @@ export default async function handler(req, res) {
 
     if (body.action === 'respond') {
       const r = await setBookingStatus(str(body.bookingId, 40), body.status, s.id, 'healer');
+      if (!r.ok) return res.json(r);
+    } else if (body.action === 'propose') {
+      const r = await proposeTime(s.id, body, siteUrl(req));
       if (!r.ok) return res.json(r);
     } else if (body.action === 'update') {
       const P = await loadHealers();
