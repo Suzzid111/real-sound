@@ -5,7 +5,7 @@ import {
   selfHealer, hashPassword, logNote, str
 } from './_lib.js';
 import { setBookingStatus } from './_bookings.js';
-import { loadContent, loadEvents, saveEvents, cleanPhoto, savePhoto, loadReviews, saveReviews, stripeMode } from './_lib.js';
+import { loadContent, loadEvents, saveEvents, cleanPhoto, savePhoto, loadReviews, saveReviews, stripeMode, cleanServices } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -64,6 +64,11 @@ export default async function handler(req, res) {
           calendlyUrl: str(f.calendlyUrl, 300), sessionTypes: tiers, rate: Math.min(...tiers.map(t => t.price)),
           available: !!f.available
         });
+        if ('modalities' in f) {
+          const mods = cleanServices(f.modalities);
+          if (mods.error) return res.json({ ok: false, error: mods.error });
+          p.modalities = mods.list;
+        }
         if (f.newPassword) {
           if (String(f.newPassword).length < 6) return res.json({ ok: false, error: 'New password must be at least 6 characters' });
           p.pwHash = hashPassword(f.newPassword);

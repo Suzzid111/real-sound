@@ -281,3 +281,17 @@ export const connectOf = p => ((p && p.connect) || {})[stripeMode()] || null;
 export const payAccount = p => { const c = connectOf(p); return c && c.id && c.charges ? c.id : null; };
 export const PLATFORM_PCT = 15;
 export const platformFeeCents = dollars => Math.round(Math.round(dollars * 100) * PLATFORM_PCT / 100);
+
+// ---------- Healing services a healer offers (shown on their profile and used by search) ----------
+// Massage therapy is never offered on REAL Holistic Network (it needs a state license).
+export function cleanServices(list) {
+  const out = [];
+  for (const x of (Array.isArray(list) ? list : []).slice(0, 20)) {
+    const m = str(x, 60).replace(/\s+/g, ' ');
+    if (!m) continue;
+    if (LINK_RE.test(m)) return { error: "Healing services can't include website links" };
+    if (/massage/i.test(m)) return { error: 'Massage therapy is not offered on REAL Holistic Network' };
+    if (!out.some(o => o.toLowerCase() === m.toLowerCase())) out.push(m);
+  }
+  return { list: out.slice(0, 15) };
+}

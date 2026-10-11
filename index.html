@@ -861,7 +861,36 @@ function renderEarnings(){
 function renderMyProfile(){
   var p=curUser;
   var tierRows=getTiers(p).map(function(t){return '<div class="review-row"><span class="review-key">'+t.name.toUpperCase()+'</span><span style="color:#2A1F3D">$'+t.price+'</span></div>';}).join("");
-  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card" style="margin-bottom:16px"><div class="section-title">YOUR PHOTO</div>'+photoPickerHtml(p,'uploadMyPhoto(this)')+'</div><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">'+avatarHtml(p,58)+'<div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">'+priceLabel(p)+'</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div class="card"><div class="section-title">YOUR SESSION TYPES & PRICING</div>'+tierRows+(p.calendlyUrl?'<div class="review-row"><span class="review-key">CALENDLY</span><span style="color:#2A1F3D">'+p.calendlyUrl+'</span></div>':'')+'<div class="text-soft" style="font-size:12px;margin-top:10px">To change your session types, pricing, or Calendly link, contact REAL Holistic Network admin.</div></div>'+myReviewsCard()+changePwCard(false)+'</div>';
+  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card" style="margin-bottom:16px"><div class="section-title">YOUR PHOTO</div>'+photoPickerHtml(p,'uploadMyPhoto(this)')+'</div><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">'+avatarHtml(p,58)+'<div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">'+priceLabel(p)+'</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div class="card" style="margin-bottom:16px" id="my-services"></div><div class="card"><div class="section-title">YOUR SESSION TYPES & PRICING</div>'+tierRows+(p.calendlyUrl?'<div class="review-row"><span class="review-key">CALENDLY</span><span style="color:#2A1F3D">'+p.calendlyUrl+'</span></div>':'')+'<div class="text-soft" style="font-size:12px;margin-top:10px">To change your session types, pricing, or Calendly link, contact REAL Holistic Network admin.</div></div>'+myReviewsCard()+changePwCard(false)+'</div>';
+  MOD_DRAFT=null;renderMyServices();
+}
+
+// ----- Healers choose the healing services they offer -----
+var MOD_DRAFT=null;
+function renderMyServices(){
+  var el=document.getElementById("my-services");if(!el||!curUser)return;
+  if(!MOD_DRAFT)MOD_DRAFT=(curUser.modalities||[]).slice();
+  var all=MODS.slice();MOD_DRAFT.forEach(function(m){if(all.indexOf(m)<0)all.push(m);});
+  var changed=JSON.stringify(MOD_DRAFT)!==JSON.stringify(curUser.modalities||[]);
+  el.innerHTML='<div class="section-title">YOUR HEALING SERVICES</div><div class="text-soft" style="font-size:13px;margin-bottom:12px;line-height:1.6">Tap to choose every service you offer. Clients use these to find you in search.</div><div class="pills" style="margin-bottom:12px">'
+    +all.map(function(m,i){var on=MOD_DRAFT.indexOf(m)>-1;return '<button type="button" class="pill'+(on?" pill-teal":"")+'" aria-pressed="'+on+'" onclick="toggleMyService('+i+')">'+(on?"✓ ":"")+escHtml(m)+'</button>';}).join("")
+    +'</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><input id="my-svc-new" placeholder="Add another service (e.g. Sound Healing)" maxlength="60" style="flex:1;min-width:180px" onkeydown="if(event.key===\'Enter\')addMyService()"><button type="button" class="btn btn-ghost" style="padding:8px 14px;font-size:13px" onclick="addMyService()">+ Add</button></div>'
+    +'<button class="btn btn-purple full-width" '+(changed?'':'disabled style="opacity:.5"')+' onclick="saveMyServices()">'+(changed?'Save my healing services':'Saved ✓')+'</button>';
+  el._all=all;
+}
+function toggleMyService(i){var m=document.getElementById("my-services")._all[i];var k=MOD_DRAFT.indexOf(m);if(k>-1)MOD_DRAFT.splice(k,1);else MOD_DRAFT.push(m);renderMyServices();}
+function addMyService(){
+  var inp=document.getElementById("my-svc-new"),v=(inp.value||"").trim().replace(/\s+/g," ");
+  if(!v)return;
+  if(containsLink(v)){toast("Healing services can't include website links","#C4727A");return;}
+  if(/massage/i.test(v)){toast("Massage therapy is not offered on REAL Holistic Network","#C4727A");return;}
+  var all=MODS.concat(MOD_DRAFT),hit=all.find(function(m){return m.toLowerCase()===v.toLowerCase();});
+  if(hit){if(MOD_DRAFT.indexOf(hit)<0)MOD_DRAFT.push(hit);}else MOD_DRAFT.push(v);
+  renderMyServices();
+}
+async function saveMyServices(){
+  if(!MOD_DRAFT.length){toast("Please choose at least one healing service","#C4727A");return;}
+  if(await healerSave({modalities:MOD_DRAFT.slice()})){MOD_DRAFT=null;toast("Healing services saved ✓","#4A9B8E");renderMyProfile();}
 }
 
 // Schedule entry ids are "sch" + the moment they were created, so we can show when old entries were added.
@@ -964,6 +993,7 @@ function healerEditForm(p){
     +'<div class="field"><label>EMAIL (admin-only)</label><input id="eh-email" value="'+p.email.replace(/"/g,'&quot;')+'"></div>'
     +'<div class="field"><label>BIO</label><textarea id="eh-bio" rows="3">'+p.bio+'</textarea></div>'
     +'<div class="field"><label>NEW PASSWORD <span style="text-transform:none;letter-spacing:0;color:#A990C9">(leave blank to keep their current one)</span></label><input id="eh-password" type="text" placeholder="Temporary password to send the healer"></div>'
+    +'<div class="field"><label>HEALING SERVICES (separate with commas)</label><textarea id="eh-mods" rows="2">'+escHtml((p.modalities||[]).join(", "))+'</textarea></div>'
     +'<div class="field"><label>CALENDLY LINK</label><input id="eh-calendly" value="'+(p.calendlyUrl||"").replace(/"/g,'&quot;')+'"></div>'
     +'<div class="field"><label>SESSION TYPES & PRICING (one per line — Name, Price)</label><textarea id="eh-tiers" rows="'+Math.max(2,tiers.length)+'">'+tiers.map(function(t){return t.name+", "+t.price;}).join("\n")+'</textarea></div>'
     +'<label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:14px"><input type="checkbox" id="eh-available" '+(p.available?"checked":"")+' style="width:auto;accent-color:#6B4699"> Available for bookings</label>'
@@ -989,7 +1019,7 @@ async function saveHealerEdit(id){
     if(containsLink(tname)){toast("Session type names can't include a website link","#C4727A");return;}
     tiers.push({id:"t"+i+"_"+Date.now(),name:tname,price:tprice});
   }
-  var ok=await adminCall({action:"edit",id:id,fields:{name:name,location:loc,email:email,bio:bio,calendlyUrl:calendly,sessionTypes:tiers,available:document.getElementById("eh-available").checked,newPassword:newPw||undefined}});
+  var ok=await adminCall({action:"edit",id:id,fields:{name:name,location:loc,email:email,bio:bio,calendlyUrl:calendly,sessionTypes:tiers,available:document.getElementById("eh-available").checked,modalities:(document.getElementById("eh-mods").value||"").split(",").map(function(m){return m.trim();}).filter(Boolean),newPassword:newPw||undefined}});
   if(!ok)return;
   refreshPublic();
   editingHealerId=null;
