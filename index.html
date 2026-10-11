@@ -570,10 +570,15 @@ function renderHome(){
   document.getElementById("featured").innerHTML=avail.map(function(p){return healerCard(p,true);}).join("");
 }
 
+// Every session a healer offers, each with its own price
+function sessionPriceList(p){
+  var t=getTiers(p);if(t.length<2)return '';
+  return '<div style="border-top:1px solid #EEE6F6;border-bottom:1px solid #EEE6F6;padding:8px 0;margin:0 0 12px">'+t.map(function(x){return '<div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:3px 0"><span style="color:#4A3F5C">'+escHtml(x.name)+'</span><span style="color:#2A1F3D;font-weight:bold;white-space:nowrap">$'+x.price+'</span></div>';}).join("")+'</div>';
+}
 function healerCard(p,mini){
   var tags=p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("");
   if(mini)return '<div class="healer-card" onclick="openBooking(\''+p.id+'\')"><div class="healer-top">'+avatarHtml(p,46)+'<div><div class="healer-name">'+p.name+'</div><div class="healer-loc">'+p.location+'</div><div style="font-size:11px;margin-top:2px">'+ratingHtml(p)+'</div></div><div style="margin-left:auto;color:#C9922A;font-weight:bold">'+priceLabel(p)+'</div></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><div style="font-size:13px;color:#A990C9;line-height:1.5">'+p.bio.slice(0,80)+'...</div></div></div>';
-  return '<div class="healer-card"><div class="healer-top">'+avatarHtml(p,46)+'<div style="flex:1"><div class="healer-name">'+p.name+'</div><div class="healer-loc">📍 '+p.location+'</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"● Open":"○ Busy")+'</span></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><p style="font-size:13px;color:#A990C9;margin:0 0 10px;line-height:1.5">'+p.bio+'</p><div style="display:flex;align-items:center;justify-content:space-between"><div><span style="font-size:20px;font-weight:bold;color:#2A1F3D">'+priceLabel(p)+'</span><span class="text-soft" style="font-size:12px">'+(getTiers(p).length>1?"":"/session")+'</span><div style="font-size:12px;margin-top:2px">'+ratingHtml(p)+'</div></div>'+(p.available?'<button class="btn btn-gold" onclick="openBooking(\''+p.id+'\')">Book →</button>':'<button class="btn btn-ghost" disabled>Unavailable</button>')+'</div></div></div>';
+  return '<div class="healer-card"><div class="healer-top">'+avatarHtml(p,46)+'<div style="flex:1"><div class="healer-name">'+p.name+'</div><div class="healer-loc">📍 '+p.location+'</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"● Open":"○ Busy")+'</span></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><p style="font-size:13px;color:#A990C9;margin:0 0 10px;line-height:1.5">'+(p.bio||'')+'</p>'+sessionPriceList(p)+'<div style="display:flex;align-items:center;justify-content:space-between"><div><span style="font-size:20px;font-weight:bold;color:#2A1F3D">'+priceLabel(p)+'</span><span class="text-soft" style="font-size:12px">'+(getTiers(p).length>1?"":"/session")+'</span><div style="font-size:12px;margin-top:2px">'+ratingHtml(p)+'</div></div>'+(p.available?'<button class="btn btn-gold" onclick="openBooking(\''+p.id+'\')">Book →</button>':'<button class="btn btn-ghost" disabled>Unavailable</button>')+'</div></div></div>';
 }
 
 function renderFind(){
