@@ -277,16 +277,17 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
       <div class="field"><label>LOCATION</label><input id="j-location" placeholder="City, State"></div>
       <div class="field"><label>ZIP CODE</label><input id="j-zip" placeholder="e.g. 02910" maxlength="5"></div>
       <div class="field">
-        <label>SESSION TYPES & PRICING</label>
+        <label>YOUR SESSIONS & PRICES</label>
         <div id="j-tier-list" style="margin-bottom:8px"></div>
+        <select id="j-tier-service" aria-label="Healing service" style="margin-bottom:8px"></select>
         <div class="two-col">
-          <input id="j-tier-name" placeholder="e.g. 60-min Sound Bath">
-          <input id="j-tier-price" type="number" placeholder="Price $">
+          <input id="j-tier-name" aria-label="Details (optional)" placeholder="Details (optional), e.g. 60 min">
+          <input id="j-tier-price" type="number" min="1" step="1" inputmode="numeric" aria-label="Price in dollars" placeholder="Price $">
         </div>
-        <button type="button" class="btn btn-ghost full-width" style="margin-top:8px" onclick="addJoinTier()">+ Add Session Type</button>
+        <button type="button" class="btn btn-ghost full-width" style="margin-top:8px" onclick="addJoinTier()">+ Add Session</button>
       </div>
       <div class="field"><label>CALENDLY LINK <span style="text-transform:none;letter-spacing:0;color:#A990C9">(optional)</span></label><input id="j-calendly" placeholder="e.g. calendly.com/yourname"></div>
-      <div class="field"><label>MODALITIES</label><div class="pills" id="j-mods"></div></div>
+      <div class="field"><label>HEALING SERVICES</label><div class="pills" id="j-mods"></div></div>
       <div class="field"><label>INSTRUMENTS</label><div class="pills" id="j-instr"></div></div>
       <div class="field"><label>VENUE TYPES YOU SERVE</label><div class="pills" id="j-venues"></div></div>
       <div class="field"><label>YOUR BIO <span style="text-transform:none;letter-spacing:0;color:#A990C9">(please, no outside website links)</span></label><textarea id="j-bio" rows="4" placeholder="Tell venues about your practice…"></textarea></div>
@@ -512,14 +513,19 @@ var jMods=[],jInstr=[],jVenues=[],jTiers=[];
 function renderJoinTiers(){
   var el=document.getElementById("j-tier-list");
   if(!el)return;
+  var sel=document.getElementById("j-tier-service");if(sel&&sel.options.length!==MODS.length+1)sel.innerHTML='<option value="">Choose a healing service…</option>'+MODS.map(function(m){return '<option value="'+escHtml(m)+'">'+escHtml(m)+'</option>';}).join("");
   el.innerHTML=jTiers.length?jTiers.map(function(t,i){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px"><span style="font-size:13px">'+t.name+' — <strong>$'+t.price+'</strong></span><button type="button" class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="removeJoinTier('+i+')">Remove</button></div>';}).join(""):'<div class="text-soft" style="font-size:12px">No session types added yet — add at least one below.</div>';
 }
 function addJoinTier(){
-  var n=document.getElementById("j-tier-name").value.trim(),pr=document.getElementById("j-tier-price").value;
-  if(!n||!pr||isNaN(parseInt(pr))){toast("Enter a session type name and a price","#C4727A");return;}
-  if(containsLink(n)){toast("Session type name can't include a website link","#C4727A");return;}
-  jTiers.push({id:"t"+Date.now(),name:n,price:parseInt(pr)});
-  document.getElementById("j-tier-name").value="";document.getElementById("j-tier-price").value="";
+  var svc=document.getElementById("j-tier-service").value,n=document.getElementById("j-tier-name").value.trim(),pr=document.getElementById("j-tier-price").value;
+  if(!svc){toast("Please choose a healing service","#C4727A");return;}
+  if(!(parseInt(pr,10)>=1)){toast("Please enter a price in whole dollars","#C4727A");return;}
+  if(containsLink(n)){toast("Details can't include a website link","#C4727A");return;}
+  if(/massage/i.test(n)){toast("Massage therapy is not offered on REAL Holistic Network","#C4727A");return;}
+  jTiers.push({id:"t"+Date.now(),service:svc,details:n,name:n?svc+" · "+n:svc,price:parseInt(pr,10)});
+  if(jMods.indexOf(svc)<0)jMods.push(svc);
+  document.getElementById("j-tier-name").value="";document.getElementById("j-tier-price").value="";document.getElementById("j-tier-service").value="";
+  renderJoinPills();
   renderJoinTiers();
 }
 function removeJoinTier(i){jTiers.splice(i,1);renderJoinTiers();}

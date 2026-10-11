@@ -3,7 +3,7 @@
 import {
   redis, getJSON, loadHealers, saveHealers, loadBookings, findByEmail, selfHealer,
   hashPassword, checkPassword, safeEqual, createSession, getSession, endSession,
-  tooManyTries, clientIp, logNote, newToken, sendEmail, siteUrl, str, LINK_RE, NOTICE_TEMPLATE, esc, normalizeServices, loadServices
+  tooManyTries, clientIp, logNote, newToken, sendEmail, siteUrl, str, LINK_RE, NOTICE_TEMPLATE, esc, normalizeServices, loadServices, currentServices, tierName
 } from './_lib.js';
 
 const RESET_SECONDS = 60 * 60; // reset links work for 1 hour
@@ -50,7 +50,12 @@ async function signup(req, res, b) {
   if (password.length < 6) return res.json({ ok: false, error: 'Password must be at least 6 characters' });
   if ([name, location, bio].some(f => LINK_RE.test(f))) return res.json({ ok: false, error: "Please remove website links from your profile — links to outside sites aren't allowed." });
   const tiers = (Array.isArray(b.sessionTypes) ? b.sessionTypes : []).slice(0, 20)
-    .map((t, i) => ({ id: 't' + Date.now() + i, name: str(t.name, 80), price: parseInt(t.price, 10) }))
+    .map((t, i) => {
+      const service = currentServices().includes(str(t.service, 60)) ? str(t.service, 60) : '';
+      const details = str(t.details, 60);
+      return service ? { id: 't' + Date.now() + i, name: tierName(service, details), service, details, price: parseInt(t.price, 10) }
+        : { id: 't' + Date.now() + i, name: str(t.name, 80), price: parseInt(t.price, 10) };
+    })
     .filter(t => t.name && Number.isFinite(t.price) && t.price > 0);
   if (!tiers.length) return res.json({ ok: false, error: 'Please add at least one session type & price' });
   if (!b.agreedTerms || !b.agreedPayTerms) return res.json({ ok: false, error: 'Please agree to the terms' });
@@ -63,7 +68,7 @@ async function signup(req, res, b) {
   const p = {
     id: 'p' + Date.now(), name, email, pwHash: hashPassword(password), location, zip,
     rate: Math.min(...tiers.map(t => t.price)), sessionTypes: tiers, calendlyUrl,
-    instruments: list(b.instruments), venueTypes: list(b.venueTypes), modalities: normalizeServices(list(b.modalities)),
+    instruments: list(b.instruments), venueTypes: list(b.venueTypes), modalities: normalizeServices(list(b.modalities).concat(tiers.map(t => t.service).filter(Boolean))),
     bio, available: true, avatar: avatars[Math.floor(Math.random() * avatars.length)],
     source: str(b.source, 60) || 'direct', joinedAt: now,
     payTermsVersion: str(b.payTermsVersion, 40), payTermsAcceptedAt: now
