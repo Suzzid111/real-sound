@@ -583,9 +583,8 @@ function healerCard(p,mini){
 
 function renderFind(){
   document.getElementById("venue-pills").innerHTML=VENUES.map(function(v){return '<button class="pill'+(vFilter===v?" pill-purple":"")+'" onclick="vFilter=\''+v+'\';renderFind()">'+v+'</button>';}).join("");
-  // "Healing service" dropdown: the standard list plus any service a healer listed
-  var svcs=MODS.slice();P.forEach(function(p){(p.modalities||[]).forEach(function(m){if(m&&svcs.indexOf(m)<0)svcs.push(m);});});
-  if(mFilter!=="All"&&svcs.indexOf(mFilter)<0)svcs.push(mFilter);
+  // "Healing service" dropdown: only the official list, so nothing shows up twice
+  var svcs=MODS.slice();if(svcs.indexOf(mFilter)<0)mFilter="All";
   var sel=document.getElementById("svc-select");
   if(sel){sel.innerHTML='<option value="All">All healing services</option>'+svcs.map(function(m){return '<option value="'+escHtml(m)+'"'+(mFilter===m?' selected':'')+'>'+escHtml(m)+'</option>';}).join("");sel.value=mFilter;}
   document.getElementById("mod-pills").innerHTML="";
@@ -906,11 +905,11 @@ var MOD_DRAFT=null;
 function renderMyServices(){
   var el=document.getElementById("my-services");if(!el||!curUser)return;
   if(!MOD_DRAFT)MOD_DRAFT=(curUser.modalities||[]).slice();
-  var all=MODS.slice();MOD_DRAFT.forEach(function(m){if(all.indexOf(m)<0)all.push(m);});
+  var all=MODS.slice();MOD_DRAFT=MOD_DRAFT.filter(function(m){return all.indexOf(m)>-1;});
   var changed=JSON.stringify(MOD_DRAFT)!==JSON.stringify(curUser.modalities||[]);
   el.innerHTML='<div class="section-title">YOUR HEALING SERVICES</div><div class="text-soft" style="font-size:13px;margin-bottom:12px;line-height:1.6">Tap to choose every service you offer. Clients use these to find you in search.</div><div class="pills" style="margin-bottom:12px">'
     +all.map(function(m,i){var on=MOD_DRAFT.indexOf(m)>-1;return '<button type="button" class="pill'+(on?" pill-teal":"")+'" aria-pressed="'+on+'" onclick="toggleMyService('+i+')">'+(on?"✓ ":"")+escHtml(m)+'</button>';}).join("")
-    +'</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><input id="my-svc-new" placeholder="Add another service (e.g. Sound Healing)" maxlength="60" style="flex:1;min-width:180px" onkeydown="if(event.key===\'Enter\')addMyService()"><button type="button" class="btn btn-ghost" style="padding:8px 14px;font-size:13px" onclick="addMyService()">+ Add</button></div>'
+    +'</div><div class="text-soft" style="font-size:12px;margin-bottom:12px;line-height:1.6">Don\'t see your service? Reply to any REAL Holistic Network email and we\'ll add it to the list. Name your specific sessions (like \"Personalized Birth Chart with Reading\") in Session Types & Prices below.</div>'
     +'<button class="btn btn-purple full-width" '+(changed?'':'disabled style="opacity:.5"')+' onclick="saveMyServices()">'+(changed?'Save my healing services':'Saved ✓')+'</button>';
   el._all=all;
 }

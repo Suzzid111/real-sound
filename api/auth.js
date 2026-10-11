@@ -3,7 +3,7 @@
 import {
   redis, getJSON, loadHealers, saveHealers, loadBookings, findByEmail, selfHealer,
   hashPassword, checkPassword, safeEqual, createSession, getSession, endSession,
-  tooManyTries, clientIp, logNote, newToken, sendEmail, siteUrl, str, LINK_RE, NOTICE_TEMPLATE, esc
+  tooManyTries, clientIp, logNote, newToken, sendEmail, siteUrl, str, LINK_RE, NOTICE_TEMPLATE, esc, normalizeServices
 } from './_lib.js';
 
 const RESET_SECONDS = 60 * 60; // reset links work for 1 hour
@@ -62,7 +62,7 @@ async function signup(req, res, b) {
   const p = {
     id: 'p' + Date.now(), name, email, pwHash: hashPassword(password), location, zip,
     rate: Math.min(...tiers.map(t => t.price)), sessionTypes: tiers, calendlyUrl,
-    instruments: list(b.instruments), venueTypes: list(b.venueTypes), modalities: list(b.modalities),
+    instruments: list(b.instruments), venueTypes: list(b.venueTypes), modalities: normalizeServices(list(b.modalities)),
     bio, available: true, avatar: avatars[Math.floor(Math.random() * avatars.length)],
     source: str(b.source, 60) || 'direct', joinedAt: now,
     payTermsVersion: str(b.payTermsVersion, 40), payTermsAcceptedAt: now

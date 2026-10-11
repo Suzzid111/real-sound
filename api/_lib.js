@@ -78,7 +78,7 @@ export function findByEmail(P, email) {
 export function publicHealer(p) {
   return {
     id: p.id, name: p.name, location: p.location, zip: p.zip, avatar: p.avatar, bio: p.bio,
-    instruments: p.instruments || [], venueTypes: p.venueTypes || [], modalities: p.modalities || [],
+    instruments: p.instruments || [], venueTypes: p.venueTypes || [], modalities: normalizeServices(p.modalities),
     rate: p.rate, sessionTypes: p.sessionTypes || [], calendlyUrl: p.calendlyUrl || '',
     available: !!p.available,
     photo: p.photoV ? '/api/photo?id=' + encodeURIComponent(p.id) + '&v=' + p.photoV : '',
@@ -93,6 +93,7 @@ export function publicHealer(p) {
 export function selfHealer(p) {
   const { pwHash, ...rest } = p;
   rest.payStatus = Object.assign({ mode: stripeMode() }, connectOf(p) || {});
+  rest.modalities = normalizeServices(p.modalities);
   return rest;
 }
 // What anyone may see about bookings: only that a time is taken.
@@ -283,15 +284,37 @@ export const PLATFORM_PCT = 15;
 export const platformFeeCents = dollars => Math.round(Math.round(dollars * 100) * PLATFORM_PCT / 100);
 
 // ---------- Healing services a healer offers (shown on their profile and used by search) ----------
+// One official list, so search never shows the same service three different ways.
+// Anything a healer typed that clearly means one of these is matched to it.
 // Massage therapy is never offered on REAL Holistic Network (it needs a state license).
-export function cleanServices(list) {
+export const SERVICES = ['Sound Bath & Gong Bath', 'Reiki & Crystal Healing', 'Breathwork', 'Meditation', 'Art Therapy', 'Herbalist', 'Life Coach', 'Astrology & Birth Charts'];
+const SERVICE_MATCH = [
+  [/astrolog|birth\s*chart|natal/i, 'Astrology & Birth Charts'],
+  [/reiki|crystal/i, 'Reiki & Crystal Healing'],
+  [/sound|gong|singing bowl/i, 'Sound Bath & Gong Bath'],
+  [/breath/i, 'Breathwork'],
+  [/meditat/i, 'Meditation'],
+  [/art\s*therap/i, 'Art Therapy'],
+  [/herb/i, 'Herbalist'],
+  [/coach/i, 'Life Coach']
+];
+export function officialService(m) {
+  const t = str(m, 80);
+  const exact = SERVICES.find(x => x.toLowerCase() === t.toLowerCase());
+  if (exact) return exact;
+  const hit = SERVICE_MATCH.find(([re]) => re.test(t));
+  return hit ? hit[1] : t;
+}
+export function normalizeServices(list) {
   const out = [];
-  for (const x of (Array.isArray(list) ? list : []).slice(0, 20)) {
-    const m = str(x, 60).replace(/\s+/g, ' ');
-    if (!m) continue;
+  for (const m of (Array.isArray(list) ? list : [])) { const o = officialService(m); if (o && !out.includes(o)) out.push(o); }
+  return out;
+}
+export function cleanServices(list) {
+  const raw = (Array.isArray(list) ? list : []).slice(0, 20).map(x => str(x, 60).replace(/\s+/g, ' ')).filter(Boolean);
+  for (const m of raw) {
     if (LINK_RE.test(m)) return { error: "Healing services can't include website links" };
     if (/massage/i.test(m)) return { error: 'Massage therapy is not offered on REAL Holistic Network' };
-    if (!out.some(o => o.toLowerCase() === m.toLowerCase())) out.push(m);
   }
-  return { list: out.slice(0, 15) };
+  return { list: normalizeServices(raw).slice(0, 15) };
 }
