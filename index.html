@@ -463,10 +463,10 @@ function blockedFieldsCheck(fields){
 }
 
 var VENUES=["All","Yoga Studios","Martial Arts Studios","Corporate","Retreats","Nursing Homes","Private Events","Hotels & Spas"];
-var SVC_ICONS={"Sound Bath & Gong Bath":"🎵","Reiki & Crystal Healing":"🙌","Breathwork":"🌬️","Meditation":"🧘","Art Therapy":"🎨","Herbalist":"🌿","Life Coach":"✨","Astrology & Birth Charts":"🌙"};
+var SVC_ICONS={"Sound Bath & Gong Bath":"🎵","Reiki & Crystal Healing":"🙌","Breathwork":"🌬️","Meditation":"🧘","Art Therapy":"🎨","Herbalist":"🌿","Life Coach":"✨","Astrology & Birth Charts":"🌙","Tarot":"🔮"};
 // The official healing services list comes from the server (the owner edits it on the admin page).
 function renderHomeServices(){var el=document.getElementById("home-services");if(!el)return;el.innerHTML=MODS.map(function(m,i){return '<button type="button" class="grid-item" style="font-family:inherit;width:100%" onclick="filterMod(MODS['+i+']);showPage(\'find\')"><div class="grid-icon">'+(SVC_ICONS[m]||"💜")+'</div><div class="grid-label">'+escHtml(m)+'</div></button>';}).join("");}
-var MODS=["Sound Bath & Gong Bath","Reiki & Crystal Healing","Breathwork","Meditation","Art Therapy","Herbalist","Life Coach","Astrology & Birth Charts"];
+var MODS=["Sound Bath & Gong Bath","Reiki & Crystal Healing","Breathwork","Meditation","Art Therapy","Herbalist","Life Coach","Astrology & Birth Charts","Tarot"];
 var INSTR=["Crystal Bowls","Gong","Tibetan Bowls","Tuning Forks","Chimes","Voice","Steel Tongue Drum","Rain Drum","Drums"];
 var zipFilter="";
 

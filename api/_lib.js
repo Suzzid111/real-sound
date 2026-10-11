@@ -287,7 +287,7 @@ export const platformFeeCents = dollars => Math.round(Math.round(dollars * 100) 
 // One official list, so search never shows the same service three different ways.
 // Anything a healer typed that clearly means one of these is matched to it.
 // Massage therapy is never offered on REAL Holistic Network (it needs a state license).
-export const DEFAULT_SERVICES = ['Sound Bath & Gong Bath', 'Reiki & Crystal Healing', 'Breathwork', 'Meditation', 'Art Therapy', 'Herbalist', 'Life Coach', 'Astrology & Birth Charts'];
+export const DEFAULT_SERVICES = ['Sound Bath & Gong Bath', 'Reiki & Crystal Healing', 'Breathwork', 'Meditation', 'Art Therapy', 'Herbalist', 'Life Coach', 'Astrology & Birth Charts', 'Tarot'];
 // The live list is kept in the database so the owner can add services from the admin page.
 let SERVICES = DEFAULT_SERVICES.slice();
 export async function loadServices() {
@@ -305,6 +305,7 @@ export function cleanServiceName(m) {
 }
 const SERVICE_MATCH = [
   [/astrolog|birth\s*chart|natal/i, 'Astrology & Birth Charts'],
+  [/tarot|oracle card/i, 'Tarot'],
   [/reiki|crystal/i, 'Reiki & Crystal Healing'],
   [/sound|gong|singing bowl/i, 'Sound Bath & Gong Bath'],
   [/breath/i, 'Breathwork'],
