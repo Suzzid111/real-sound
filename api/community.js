@@ -1,7 +1,7 @@
 // api/community.js — things any visitor can send in:
 //   newsletter sign-up / unsubscribe, and workplace & group wellness requests.
 // Everything is stored privately; only the admin can see it.
-import { getJSON, setJSON, logNote, newToken, str, tooManyTries, clientIp } from './_lib.js';
+import { getJSON, setJSON, logNote, alertOwner, newToken, str, tooManyTries, clientIp } from './_lib.js';
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
       if (S.some(s => s.email === email)) return res.json({ ok: true, already: true });
       S.push({ email, name, source: str(b.source, 40) || 'website', createdAt: new Date().toISOString(), token: newToken() });
       await setJSON('subscribers', S);
-      await logNote(`💌 New newsletter subscriber${name ? ': ' + name : ''} (${S.length} total)`);
+      await alertOwner(`💌 New newsletter subscriber${name ? ': ' + name : ''} (${S.length} total)`, [`Name: ${name || '—'}`, `Email: ${email}`, `Signed up from: ${str(b.source, 40) || 'website'}`]);
       return res.json({ ok: true });
     }
 
@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       const W = await getJSON('workplaceRequests', []);
       W.unshift(r);
       await setJSON('workplaceRequests', W.slice(0, 500));
-      await logNote(`🏢 New group wellness request from ${r.org} (${r.type || 'group'}, ${r.groupSize || '?'} people)`);
+      await alertOwner(`🏢 New group wellness request from ${r.org}`, [`Contact: ${r.contact} ${r.email} ${r.phone}`, `Type: ${r.type || '—'}`, `Interested in: ${r.interests.join(', ') || '—'}`, `Group size: ${r.groupSize || '—'}`, `Budget: ${r.budget || '—'}`, `When: ${r.when || '—'}`, `Where: ${r.location || '—'}`, `Notes: ${r.notes || '—'}`]);
       return res.json({ ok: true });
     }
     return res.status(400).json({ ok: false, error: 'Unknown action' });

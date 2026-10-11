@@ -1,7 +1,7 @@
 // api/booking.js — saves a new booking request after the client's card has
 // been authorized. The server checks the real Stripe payment (amount and
 // status) against the healer's actual price before saving anything.
-import { loadHealers, loadBookings, saveBookings, logNote, redis, str, tooManyTries, clientIp, connectOf, platformFeeCents } from './_lib.js';
+import { loadHealers, loadBookings, saveBookings, logNote, alertOwner, redis, str, tooManyTries, clientIp, connectOf, platformFeeCents } from './_lib.js';
 import { stripe } from './_bookings.js';
 
 export default async function handler(req, res) {
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
     if (!bk.venueName || !bk.email || !bk.date) return res.json({ ok: false, error: 'Please fill in required fields' });
     B.push(bk);
     await saveBookings(B);
-    await logNote(`🔔 New booking request: ${bk.venueName} → ${bk.practitionerName} (${bk.date})`);
+    await alertOwner(`🔔 New booking request: ${bk.venueName} → ${bk.practitionerName} (${bk.date})`, [`Client: ${bk.venueName} (${bk.email})`, `Healer: ${bk.practitionerName}`, `Session: ${bk.sessionType} ($${bk.total})`, `When: ${bk.date} ${bk.time || ''}`, `Notes: ${bk.notes || 'None'}`]);
     return res.json({ ok: true, booking: { id: bk.id, date: bk.date, time: bk.time, total: bk.total } });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });

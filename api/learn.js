@@ -11,7 +11,7 @@
 import { Readable } from 'node:stream';
 import { get } from '@vercel/blob';
 import { handleUpload } from '@vercel/blob/client';
-import { getJSON, setJSON, getSession, logNote, newToken, str, tooManyTries, clientIp, loadContent } from './_lib.js';
+import { getJSON, setJSON, getSession, logNote, alertOwner, newToken, str, tooManyTries, clientIp, loadContent } from './_lib.js';
 import { stripe } from './_bookings.js';
 
 const ALLOWED = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif',
@@ -107,6 +107,6 @@ async function complete(req, res, { paymentIntentId }) {
   const list = await getJSON('orders', []);
   list.unshift({ id, title: order.title, email: order.email, amount: order.amount, createdAt: order.createdAt });
   await setJSON('orders', list.slice(0, 500));
-  await logNote(`🛍 Journal sold: ${order.title} ($${order.amount}) to ${order.email}`);
+  await alertOwner(`🛍 Journal sold: ${order.title} ($${order.amount}) to ${order.email}`);
   return res.json({ ok: true, downloadUrl: `${site}/api/learn?order=${id}&k=${order.key}`, title: order.title });
 }

@@ -1,7 +1,7 @@
 // api/healer.js — everything a signed-in healer can do to their OWN account:
 // reload their data, save schedule / booking hours, acknowledge the payment
 // terms, change their password, accept or decline their bookings.
-import { getSession, loadHealers, saveHealers, loadBookings, selfHealer, hashPassword, checkPassword, logNote, str, loadEvents, saveEvents, cleanEvent, todayET, cleanPhoto, savePhoto, loadReviews, saveBookings, newToken } from './_lib.js';
+import { getSession, loadHealers, saveHealers, loadBookings, selfHealer, hashPassword, checkPassword, logNote, alertOwner, str, loadEvents, saveEvents, cleanEvent, todayET, cleanPhoto, savePhoto, loadReviews, saveBookings, newToken } from './_lib.js';
 import { setBookingStatus, proposeTime } from './_bookings.js';
 import { cleanServices, LINK_RE, loadServices, siteUrl, tierName, normalizeServices, currentServices } from './_lib.js';
 
@@ -111,7 +111,7 @@ export default async function handler(req, res) {
         c.event, { healerName: p.name, healerAvatar: p.avatar, status: 'pending', declineReason: '', updatedAt: now });
       if (!old) E.push(ev);
       await saveEvents(E);
-      await logNote(`📣 Event waiting for your approval: "${ev.title}" by ${p.name} (${ev.date})`);
+      await alertOwner(`📣 Event waiting for your approval: "${ev.title}" by ${p.name} (${ev.date})`, ['Approve or decline it in your admin panel.']);
     } else if (body.action === 'photo') {
       const c = cleanPhoto(body.photo);
       if (c.error) return res.json({ ok: false, error: c.error });

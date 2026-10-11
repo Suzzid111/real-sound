@@ -690,11 +690,6 @@ async function confirmBooking(){
     B.push({practitionerId:bk.practitionerId,status:"pending",date:bk.date,time:bk.time,startUTC:bk.startUTC,durationMin:bk.durationMin});
     if(useSlot)reserveSlot("keep",{bookingId:bk.id}).catch(function(){});
     logAdminNotification("🔔 New booking request: "+bk.venueName+" → "+bk.practitionerName+" ("+bk.date+")");
-    emailjs.send("service_bl7o2cm","template_69wi3t9",{
-      name:bk.venueName,
-      email:bk.email,
-      message:"NEW BOOKING REQUEST 🔔 | Healer: "+bk.practitionerName+" | Session: "+bk.sessionType+" | Date: "+bk.date+" | Time: "+(bk.time||"TBD")+(bk.healerTz?" ("+tzLabel(bk.healerTz)+")":"")+" | Type: "+bk.venueType+" | Group: "+(bk.groupSize||"TBD")+" | Total: $"+bk.total+" | Notes: "+(bk.notes||"None")
-    }).then(function(){console.log("Booking notification email sent.");}).catch(function(err){console.error("EmailJS failed to send booking notification:",err);});
     document.getElementById("bk-step2").style.display="none";
     document.getElementById("bk-step3").innerHTML='<div class="card card-gold" style="text-align:center;padding:36px"><div style="font-size:52px;margin-bottom:16px">🔔</div><h2 class="text-gold" style="font-weight:normal;margin-bottom:10px">Request Sent!</h2><p class="text-soft" style="margin-bottom:8px;line-height:1.7;font-size:14px">'+selP.name+' will confirm within 24 hours.</p><p class="text-soft" style="margin-bottom:24px;font-size:13px">Your card will be charged once they accept.</p><button class="btn btn-outline" onclick="showPage(\'find\')">Back to healers</button></div>';
     document.getElementById("bk-step3").style.display="block";
@@ -733,11 +728,6 @@ async function submitJoin(){
   var j=await api("/api/auth",{action:"signup",name:name,email:email,password:pass,location:loc,zip:zip,bio:bio,calendlyUrl:calendly,sessionTypes:jTiers.slice(),instruments:jInstr.slice(),venueTypes:jVenues.slice(),modalities:jMods.slice(),source:src,agreedTerms:true,agreedPayTerms:true,payTermsVersion:PAY_TERMS_VERSION});
   if(!j.ok){toast(j.error||"Sign up failed. Please try again.","#C4727A");return;}
   AUTH_TOKEN=j.token;curUser=j.healer;MYB=j.bookings||[];
-  emailjs.send("service_bl7o2cm","template_69wi3t9",{
-    name:"REAL Holistic Network Admin",
-    email:"bookings.realsound@gmail.com",
-    message:"🌟 NEW FOUNDING HEALER SIGNED UP! | Name: "+name+" | Email: "+email+" | Location: "+loc+" | Modalities: "+jMods.join(", ")+" | Session types: "+jTiers.map(function(t){return t.name+" ($"+t.price+")";}).join(", ")+" | Source: "+src+" | Joined: "+new Date().toLocaleString()
-  }).then(function(){console.log("Signup notification email sent.");}).catch(function(err){console.error("EmailJS failed to send signup notification:",err);});
   jMods=[];jInstr=[];jVenues=[];jTiers=[];
   refreshPublic();
   toast("Welcome to REAL Holistic Network! ✨");showJoin(2);
@@ -978,12 +968,11 @@ async function toggleTeamAccess(){
   if(await adminCall({action:"team",on:on})){toast(on?"Team admin access turned ON":"Team admin access turned OFF","#6B4699");renderAdmin();}
 }
 
-function sendTestEmail(){
-  emailjs.send("service_bl7o2cm","template_69wi3t9",{
-    name:"REAL Holistic Network Admin",
-    email:"bookings.realsound@gmail.com",
-    message:"✅ This is a test notification from your admin dashboard, sent "+new Date().toLocaleString()+". If you got this, EmailJS is working correctly."
-  }).then(function(){toast("Test email sent — check your inbox ✓","#4A9B8E");}).catch(function(err){console.error("Test email failed:",err);toast("Test email failed — check the browser console for details","#C4727A");});
+async function sendTestEmail(){
+  toast("Sending test alert…","#6B4699");
+  var j=await api("/api/admin",{action:"testEmail"},ADMIN_TOKEN);
+  if(j&&j.ok)toast("Test alert sent — check bookings.realsound@gmail.com ✓","#4A9B8E");
+  else toast((j&&j.error)||"Test alert failed","#C4727A");
 }
 
 function exportHealerEmails(){
@@ -1696,7 +1685,6 @@ async function saveHealerEvent(){
   if(!j.ok){toast(j.error,"#C4727A");return;}
   curUser=j.healer;MYB=j.bookings||[];MYEVENTS=j.events||[];EV_EDIT=null;
   toast("Sent for approval ✓ You'll see it here once it's live","#4A9B8E");
-  emailjs.send("service_bl7o2cm","template_69wi3t9",{name:"REAL Holistic Network Admin",email:"bookings.realsound@gmail.com",message:"📣 NEW EVENT WAITING FOR APPROVAL | "+ev.title+" | by "+curUser.name+" | "+ev.date+" "+ev.start+" | "+ev.location+" | Approve it in your admin panel."}).catch(function(){});
   renderHealerEvents();
 }
 async function deleteHealerEvent(id){
@@ -2009,7 +1997,6 @@ async function sendWorkplace(){
   var j=await api("/api/community",r);
   btn.disabled=false;
   if(!j.ok){toast(j.error,"#C4727A");return;}
-  emailjs.send("service_bl7o2cm","template_69wi3t9",{name:r.contact+" ("+r.org+")",email:r.email,message:"🏢 NEW GROUP WELLNESS REQUEST | "+r.org+" ("+(r.type||"—")+") | Contact: "+r.contact+" "+r.email+" "+r.phone+" | Interested in: "+(r.interests.join(", ")||"—")+" | Group: "+(r.groupSize||"—")+" | Budget: "+(r.budget||"—")+" | When: "+(r.when||"—")+" | Where: "+(r.location||"—")+" | Notes: "+(r.notes||"—")}).catch(function(){});
   document.getElementById("workplace-body").innerHTML='<div class="card card-gold" style="text-align:center;padding:36px;max-width:640px"><div style="font-size:48px;margin-bottom:12px">🌿</div><h2 class="text-gold" style="font-weight:normal;margin-bottom:8px">Thank you!</h2><p class="text-soft" style="font-size:14px;line-height:1.7">We\'ve received your request and will reach out within 1–2 business days with healers and options that fit your group.</p><button class="btn btn-outline" onclick="showPage(\'find\')">Browse our healers</button></div>';
   window.scrollTo({top:0,behavior:"smooth"});
 }

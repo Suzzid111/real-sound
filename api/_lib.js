@@ -258,6 +258,15 @@ export async function sendNotice(toEmail, toName, subject, message, html) {
     return await sendEmail(NOTICE_TEMPLATE(), { to_email: toEmail, email: toEmail, to_name: toName || '', name: toName || '', subject, message, message_html: html || textToHtml(message) });
   } catch (e) { return false; }
 }
+// ---------- Alerts to the owner (new healer, booking, subscriber, etc.) ----------
+// Logs it in the admin "Recent Activity" feed AND emails the owner from the
+// server, using the same template as password resets (so it works reliably).
+export const OWNER_EMAIL = () => process.env.ALERT_EMAIL || 'bookings.realsound@gmail.com';
+export async function alertOwner(summary, details) {
+  await logNote(summary);
+  const lines = [summary, ''].concat((details || []).filter(Boolean)).concat(['', 'See everything in your admin panel: https://realholisticnetwork.com']);
+  return sendNotice(OWNER_EMAIL(), 'Suzzanna', 'REAL Holistic Network: ' + summary.replace(/^\W+\s*/, ''), lines.join('\n'));
+}
 // "Tuesday, October 14 at 6:30 PM (Eastern time)" from a booking
 export function sessionWhen(b) {
   if (b.startUTC) {

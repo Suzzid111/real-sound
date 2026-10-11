@@ -2,7 +2,7 @@
 // login can view and edit but cannot remove healers or change team access.
 import {
   getSession, endSession, loadHealers, saveHealers, loadBookings, getJSON, setJSON,
-  selfHealer, hashPassword, logNote, str
+  selfHealer, hashPassword, logNote, alertOwner, str
 } from './_lib.js';
 import { setBookingStatus } from './_bookings.js';
 import { loadContent, loadEvents, saveEvents, cleanPhoto, savePhoto, loadReviews, saveReviews, stripeMode, cleanServices, loadServices, cleanServiceName } from './_lib.js';
@@ -23,6 +23,10 @@ export default async function handler(req, res) {
 
     switch (body.action) {
       case 'all': break;
+      case 'testEmail': {
+        const ok = await alertOwner('✅ Test alert from your admin panel', ['If you got this, new-signup alerts are working.']);
+        return res.json({ ok, error: ok ? '' : 'The email could not be sent. Check EMAILJS_PRIVATE_KEY in Vercel.' });
+      }
       case 'status': {
         const r = await setBookingStatus(str(body.bookingId, 40), body.status, null, isOwner ? 'owner' : 'team admin');
         if (!r.ok) return res.json(r);

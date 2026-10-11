@@ -1,6 +1,6 @@
 // api/reviews.js — a client leaves a review using the private link their
 // healer sent after a confirmed session. One review per booking.
-import { loadBookings, saveBookings, loadReviews, saveReviews, logNote, str, tooManyTries, clientIp, todayET } from './_lib.js';
+import { loadBookings, saveBookings, loadReviews, saveReviews, logNote, alertOwner, str, tooManyTries, clientIp, todayET } from './_lib.js';
 
 async function findBooking(code) {
   const m = /^(b\d{6,20})\.([a-f0-9]{24})$/.exec(String(code || ''));
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     await saveReviews(R);
     b.reviewed = true;
     await saveBookings(B);
-    await logNote(`⭐ New ${stars}-star review for ${b.practitionerName} from ${name}`);
+    await alertOwner(`⭐ New ${stars}-star review for ${b.practitionerName} from ${name}`);
     return res.json({ ok: true });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });
