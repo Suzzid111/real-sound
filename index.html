@@ -141,6 +141,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
     <button class="nav-btn" id="nav-find" onclick="showPage('find')">Find a Healer</button>
     <button class="nav-btn" id="nav-events" onclick="showPage('events')">Events</button>
     <button class="nav-btn" id="nav-learn" onclick="showPage('learn')">Learn</button>
+    <button class="nav-btn" id="nav-gifts" onclick="showPage('gifts')">🎁 Gift Certificates</button>
     <button class="nav-btn" id="nav-join" onclick="showPage('join')">Join as Healer</button>
     <button class="nav-btn" id="nav-login" onclick="showPage('login')">Healer Login</button>
     <button class="nav-btn" id="nav-admin" onclick="showPage('admin')">⚙</button>
@@ -183,6 +184,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
     <div class="how-card"><div class="how-num">2</div><div style="font-size:20px;margin-bottom:8px">📅</div><div style="font-weight:bold;color:#2A1F3D;margin-bottom:6px">Connect</div><div style="font-size:13px;color:#A990C9">Book sessions directly with verified practitioners</div></div>
     <div class="how-card"><div class="how-num">3</div><div style="font-size:20px;margin-bottom:8px">🌙</div><div style="font-weight:bold;color:#2A1F3D;margin-bottom:6px">Heal</div><div style="font-size:13px;color:#A990C9">Transform your space with authentic healing experiences</div></div>
   </div>
+  <div class="card card-gold" style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:28px"><div style="flex:1;min-width:220px"><div style="font-size:18px;color:#2A1F3D;margin-bottom:4px">🎁 Give the gift of healing</div><div class="text-soft" style="font-size:13px;line-height:1.6">Gift certificates from $25 that work with any healer, for any session. Email it or print it.</div></div><button class="btn btn-gold" onclick="showPage('gifts');window.scrollTo(0,0)">Buy a gift certificate →</button></div>
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
     <div class="section-title" style="margin:0">FEATURED HEALERS</div>
     <span style="color:#9B6BC9;cursor:pointer;font-size:13px" onclick="showPage('find')">See all →</span>
@@ -241,6 +243,15 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
   </div>
   <div id="learn-body"></div>
   <div id="learn-newsletter"></div>
+</div>
+</div>
+
+<!-- GIFT CERTIFICATES -->
+<div id="page-gifts" class="page">
+<div class="wrap" style="max-width:560px">
+  <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">Give the Gift of Healing</h2>
+  <p class="text-soft" style="margin-bottom:18px;font-size:14px;line-height:1.7">A REAL Holistic Network gift certificate works with any healer, for any session. Send it by email, or print it and give it in person. Anything not used stays on the code for next time.</p>
+  <div id="gifts-body"></div>
 </div>
 </div>
 
@@ -389,6 +400,8 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
     <div id="admin-reviews"></div>
     <div class="section-title" style="margin-top:28px">📣 COMMUNITY EVENTS</div>
     <div id="admin-events"></div>
+    <div class="section-title" style="margin-top:28px">🎁 GIFT CERTIFICATES</div>
+    <div id="admin-gifts"></div>
     <div class="section-title" style="margin-top:28px">📚 LEARN SECTION (journals, teachings, resources)</div>
     <div id="admin-learn"></div>
   </div>
@@ -405,7 +418,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
   <div style="color:#C9922A;font-size:13px;letter-spacing:.12em">◉ REAL HOLISTIC NETWORK</div>
   <div style="color:#A990C9;font-size:11px;margin-top:4px">A REAL Golden Peace venture by Suzzanna</div>
   <div id="footer-newsletter"></div>
-  <div style="margin-top:12px;font-size:12px"><span style="color:#F3D58A;cursor:pointer" onclick="showPage('workplace');window.scrollTo(0,0)">For workplaces &amp; groups</span> · <span style="color:#F3D58A;cursor:pointer" onclick="showPage('events');window.scrollTo(0,0)">Community events</span> · <span style="color:#F3D58A;cursor:pointer" onclick="showPage('join');window.scrollTo(0,0)">Join as a healer</span></div>
+  <div style="margin-top:12px;font-size:12px"><span style="color:#F3D58A;cursor:pointer" onclick="showPage('workplace');window.scrollTo(0,0)">For workplaces &amp; groups</span> · <span style="color:#F3D58A;cursor:pointer" onclick="showPage('events');window.scrollTo(0,0)">Community events</span> · <span style="color:#F3D58A;cursor:pointer" onclick="showPage('gifts');window.scrollTo(0,0)">Gift certificates</span> · <span style="color:#F3D58A;cursor:pointer" onclick="showPage('join');window.scrollTo(0,0)">Join as a healer</span></div>
   <div style="margin-top:12px"><svg role="img" aria-label="Gold elephant with its trunk raised" viewBox="8 6 106 78" width="44" height="33" xmlns="http://www.w3.org/2000/svg"><g fill="#E8B84B"><ellipse cx="70" cy="50" rx="32" ry="22"/><rect x="46" y="58" width="9" height="22" rx="3"/><rect x="59" y="60" width="9" height="20" rx="3"/><rect x="78" y="60" width="9" height="20" rx="3"/><rect x="90" y="58" width="9" height="22" rx="3"/><circle cx="38" cy="38" r="15"/></g><path d="M101 46 q8 4 6 14" stroke="#E8B84B" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M26 44 C17 42 13 33 14 24 C15 15 21 10 27 12 C31 13 31 18 28 19 C24 20 22 17 23 15" stroke="#E8B84B" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M44 26 C58 22 62 40 56 50 C51 56 44 52 43 46 Z" fill="#C9922A"/><circle cx="33" cy="34" r="1.8" fill="#2A1F3D"/></svg></div>
   <div style="color:#A990C9;font-size:10px;margin-top:4px;font-style:italic">In loving memory of my father, who collected elephants — every elephant here is for him.</div>
   <div style="color:#7A6E8A;font-size:10px;margin-top:10px">© 2026 REAL Holistic Network · All Rights Reserved</div>
@@ -543,6 +556,7 @@ function showPage(p){
   if(p==="home")renderHome();
   if(p==="find")renderFind();
   if(p==="learn")renderLearn();
+  if(p==="gifts")renderGifts();
   if(p==="events")renderEvents();
   if(p==="workplace")renderWorkplace();
   if(p==="join")renderJoinPills();
@@ -615,6 +629,7 @@ function updateBkTierPrice(){
 function openBooking(id){
   selP=P.find(function(p){return p.id===id;});
   if(!selP)return;
+  BK_GIFTS=[];
   var tiers=getTiers(selP);
   selTier=tiers[0];
   document.getElementById("bk-healer").innerHTML=avatarHtml(selP,64)+'<div style="flex:1"><div style="font-weight:bold;color:#2A1F3D">'+selP.name+'</div><div style="font-size:12px;margin:2px 0">'+ratingHtml(selP)+'</div><div class="text-soft" style="font-size:12px">'+selP.location+'</div><div class="mod-tags" style="margin-top:4px">'+selP.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div style="text-align:right"><div style="font-size:20px;color:#C9922A;font-weight:bold" id="bk-price-display">$'+selTier.price+'</div><div class="text-soft" style="font-size:11px">per session</div></div>';
@@ -638,9 +653,10 @@ function bkStep2(){
   var conflictWarning=hasConflict?'<div class="disclaimer-box" style="border-color:#C4727A;background:linear-gradient(135deg,#fde8ea,#fde8ea)"><span style="font-size:13px;color:#A45560">⚠️ '+selP.name+' already has something on their schedule this date. Consider messaging first or choosing another date.</span></div>':'';
   var fee=selTier.price,tot=fee;
   var rows=[["Venue/Org",v],["Session type",selTier.name],["Date",bkDisplayDate()],["Time",bkDisplayTime()],["Type",document.getElementById("b-vtype").value||"—"],["Group",document.getElementById("b-group").value?document.getElementById("b-group").value+" people":"—"],["Session fee","$"+fee]];
-  document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin-bottom:20px">Review your booking</h3>'+conflictWarning+''+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#2A1F3D">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">Your card is charged only after the healer confirms. Cancellation policy: cancel at least 24 hours before your session for a full refund; later cancellations and no-shows are not refunded. To cancel, email bookings.realsound@gmail.com. I understand that REAL Holistic Network is a marketplace platform. REAL Holistic Network is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Holistic Network bears no liability for any injury or damage arising from this session.</span></label></div><label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#7A6E8A;margin:4px 0 12px;cursor:pointer"><input type="checkbox" id="b-news" style="width:auto;margin-top:2px;accent-color:#6B4699"><span>Send me healing tips, events and offers from REAL Holistic Network (optional, unsubscribe anytime)</span></label><div class="stripe-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="card-element"></div><div id="card-errors"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" id="pay-btn" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">Pay $'+tot+' & Request →</button></div></div>';
+  document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin-bottom:20px">Review your booking</h3>'+conflictWarning+''+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#2A1F3D">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">Your card is charged only after the healer confirms. Cancellation policy: cancel at least 24 hours before your session for a full refund; later cancellations and no-shows are not refunded. To cancel, email bookings.realsound@gmail.com. I understand that REAL Holistic Network is a marketplace platform. REAL Holistic Network is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Holistic Network bears no liability for any injury or damage arising from this session.</span></label></div><label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#7A6E8A;margin:4px 0 12px;cursor:pointer"><input type="checkbox" id="b-news" style="width:auto;margin-top:2px;accent-color:#6B4699"><span>Send me healing tips, events and offers from REAL Holistic Network (optional, unsubscribe anytime)</span></label><div id="bk-gift"></div><div class="stripe-box" id="bk-card-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="card-element"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div id="card-errors"></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" id="pay-btn" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">'+bkPayLabel()+'</button></div></div>';
   document.getElementById("bk-step1").style.display="none";
   document.getElementById("bk-step2").style.display="block";
+  renderBkGift();
   ensureStripe(selP.payAcct||'');
   setTimeout(function(){
     try{cardElement.unmount();}catch(e){}
@@ -663,39 +679,41 @@ async function confirmBooking(){
   if(useSlot){
     try{
       var rs=await reserveSlot("hold");
-      if(!rs.ok){toast(rs.error||"Sorry, that time was just taken. Please pick another time.","#C4727A");btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";await refreshPublic();bkStep1();bkSlot=null;setBkHidden();renderSlotPicker();return;}
+      if(!rs.ok){toast(rs.error||"Sorry, that time was just taken. Please pick another time.","#C4727A");btn.disabled=false;btn.textContent=bkPayLabel();await refreshPublic();bkStep1();bkSlot=null;setBkHidden();renderSlotPicker();return;}
       bkLockId=rs.lockId;
-    }catch(e){toast("Couldn't reserve that time. Please try again.","#C4727A");btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";return;}
+    }catch(e){toast("Couldn't reserve that time. Please try again.","#C4727A");btn.disabled=false;btn.textContent=bkPayLabel();return;}
   }
   var releaseHold=function(){if(useSlot&&bkLockId)reserveSlot("release").catch(function(){});};
   try{
-    var piRes=await fetch('/api/create-payment-intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({practitionerId:selP.id,tierId:selTier.id,sessionType:selTier.name,email:document.getElementById("b-email").value,start:useSlot?bkSlot.toISOString():(document.getElementById("b-date").value+" "+document.getElementById("b-time").value)})});
+    var gplan=bkGiftPlan(),giftCodes=gplan.uses.map(function(u){return u.code;});
+    var piRes=await fetch('/api/create-payment-intent',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({practitionerId:selP.id,tierId:selTier.id,sessionType:selTier.name,giftCodes:giftCodes,email:document.getElementById("b-email").value,start:useSlot?bkSlot.toISOString():(document.getElementById("b-date").value+" "+document.getElementById("b-time").value)})});
     var piData=await piRes.json();
     if(!piData.error&&(piData.stripeAccount||'')!==STRIPE_ACCT)piData.error="This healer's payment setup just changed. Please refresh the page and try again. Your card was not charged.";
+    if(!piData.error&&(piData.giftTotal||0)!==gplan.total)piData.error="The amount left on your gift certificate just changed. Please remove it and add it again. Your card was not charged.";
     if(piData.error){
       document.getElementById("card-errors").textContent=piData.error;releaseHold();
-      btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
+      btn.disabled=false;btn.textContent=bkPayLabel();
       return;
     }
-    var result=await stripe.confirmCardPayment(piData.clientSecret,{payment_method:{card:cardElement,billing_details:{email:document.getElementById("b-email").value}}});
+    var result=piData.noCard?{}:await stripe.confirmCardPayment(piData.clientSecret,{payment_method:{card:cardElement,billing_details:{email:document.getElementById("b-email").value}}});
     if(result.error){
       document.getElementById("card-errors").textContent=result.error.message;releaseHold();
-      btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
+      btn.disabled=false;btn.textContent=bkPayLabel();
       return;
     }
-    var saved=await api("/api/booking",{practitionerId:selP.id,tierId:selTier.id,sessionType:selTier.name,paymentIntentId:piData.paymentIntentId,stripeAccount:piData.stripeAccount||"",venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null,healerTz:useSlot?getAvail(selP).tz:null,lockId:useSlot?bkLockId:null,source:LANDING_SRC||"direct"});
+    var saved=await api("/api/booking",{practitionerId:selP.id,tierId:selTier.id,sessionType:selTier.name,giftCodes:giftCodes,paymentIntentId:piData.paymentIntentId||"",stripeAccount:piData.stripeAccount||"",venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null,healerTz:useSlot?getAvail(selP).tz:null,lockId:useSlot?bkLockId:null,source:LANDING_SRC||"direct"});
     if(saved.ok&&document.getElementById("b-news")&&document.getElementById("b-news").checked)api("/api/community",{action:"subscribe",email:document.getElementById("b-email").value,source:"booking"});
-    if(!saved.ok){releaseHold();document.getElementById("card-errors").textContent=saved.error||"Something went wrong. Your card was not charged.";btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";return;}
+    if(!saved.ok){releaseHold();document.getElementById("card-errors").textContent=saved.error||"Something went wrong. Your card was not charged.";btn.disabled=false;btn.textContent=bkPayLabel();return;}
     var bk={id:saved.booking.id,practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,sessionType:selTier.name,total:tot,healerTz:useSlot?getAvail(selP).tz:null,status:"pending",startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null};
     B.push({practitionerId:bk.practitionerId,status:"pending",date:bk.date,time:bk.time,startUTC:bk.startUTC,durationMin:bk.durationMin});
     if(useSlot)reserveSlot("keep",{bookingId:bk.id}).catch(function(){});
     logAdminNotification("🔔 New booking request: "+bk.venueName+" → "+bk.practitionerName+" ("+bk.date+")");
     document.getElementById("bk-step2").style.display="none";
-    document.getElementById("bk-step3").innerHTML='<div class="card card-gold" style="text-align:center;padding:36px"><div style="font-size:52px;margin-bottom:16px">🔔</div><h2 class="text-gold" style="font-weight:normal;margin-bottom:10px">Request Sent!</h2><p class="text-soft" style="margin-bottom:8px;line-height:1.7;font-size:14px">'+selP.name+' will confirm within 24 hours.</p><p class="text-soft" style="margin-bottom:24px;font-size:13px">Your card will be charged once they accept.</p><button class="btn btn-outline" onclick="showPage(\'find\')">Back to healers</button></div>';
+    document.getElementById("bk-step3").innerHTML='<div class="card card-gold" style="text-align:center;padding:36px"><div style="font-size:52px;margin-bottom:16px">🔔</div><h2 class="text-gold" style="font-weight:normal;margin-bottom:10px">Request Sent!</h2><p class="text-soft" style="margin-bottom:8px;line-height:1.7;font-size:14px">'+selP.name+' will confirm within 24 hours.</p><p class="text-soft" style="margin-bottom:24px;font-size:13px">'+(gplan.total?(gplan.total>=tot?'Your gift certificate covers this session. If they can\'t make it, the money goes right back on your code.':'Your gift certificate covers $'+gplan.total+'. Your card will be charged $'+(tot-gplan.total)+' once they accept.'):'Your card will be charged once they accept.')+'</p><button class="btn btn-outline" onclick="showPage(\'find\')">Back to healers</button></div>';
     document.getElementById("bk-step3").style.display="block";
     toast("Booking request sent! 🎵");
   }catch(e){
-    releaseHold();btn.disabled=false;btn.textContent="Pay $"+tot+" & Request →";
+    releaseHold();btn.disabled=false;btn.textContent=bkPayLabel();
     toast("Something went wrong. Please try again.","#C4727A");
   }
 }
@@ -1022,12 +1040,13 @@ function renderAdmin(){
   // Signup source breakdown
   var sources={};P.forEach(function(p){var s=p.source||'direct';sources[s]=(sources[s]||0)+1;});
   var srcHtml=Object.keys(sources).map(function(s){return '<span style="background:#F0EAF8;color:#6B4699;padding:3px 10px;border-radius:8px;font-size:12px;margin-right:6px">'+s+': '+sources[s]+'</span>';}).join('');
-  document.getElementById("admin-bookings").innerHTML=(srcHtml?'<div style="margin-bottom:16px"><div class="section-title">SIGNUP SOURCES</div>'+srcHtml+'</div>':'')+(B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:2px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.practitionerName+(b.sessionType?' · '+b.sessionType:'')+' · '+b.date+' · '+b.venueType+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span></div></div><span class="status-'+b.status+'">'+b.status+'</span>'+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>');
+  document.getElementById("admin-bookings").innerHTML=(srcHtml?'<div style="margin-bottom:16px"><div class="section-title">SIGNUP SOURCES</div>'+srcHtml+'</div>':'')+(B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:2px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.practitionerName+(b.sessionType?' · '+b.sessionType:'')+' · '+b.date+' · '+b.venueType+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span></div>'+adminGiftLine(b)+'</div><span class="status-'+b.status+'">'+b.status+'</span>'+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>');
   document.getElementById("admin-practitioners").innerHTML=P.map(function(p){
     if(editingHealerId===p.id)return healerEditForm(p);
     return '<div class="booking-card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+avatarHtml(p,40)+'<div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · '+priceLabel(p)+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+'</div><div class="text-soft" style="font-size:12px">✉ <a href="mailto:'+p.email+'" style="color:#6B4699">'+p.email+'</a></div>'+payTermsBadge(p)+stripeBadge(p)+(hasCalendar(p)?'<div style="font-size:11px;color:#6B4699">⏰ Booking calendar on</div>':'')+'</div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="copyText(shareUrlFor({id:\''+p.id+'\',name:'+JSON.stringify(p.name).replace(/"/g,"&quot;")+'}))" title="Copy this healer\'s booking link">🔗 Link</button><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="editHealer(\''+p.id+'\')">Edit</button>'+(isOwner?'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button>':'')+'</div></div>';
   }).join("");
   renderAdminLearn();
+  renderAdminGifts();
   renderAdminEvents();
   renderAdminReviews();
   renderAdminCommunity();
@@ -1445,6 +1464,123 @@ function renderProducts(list){
     return '<div class="card" style="display:flex;flex-direction:column;gap:8px">'+(img?'<img src="'+escHtml(img)+'" alt="" loading="lazy" referrerpolicy="no-referrer" style="width:100%;aspect-ratio:1;object-fit:contain;border-radius:10px;background:#fff" onerror="this.style.display=\'none\'">':'')+'<div style="font-weight:bold;font-size:16px;color:#2A1F3D">'+escHtml(p.title)+'</div>'+(p.price?'<div class="text-gold" style="font-weight:bold">'+escHtml(p.price)+'</div>':'')+(p.description?'<div class="text-soft" style="font-size:13px;line-height:1.6;flex:1">'+nl2br(p.description)+'</div>':'<div style="flex:1"></div>')+'<div style="font-size:11px;color:#A990C9">Recommended by '+escHtml(p.recommendedBy||"Suzzanna")+' · affiliate link</div>'+(u?'<a class="btn btn-gold full-width" href="'+escHtml(u)+'" target="_blank" rel="sponsored noopener" style="text-decoration:none;text-align:center;display:block">Shop now ↗</a>':'')+'</div>';
   }).join("")+'</div>';
 }
+
+// =====================================================================
+// GIFT CERTIFICATES — buying one, and using one when booking
+// =====================================================================
+var GIFT_AMOUNTS=[25,50,75,100],GIFT={amount:50,qty:1,delivery:"email"};
+function renderGifts(){
+  var el=document.getElementById("gifts-body");if(!el)return;
+  var opt=function(on){return 'min-height:44px;padding:10px 16px;font-size:15px;'+(on?'background:#6B4699;color:#fff;border-color:#6B4699':'');};
+  el.innerHTML='<div class="card card-gold" id="gift-form">'
+    +'<div class="field"><label>CHOOSE AN AMOUNT</label><div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">'+GIFT_AMOUNTS.map(function(a){return '<button type="button" class="pill gift-amt" data-amt="'+a+'" style="'+opt(GIFT.amount===a)+'" onclick="setGiftAmount('+a+')">$'+a+'</button>';}).join("")+'</div></div>'
+    +'<div class="field"><label for="g-qty">HOW MANY?</label><select id="g-qty" onchange="GIFT.qty=parseInt(this.value,10)||1;updateGiftTotal()">'+[1,2,3,4,5,6,7,8,9,10].map(function(n){return '<option value="'+n+'"'+(GIFT.qty===n?' selected':'')+'>'+n+'</option>';}).join("")+'</select><div class="text-soft" style="font-size:12px;margin-top:5px">Want a different total? Buy more than one. For $150, choose $75 × 2. They can use several codes on one booking.</div></div>'
+    +'<div class="field"><label for="g-rname">WHO IS IT FOR?</label><input id="g-rname" maxlength="80" placeholder="Their name"></div>'
+    +'<div class="field"><label>HOW SHOULD IT GET TO THEM?</label><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px"><button type="button" class="pill gift-del" data-del="email" style="'+opt(GIFT.delivery==="email")+'" onclick="setGiftDelivery(\'email\')">✉️ Email it to them</button><button type="button" class="pill gift-del" data-del="print" style="'+opt(GIFT.delivery==="print")+'" onclick="setGiftDelivery(\'print\')">🖨 I\'ll print it</button></div></div>'
+    +'<div class="field" id="g-remail-field"'+(GIFT.delivery==="email"?'':' style="display:none"')+'><label for="g-remail">THEIR EMAIL</label><input id="g-remail" type="email" maxlength="200" placeholder="them@example.com"></div>'
+    +'<div class="field"><label for="g-msg">A PERSONAL MESSAGE (optional)</label><textarea id="g-msg" rows="2" maxlength="300" placeholder="Happy birthday! Treat yourself to something wonderful."></textarea></div>'
+    +'<div class="two-col"><div class="field"><label for="g-bname">YOUR NAME</label><input id="g-bname" maxlength="80" placeholder="Your name"></div><div class="field"><label for="g-bemail">YOUR EMAIL (for your receipt)</label><input id="g-bemail" type="email" maxlength="200" placeholder="you@example.com"></div></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:10px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold" id="g-total"></span></div>'
+    +'<div class="stripe-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="gift-card"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div>'
+    +'<div id="g-errors" style="color:#A45560;font-size:13px;margin:6px 0"></div>'
+    +'<button class="btn btn-gold full-width" id="g-pay" style="padding:14px;font-size:15px" onclick="payGift()"></button>'
+    +'</div>'
+    +'<div class="card" style="margin-top:18px"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:6px">Have a gift certificate?</div><div class="text-soft" style="font-size:13px;margin-bottom:10px;line-height:1.6">Check how much is left on it. To use it, choose a healer and type the code in when you book.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="g-check" aria-label="Gift certificate code" placeholder="RHN-XXXX-XXXX" style="flex:1;min-width:160px;text-transform:uppercase" onkeydown="if(event.key===\'Enter\')checkGift()"><button class="btn btn-outline" onclick="checkGift()">Check</button></div><div id="g-check-out" style="font-size:14px;margin-top:10px"></div></div>';
+  updateGiftTotal();
+  if(typeof Stripe==='undefined'){document.getElementById("gift-card").textContent="The payment form couldn't load. Please refresh the page.";return;}
+  ensureStripe('');
+  setTimeout(function(){
+    if(!cardElement){cardElement=elements.create('card',{style:{base:{fontFamily:'Georgia,serif',fontSize:'14px',color:'#2A1F3D','::placeholder':{color:'#A990C9'}},invalid:{color:'#C4727A'}}});}
+    try{cardElement.unmount();}catch(e){}
+    if(document.getElementById("gift-card"))cardElement.mount('#gift-card');
+  },100);
+}
+function giftOptStyle(sel,attr,val){document.querySelectorAll(sel).forEach(function(b){var on=b.getAttribute(attr)===String(val);b.style.background=on?"#6B4699":"";b.style.color=on?"#fff":"";b.style.borderColor=on?"#6B4699":"";});}
+function setGiftAmount(a){GIFT.amount=a;giftOptStyle(".gift-amt","data-amt",a);updateGiftTotal();}
+function setGiftDelivery(d){GIFT.delivery=d;giftOptStyle(".gift-del","data-del",d);document.getElementById("g-remail-field").style.display=d==="email"?"block":"none";}
+function updateGiftTotal(){var t=GIFT.amount*GIFT.qty;var a=document.getElementById("g-total");if(a)a.textContent="$"+t;var b=document.getElementById("g-pay");if(b&&!b.disabled)b.textContent="Pay $"+t+" →";}
+async function payGift(){
+  var v=function(id){return document.getElementById(id).value.trim();};
+  var err=document.getElementById("g-errors"),btn=document.getElementById("g-pay");err.textContent="";
+  var body={action:"buy",amount:GIFT.amount,qty:GIFT.qty,delivery:GIFT.delivery,recipientName:v("g-rname"),recipientEmail:v("g-remail"),message:v("g-msg"),buyerName:v("g-bname"),buyerEmail:v("g-bemail")};
+  if(!body.recipientName){err.textContent="Please enter the name of the person you're giving it to";return;}
+  if(body.delivery==="email"&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.recipientEmail)){err.textContent="Please enter their email, or choose \"I'll print it\"";return;}
+  if(!body.buyerName){err.textContent="Please enter your name";return;}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.buyerEmail)){err.textContent="Please enter your email for your receipt";return;}
+  btn.disabled=true;btn.textContent="Processing…";
+  var again=function(){btn.disabled=false;updateGiftTotal();};
+  var j=await api("/api/gift",body);
+  if(!j.ok){err.textContent=j.error;again();return;}
+  var result=await stripe.confirmCardPayment(j.clientSecret,{payment_method:{card:cardElement,billing_details:{name:body.buyerName,email:body.buyerEmail}}});
+  if(result.error){err.textContent=result.error.message;again();return;}
+  var done=null;
+  for(var i=0;i<4;i++){done=await api("/api/gift",{action:"complete",paymentIntentId:j.paymentIntentId});if(done.ok)break;await new Promise(function(r){setTimeout(r,1500);});}
+  if(!done||!done.ok){err.textContent="Your payment went through, but we couldn't finish making your gift certificate. Please email bookings.realsound@gmail.com and we'll send it right away.";btn.textContent="Paid ✓";return;}
+  try{cardElement.unmount();}catch(e){}
+  var n=done.certificates.length;
+  document.getElementById("gift-form").innerHTML='<div style="text-align:center"><div style="font-size:44px;margin-bottom:8px">🎁</div><h3 class="text-gold" style="font-weight:normal;margin:0 0 8px">Thank you!</h3><p class="text-soft" style="font-size:14px;line-height:1.7;margin:0 0 16px">'+(done.delivery==="email"?'We\'ve emailed '+escHtml(body.recipientName)+' at '+escHtml(done.recipientEmail)+'. A copy is on its way to you too.':'Your receipt and '+(n>1?'certificates are':'certificate is')+' on the way to '+escHtml(done.buyerEmail)+'. Open '+(n>1?'each one':'it')+' below to print.')+'</p></div>'
+    +done.certificates.map(function(c){return '<div style="background:#2A1342;border:2px solid #C9922A;border-radius:10px;padding:16px;margin-bottom:10px;text-align:center"><div style="font-size:11px;letter-spacing:3px;color:#E3C77A">GIFT CERTIFICATE · $'+c.amount+'</div><div style="font-size:21px;font-weight:bold;letter-spacing:3px;color:#E3C77A;margin:8px 0 12px">'+escHtml(c.code)+'</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><a class="btn btn-gold" style="text-decoration:none" href="'+escHtml(c.viewUrl)+'" target="_blank" rel="noopener">Open &amp; print</a><button class="btn btn-ghost" style="background:#fff" onclick="copyText(\''+escHtml(c.code)+'\')">Copy code</button></div></div>';}).join("")
+    +'<button class="btn btn-outline full-width" style="margin-top:8px" onclick="renderGifts()">Buy another</button>';
+  toast("Gift certificate ready! 🎁");
+}
+async function checkGift(){
+  var out=document.getElementById("g-check-out"),code=document.getElementById("g-check").value.trim();
+  if(!code){out.textContent="Please type the code";return;}
+  out.textContent="Checking…";
+  var j=await api("/api/gift",{action:"check",code:code});
+  out.innerHTML=j.ok?'<span style="color:#4A9B8E">✓ '+escHtml(j.gift.code)+' has <strong>$'+j.gift.balance+'</strong> left'+(j.gift.balance<j.gift.amount?' (of $'+j.gift.amount+')':'')+'.</span> <span class="text-soft">Choose a healer and type it in when you book.</span>':'<span style="color:#A45560">'+escHtml(j.error)+'</span>';
+}
+
+// ---- using gift certificates at booking ----
+var BK_GIFTS=[];
+function bkGiftPlan(){
+  var left=selTier?selTier.price:0,uses=[],total=0;
+  BK_GIFTS.forEach(function(g){var a=Math.min(g.balance,left);if(a>0){uses.push({code:g.code,amount:a});left-=a;total+=a;}});
+  return {uses:uses,total:total};
+}
+function bkPayLabel(){if(!selTier)return "Request →";var due=selTier.price-bkGiftPlan().total;return due>0?"Pay $"+due+" & Request →":"Send Request →";}
+function renderBkGift(){
+  var el=document.getElementById("bk-gift");if(!el||!selTier)return;
+  var plan=bkGiftPlan(),due=selTier.price-plan.total;
+  var rows=plan.uses.map(function(u){return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;font-size:14px"><span style="color:#2A1F3D">🎁 '+escHtml(u.code)+'</span><span style="display:flex;align-items:center;gap:8px"><span style="color:#4A9B8E">−$'+u.amount+'</span><button class="btn btn-ghost" style="padding:4px 10px;font-size:12px;min-height:32px" aria-label="Remove gift certificate '+escHtml(u.code)+'" onclick="removeBkGift(\''+escHtml(u.code)+'\')">Remove</button></span></div>';}).join("");
+  el.innerHTML='<div class="stripe-box" style="background:#FFFBF2;border-color:rgba(201,146,42,.35)"><div style="font-size:11px;letter-spacing:.1em;color:#C9922A;margin-bottom:8px">GIFT CERTIFICATE</div>'+rows
+    +(due>0?'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:'+(rows?'8':'0')+'px"><input id="bk-gift-code" aria-label="Gift certificate code" placeholder="RHN-XXXX-XXXX" style="flex:1;min-width:150px;text-transform:uppercase" onkeydown="if(event.key===\'Enter\')addBkGift()"><button class="btn btn-outline" style="padding:8px 16px" onclick="addBkGift()">Apply</button></div>':'')
+    +(plan.total?'<div style="display:flex;justify-content:space-between;padding:10px 0 0;margin-top:8px;border-top:1px solid rgba(201,146,42,.25);font-weight:bold;color:#2A1F3D"><span>'+(due>0?'Your card pays':'Left to pay')+'</span><span>$'+due+'</span></div>':'')
+    +'</div>';
+  var box=document.getElementById("bk-card-box");if(box)box.style.display=due>0?"block":"none";
+  var btn=document.getElementById("pay-btn");if(btn&&!btn.disabled)btn.textContent=bkPayLabel();
+}
+async function addBkGift(){
+  var inp=document.getElementById("bk-gift-code");if(!inp)return;
+  var code=inp.value.trim();if(!code){toast("Please type your gift certificate code","#C4727A");return;}
+  if(BK_GIFTS.length>=5){toast("You can use up to 5 gift certificates on one booking","#C4727A");return;}
+  var j=await api("/api/gift",{action:"check",code:code});
+  if(!j.ok){toast(j.error,"#C4727A");return;}
+  if(BK_GIFTS.some(function(g){return g.code===j.gift.code;})){toast("That code is already added","#C4727A");return;}
+  BK_GIFTS.push({code:j.gift.code,balance:j.gift.balance});
+  renderBkGift();
+  toast("Gift certificate applied ✓","#4A9B8E");
+}
+function removeBkGift(code){BK_GIFTS=BK_GIFTS.filter(function(g){return g.code!==code;});renderBkGift();}
+
+// ---- admin ----
+function adminGiftLine(b){
+  if(!b.giftTotal)return "";
+  var bad=(b.giftUses||[]).filter(function(u){return u.payout&&u.payout.status!=="sent";});
+  var sent=(b.giftUses||[]).length&&(b.giftUses||[]).every(function(u){return u.payout&&u.payout.status==="sent";});
+  return '<div class="text-soft" style="font-size:12px">🎁 Gift certificate paid $'+b.giftTotal+(sent?' · <span style="color:#4A9B8E">healer paid ✓</span>':'')+(bad.length?' · <span style="color:#A45560">healer payout needs attention</span> <button class="btn btn-ghost" style="padding:2px 10px;font-size:11px" onclick="retryGiftPayout(\''+b.id+'\')">Try again</button>':'')+'</div>';
+}
+function renderAdminGifts(){
+  var el=document.getElementById("admin-gifts");if(!el||!ADMIN_DATA)return;
+  var G=(ADMIN_DATA.gifts||[]).filter(function(g){return g.mode===ADMIN_DATA.stripeMode;}),isOwner=curAdminRole==="owner";
+  var sold=G.reduce(function(n,g){return n+g.amount;},0),left=G.reduce(function(n,g){return n+(g.active?g.balance:0);},0);
+  var needs=(ADMIN_DATA.bookings||[]).filter(function(b){return b.status==="confirmed"&&(b.giftUses||[]).some(function(u){return u.payout&&u.payout.status!=="sent";});});
+  el.innerHTML=(needs.length?'<div class="disclaimer-box" style="border-color:#C4727A;background:#fde8ea"><span style="font-size:13px;color:#A45560">⚠️ '+needs.length+' gift booking'+(needs.length>1?'s need':' needs')+' a healer payout. Use "Try again" next to the booking above.</span></div>':'')
+    +'<div class="text-soft" style="font-size:13px;margin-bottom:10px">'+G.length+' sold · $'+sold+' total · $'+left+' not used yet</div>'
+    +(G.length?G.slice(0,50).map(function(g){return '<div class="booking-card" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D;letter-spacing:1px">'+escHtml(g.code)+(g.active?'':' <span style="color:#A45560;font-size:11px;letter-spacing:0">(turned off)</span>')+'</div><div class="text-soft" style="font-size:12px">$'+g.balance+' left of $'+g.amount+' · '+escHtml(g.buyerName||"")+' → '+escHtml(g.recipientName||"")+(g.recipientEmail?' ('+escHtml(g.recipientEmail)+')':' (printed)')+' · '+new Date(g.createdAt).toLocaleDateString()+'</div></div><a class="btn btn-ghost" style="padding:6px 12px;font-size:12px;text-decoration:none" href="/api/gift?view='+encodeURIComponent(g.code)+'" target="_blank" rel="noopener">View</a>'+(isOwner?'<button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="toggleGift(\''+escHtml(g.code)+'\','+(!g.active)+')">'+(g.active?'Turn off':'Turn on')+'</button>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px">No gift certificates sold yet.</div>');
+}
+async function retryGiftPayout(id){var j=await api("/api/admin",{action:"giftRetry",bookingId:id},ADMIN_TOKEN);if(!j.ok){toast(j.error||"Couldn't send it","#C4727A");return;}ADMIN_DATA=j;renderAdmin();toast("Healer paid ✓","#4A9B8E");}
+async function toggleGift(code,on){if(!on&&!confirm("Turn off "+code+"? It won't work for bookings until you turn it back on. (Refund the buyer in Stripe if needed.)"))return;var j=await api("/api/admin",{action:"giftToggle",code:code,active:on},ADMIN_TOKEN);if(!j.ok){toast(j.error||"Couldn't save","#C4727A");return;}ADMIN_DATA=j;renderAdmin();toast("Saved ✓","#4A9B8E");}
 
 // ---------------- buying a journal ----------------
 var BUY_ITEM=null;

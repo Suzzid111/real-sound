@@ -1,10 +1,12 @@
 // api/admin.js — admin panel actions. Owner can do everything; the team
 // login can view and edit but cannot remove healers or change team access.
 import {
-  getSession, endSession, loadHealers, saveHealers, loadBookings, getJSON, setJSON,
+  getSession, endSession, loadHealers, saveHealers, loadBookings, saveBookings, getJSON, setJSON,
   selfHealer, hashPassword, logNote, alertOwner, str
 } from './_lib.js';
 import { setBookingStatus } from './_bookings.js';
+import { loadGift, saveGift, loadGiftIndex, payHealerGifts, normGiftCode } from './_gifts.js';
+import { redis } from './_lib.js';
 import { loadContent, loadEvents, saveEvents, cleanPhoto, savePhoto, loadReviews, saveReviews, stripeMode, cleanServices, loadServices, cleanServiceName } from './_lib.js';
 
 export default async function handler(req, res) {
@@ -200,12 +202,52 @@ export default async function handler(req, res) {
         const site = 'https://' + (req.headers['x-forwarded-host'] || req.headers.host || 'realholisticnetwork.com');
         return res.json({ ok: true, link: `${site}/api/learn?order=${o.id}&k=${o.key}`, email: o.email });
       }
+      case 'giftRetry': {
+        // Try again to send a healer their share of a gift-certificate booking.
+        const B = await loadBookings();
+        const b = B.find(x => x.id === str(body.bookingId, 40));
+        if (!b || !b.giftUses) return res.json({ ok: false, error: 'Booking not found' });
+        if (b.status !== 'confirmed') return res.json({ ok: false, error: 'Only confirmed bookings are paid out' });
+        if (!b.stripeAccount) {
+          const P = await loadHealers();
+          const { payAccount } = await import('./_lib.js');
+          const acct = payAccount(P.find(x => x.id === b.practitionerId));
+          if (!acct) return res.json({ ok: false, error: `${b.practitionerName} still hasn't connected Stripe, so there's nowhere to send it yet.` });
+          b.stripeAccount = acct;
+        }
+        for (const u of b.giftUses) if (u.payout && u.payout.status !== 'sent') delete u.payout;
+        await payHealerGifts(b);
+        await saveBookings(B);
+        const bad = b.giftUses.filter(u => !u.payout || u.payout.status !== 'sent');
+        await logNote(bad.length ? `⚠️ Gift payout to ${b.practitionerName} still not sent` : `✅ Gift payout sent to ${b.practitionerName}`);
+        if (bad.length) return res.json({ ok: false, error: 'Stripe still could not send it: ' + (bad[0].payout && bad[0].payout.error || 'unknown reason') });
+        break;
+      }
+      case 'giftToggle': {
+        if (!isOwner) return res.json({ ok: false, error: 'Only the owner can turn gift certificates on or off' });
+        const code = normGiftCode(body.code);
+        const g = code ? await loadGift(code) : null;
+        if (!g) return res.json({ ok: false, error: 'Gift certificate not found' });
+        g.active = !!body.active;
+        g.history = (g.history || []).concat({ type: g.active ? 'turned on' : 'turned off', at: new Date().toISOString() }).slice(-50);
+        await saveGift(g);
+        await logNote(`🎁 Gift certificate ${code} turned ${g.active ? 'ON' : 'OFF'}`);
+        break;
+      }
       default:
         return res.status(400).json({ ok: false, error: 'Unknown action' });
     }
 
     const [P, B, notes, teamActive, content, orders, E, R, SUBS, W, requireConnect] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true), loadContent(), getJSON('orders', []), loadEvents(), loadReviews(), getJSON('subscribers', []), getJSON('workplaceRequests', []), getJSON('requireConnect', false)]);
-    return res.json({ ok: true, role: s.role, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders, events: E, reviews: R, subscribers: SUBS.map(x => ({ email: x.email, name: x.name, source: x.source, createdAt: x.createdAt, unsub: x.token })), workplaceRequests: W, requireConnect, stripeMode: stripeMode(), services: await loadServices() });
+    // Gift certificates with their current balances (newest 300)
+    const GI = (await loadGiftIndex()).slice(0, 300);
+    let gifts = [];
+    if (GI.length) {
+      const raw = await redis(['MGET', ...GI.map(x => 'rs:gift:' + x.code)]);
+      gifts = raw.map(r => (r ? JSON.parse(r) : null)).filter(Boolean)
+        .map(g => ({ code: g.code, amount: g.amount, balance: g.balance, active: g.active !== false, mode: g.mode, buyerName: g.buyerName, buyerEmail: g.buyerEmail, recipientName: g.recipientName, recipientEmail: g.recipientEmail, delivery: g.delivery, createdAt: g.createdAt }));
+    }
+    return res.json({ ok: true, role: s.role, gifts, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders, events: E, reviews: R, subscribers: SUBS.map(x => ({ email: x.email, name: x.name, source: x.source, createdAt: x.createdAt, unsub: x.token })), workplaceRequests: W, requireConnect, stripeMode: stripeMode(), services: await loadServices() });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });
   }
