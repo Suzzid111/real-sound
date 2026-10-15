@@ -5,11 +5,12 @@
 // The price always comes from the healer's saved session types, never from the
 // browser. If the healer has connected Stripe, the payment goes straight to
 // their Stripe account and REAL Holistic Network's 15% is taken automatically
-// (a "direct charge" with an application fee).
+// (a "direct charge" with an application fee) — or 10% when the healer brought
+// this client with their own link (see bookingPct in _lib.js).
 //
 // Gift certificate codes (giftCodes) pay first; the card is only for the rest.
 // If the codes cover everything, no card is needed (noCard: true).
-import { loadHealers, getJSON, str, tooManyTries, clientIp, payAccount, platformFeeCents } from './_lib.js';
+import { loadHealers, getJSON, str, tooManyTries, clientIp, payAccount, platformFeeCents, bookingPct } from './_lib.js';
 import { stripe } from './_bookings.js';
 import { planGifts } from './_gifts.js';
 
@@ -47,7 +48,10 @@ export default async function handler(req, res) {
       description: `${tier.name} with ${p.name} (REAL Holistic Network)`,
       metadata: { practitionerId: p.id, practitioner: p.name, session: tier.name, start: str(b.start, 40), giftPaid: String(giftTotal) }
     };
-    if (acct) params.application_fee_amount = platformFeeCents(cardDollars);
+    // 15% normally; 10% when the healer brought this client with their own link.
+    const rate = await bookingPct(p, email, str(b.refHealer, 60));
+    params.metadata.platformPct = String(rate.pct);
+    if (acct) params.application_fee_amount = platformFeeCents(cardDollars, rate.pct);
     const pi = await stripe().paymentIntents.create(params, acct ? { stripeAccount: acct } : undefined);
     return res.status(200).json({ clientSecret: pi.client_secret, paymentIntentId: pi.id, stripeAccount: acct || '', giftTotal, cardTotal: cardDollars });
   } catch (err) {

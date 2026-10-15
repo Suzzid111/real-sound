@@ -125,7 +125,8 @@ export async function releaseBookingGifts(b, why) {
   await giveBack(b.giftUses, b.id, why || 'declined');
 }
 
-// The booking was confirmed: send the healer their 85% of the gift part.
+// The booking was confirmed: send the healer their 85% of the gift part
+// (90% when the healer brought this client with their own link).
 // Safe to call more than once. Changes `b` (caller saves the booking).
 export async function payHealerGifts(b) {
   if (!b || !b.giftUses || !b.giftUses.length || b.giftReleased) return;
@@ -133,7 +134,7 @@ export async function payHealerGifts(b) {
   const problems = [];
   for (const u of b.giftUses) {
     if (u.payout && u.payout.status === 'sent') continue;
-    const healerCents = Math.round(u.amount * 100) - platformFeeCents(u.amount);
+    const healerCents = Math.round(u.amount * 100) - platformFeeCents(u.amount, b.platformPct || undefined);
     if (!b.stripeAccount) {
       u.payout = { status: 'owed', cents: healerCents, at: new Date().toISOString() };
       problems.push(`$${(healerCents / 100).toFixed(2)} from ${u.code} (healer hasn't connected Stripe)`);

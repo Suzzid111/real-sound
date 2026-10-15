@@ -291,7 +291,45 @@ export const connectOf = p => ((p && p.connect) || {})[stripeMode()] || null;
 // The healer's Stripe account, only once Stripe says it can take card payments.
 export const payAccount = p => { const c = connectOf(p); return c && c.id && c.charges ? c.id : null; };
 export const PLATFORM_PCT = 15;
-export const platformFeeCents = dollars => Math.round(Math.round(dollars * 100) * PLATFORM_PCT / 100);
+export const platformFeeCents = (dollars, pct = PLATFORM_PCT) => Math.round(Math.round(dollars * 100) * pct / 100);
+
+// ---------- "Bring your own clients" (healer referral links) ----------
+// A client who first comes to a healer through that healer's own link
+// (realholisticnetwork.com/h/<name>) and books them is "the healer's client".
+// For 12 months from that client's first booking with the healer, REAL
+// Holistic Network keeps 10% instead of 15% on that client's bookings with
+// that healer. Bookings with any OTHER healer are always the normal 15%.
+// Launch offer: only for healers who join on or before REFERRAL_JOIN_BY.
+export const REFERRAL_PCT = 10;
+export const REFERRAL_MONTHS = 12;
+export const REFERRAL_JOIN_BY = () => process.env.REFERRAL_JOIN_BY || '2027-10-15';
+const refKey = (healerId, email) => 'refclient:' + healerId + ':' + crypto.createHash('sha256').update(String(email || '').trim().toLowerCase()).digest('hex').slice(0, 32);
+export function referralEligible(p) {
+  return !!p && (!p.joinedAt || String(p.joinedAt).slice(0, 10) <= REFERRAL_JOIN_BY());
+}
+// Works out RHN's commission for this client + healer. Returns
+// { pct, referral, claim } — claim is the saved record (or a new one to save).
+export async function bookingPct(p, email, refHealerId, bookings) {
+  const plain = { pct: PLATFORM_PCT, referral: false, claim: null };
+  const e = String(email || '').trim().toLowerCase();
+  if (!p || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return plain;
+  const saved = await getJSON(refKey(p.id, e), null);
+  if (saved) return saved.until > new Date().toISOString() ? { pct: REFERRAL_PCT, referral: true, claim: saved } : plain;
+  if (refHealerId !== p.id || !referralEligible(p)) return plain;
+  // If this client already booked this healer before WITHOUT the healer's
+  // link, REAL Holistic Network found them first, so the normal 15% stays.
+  const B = bookings || await loadBookings();
+  if (B.some(b => b.practitionerId === p.id && String(b.email || '').trim().toLowerCase() === e && b.status !== 'declined')) return plain;
+  const now = new Date(), until = new Date(now); until.setMonth(until.getMonth() + REFERRAL_MONTHS);
+  return { pct: REFERRAL_PCT, referral: true, claim: { since: now.toISOString(), until: until.toISOString(), isNew: true } };
+}
+// Called once the booking is saved: starts the client's 12 months (first booking only).
+export async function saveReferralClaim(p, email, claim, bookingId) {
+  if (!claim || !claim.isNew) return;
+  const key = 'rs:' + refKey(p.id, email);
+  // NX: never overwrite an existing claim (keeps the ORIGINAL 12-month window)
+  await redis(['SET', key, JSON.stringify({ since: claim.since, until: claim.until, firstBooking: bookingId }), 'NX']);
+}
 
 // ---------- Healing services a healer offers (shown on their profile and used by search) ----------
 // One official list, so search never shows the same service three different ways.

@@ -1,7 +1,7 @@
 // api/booking.js — saves a new booking request after the client's card has
 // been authorized. The server checks the real Stripe payment (amount and
 // status) against the healer's actual price before saving anything.
-import { loadHealers, loadBookings, saveBookings, logNote, alertOwner, redis, str, tooManyTries, clientIp, connectOf, platformFeeCents } from './_lib.js';
+import { loadHealers, loadBookings, saveBookings, logNote, alertOwner, redis, str, tooManyTries, clientIp, connectOf, platformFeeCents, bookingPct, saveReferralClaim } from './_lib.js';
 import { stripe } from './_bookings.js';
 import { planGifts, holdGifts, releaseBookingGifts } from './_gifts.js';
 
@@ -26,6 +26,8 @@ export default async function handler(req, res) {
     const cardDollars = Math.round(tier.price) - plan.total;
 
     const B = await loadBookings();
+    // 15% normally; 10% when the healer brought this client with their own link.
+    const rate = await bookingPct(p, str(b.email, 200), str(b.refHealer, 60), B);
     const acct = str(b.stripeAccount, 60);
     const mine = connectOf(p);
     if (acct && !(mine && mine.id === acct)) return res.json({ ok: false, error: 'Payment did not match this healer. Your card was not charged. Please try again.' });
@@ -38,7 +40,7 @@ export default async function handler(req, res) {
       if (B.some(x => x.paymentIntentId === piId)) return res.json({ ok: false, error: 'This payment was already used' });
       // Payments made straight to the healer's Stripe account live in THEIR account.
       pi = await stripe().paymentIntents.retrieve(piId, {}, opt);
-      const feeOk = acct ? pi.application_fee_amount === platformFeeCents(cardDollars) : true;
+      const feeOk = acct ? pi.application_fee_amount === platformFeeCents(cardDollars, rate.pct) : true;
       if (pi.status !== 'requires_capture' || pi.amount !== Math.round(cardDollars * 100) || !feeOk) {
         await cancel();
         return res.json({ ok: false, error: 'Payment did not match this session. Your card was not charged. Please try again.' });
@@ -62,7 +64,7 @@ export default async function handler(req, res) {
       }
     }
 
-    const platformFee = Math.round(tier.price * 0.15);
+    const platformFee = Math.round(tier.price * rate.pct / 100);
     const bk = {
       id: 'b' + Date.now(), paymentIntentId: pi ? piId : null, practitionerId: p.id, practitionerName: p.name,
       venueName: str(b.venueName, 150), email: str(b.email, 200), date: str(b.date, 10), time: str(b.time, 5),
@@ -70,7 +72,7 @@ export default async function handler(req, res) {
       sessionType: tier.name, price: tier.price, fee: tier.price - platformFee, platformFee, total: tier.price,
       status: 'pending', paymentMethodId: (pi && pi.payment_method) || null, createdAt: new Date().toISOString(),
       startUTC, durationMin, healerTz, lockId, source: str(b.source, 40) || 'direct',
-      stripeAccount: acct || null,
+      stripeAccount: acct || null, platformPct: rate.pct, referral: rate.referral || undefined,
       giftUses: plan.uses.length ? plan.uses : undefined, giftTotal: plan.total || undefined
     };
     if (!bk.venueName || !bk.email || !bk.date) { await cancel(); return res.json({ ok: false, error: 'Please fill in required fields' }); }
@@ -86,7 +88,8 @@ export default async function handler(req, res) {
       await releaseBookingGifts(bk, 'error');
       throw e;
     }
-    await alertOwner(`🔔 New booking request: ${bk.venueName} → ${bk.practitionerName} (${bk.date})`, [`Client: ${bk.venueName} (${bk.email})`, `Healer: ${bk.practitionerName}`, `Session: ${bk.sessionType} ($${bk.total}${bk.giftTotal ? ', $' + bk.giftTotal + ' paid by gift certificate' : ''})`, `When: ${bk.date} ${bk.time || ''}`, `Notes: ${bk.notes || 'None'}`]);
+    if (rate.referral) { try { await saveReferralClaim(p, bk.email, rate.claim, bk.id); } catch (e) {} }
+    await alertOwner(`🔔 New booking request: ${bk.venueName} → ${bk.practitionerName} (${bk.date})`, [`Client: ${bk.venueName} (${bk.email})`, `Healer: ${bk.practitionerName}`, `Session: ${bk.sessionType} ($${bk.total}${bk.giftTotal ? ', $' + bk.giftTotal + ' paid by gift certificate' : ''})`, `When: ${bk.date} ${bk.time || ''}`, `Notes: ${bk.notes || 'None'}`, bk.referral ? `💜 ${bk.practitionerName} brought this client with their own link (10% commission)` : '']);
     return res.json({ ok: true, booking: { id: bk.id, date: bk.date, time: bk.time, total: bk.total } });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });
