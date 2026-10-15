@@ -1425,9 +1425,13 @@ function renderLearn(){
 }
 function emptyCard(msg){return '<div class="card" style="text-align:center;color:#A990C9;padding:32px">'+msg+'</div>';}
 
+// Suzzanna's own printed journal, sold on Amazon (always shown first).
+var AMAZON_BOOKS=[{title:"The REAL Life Journal",by:"Suzzanna Downing",image:"/real-life-journal.jpg",url:"https://a.co/d/0eKMIA6o",description:"A 56-day daily wellness journal to help you slow down, reconnect, and live with meaning. Written by Suzzanna Downing, founder of REAL Holistic Network."}];
+function amazonBookCard(b){
+  return '<div class="card card-gold" style="display:flex;flex-direction:column;gap:10px"><img src="'+b.image+'" alt="'+escHtml(b.title)+' cover" loading="lazy" style="width:100%;aspect-ratio:3/4;object-fit:contain;border-radius:10px;background:#fff"><div style="font-weight:bold;font-size:17px;color:#2A1F3D">'+escHtml(b.title)+'</div><div class="text-soft" style="font-size:12px">by '+escHtml(b.by)+' · Paperback</div><div class="text-soft" style="font-size:13px;line-height:1.6;flex:1">'+escHtml(b.description)+'</div><a class="btn btn-gold full-width" href="'+b.url+'" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;display:block">Buy on Amazon ↗</a></div>';
+}
 function renderJournals(list){
-  if(!list.length)return emptyCard("Journals and workbooks are coming soon.");
-  return '<div class="healer-grid">'+list.map(function(j){
+  return '<div class="healer-grid">'+AMAZON_BOOKS.map(amazonBookCard).join("")+list.map(function(j){
     return '<div class="card" style="display:flex;flex-direction:column;gap:10px">'+(j.image?'<img src="'+j.image+'" alt="" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:#F0EAF8">':'')+'<div style="font-weight:bold;font-size:17px;color:#2A1F3D">'+escHtml(j.title)+'</div><div class="text-gold" style="font-weight:bold;font-size:18px">'+money(j.price)+'</div><div class="text-soft" style="font-size:13px;line-height:1.6;flex:1">'+nl2br(j.description)+'</div><div class="text-soft" style="font-size:11px">Instant download after purchase</div><button class="btn btn-gold full-width" onclick="openBuy(\''+j.id+'\')">Buy &amp; Download</button></div>';
   }).join("")+'</div>';
 }
