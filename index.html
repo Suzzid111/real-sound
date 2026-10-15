@@ -583,7 +583,11 @@ function clearZip(){
 
 function renderHome(){
   renderHomeServices();
-  document.getElementById("home-stats").innerHTML='<div class="stat"><div class="stat-num">'+P.length+'</div><div class="stat-label">Verified healers</div></div><div class="stat"><div class="stat-num">'+B.length+'</div><div class="stat-label">Sessions booked</div></div><div class="stat"><div class="stat-num">15%</div><div class="stat-label">Platform fee only</div></div>';
+  // Public counts stay hidden until they reach these milestones, then show automatically.
+  var SHOW_HEALERS_AT=50, SHOW_BOOKINGS_AT=100;
+  var hs=P.length>=SHOW_HEALERS_AT?'<div class="stat"><div class="stat-num">'+P.length+'</div><div class="stat-label">Verified healers</div></div>':'<div class="stat"><div class="stat-num">🇺🇸</div><div class="stat-label">Healers nationwide</div></div>';
+  var bs=B.length>=SHOW_BOOKINGS_AT?'<div class="stat"><div class="stat-num">'+B.length+'</div><div class="stat-label">Sessions booked</div></div>':'<div class="stat"><div class="stat-num">🔒</div><div class="stat-label">Secure payments by Stripe</div></div>';
+  document.getElementById("home-stats").innerHTML=hs+bs+'<div class="stat"><div class="stat-num">15%</div><div class="stat-label">Platform fee only</div></div>';
   var avail=P.filter(function(p){return p.available;}).slice(0,3);
   document.getElementById("featured").innerHTML=avail.map(function(p){return healerCard(p,true);}).join("");
 }
