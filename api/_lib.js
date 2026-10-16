@@ -192,7 +192,8 @@ export function publicEvent(e) {
   return {
     id: e.id, healerId: e.healerId, healerName: e.healerName, healerAvatar: e.healerAvatar || '',
     title: e.title, date: e.date, start: e.start, end: e.end || '', location: e.location, description: e.description,
-    spots: e.spots || 0, spotsLeft: e.spots ? Math.max(0, e.spots - taken) : null, going: taken
+    spots: e.spots || 0, spotsLeft: e.spots ? Math.max(0, e.spots - taken) : null, going: taken,
+    kind: e.kind || '', paid: !!e.paid, signupUrl: e.kind === 'partner' ? (e.signupUrl || '') : ''
   };
 }
 // Checks and cleans an event a healer submits. Returns { error } or { event }.

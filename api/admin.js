@@ -7,7 +7,7 @@ import {
 import { setBookingStatus } from './_bookings.js';
 import { loadGift, saveGift, loadGiftIndex, payHealerGifts, normGiftCode } from './_gifts.js';
 import { redis } from './_lib.js';
-import { loadContent, loadEvents, saveEvents, cleanPhoto, savePhoto, loadReviews, saveReviews, stripeMode, cleanServices, loadServices, cleanServiceName } from './_lib.js';
+import { loadContent, loadEvents, saveEvents, cleanEvent, cleanPhoto, savePhoto, loadReviews, saveReviews, stripeMode, cleanServices, loadServices, cleanServiceName } from './_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -141,6 +141,22 @@ export default async function handler(req, res) {
         C[sec] = C[sec].filter(x => x.id !== body.id);
         await setJSON('content', C);
         if (gone) await logNote(`🗑 Removed ${sec.slice(0, -1)}: ${gone.title}`);
+        break;
+      }
+      case 'eventAdd': {
+        // The admin adds an event for a community partner (paid or free).
+        // It goes live right away; sign-up happens on the partner's own link.
+        const raw = body.event || {};
+        const c = cleanEvent(raw);
+        if (c.error) return res.json({ ok: false, error: c.error });
+        const url = str(raw.signupUrl, 500);
+        if (url && !/^https:\/\//i.test(url)) return res.json({ ok: false, error: 'The link must start with https://' });
+        const E = await loadEvents();
+        const now = new Date().toISOString();
+        E.push(Object.assign({ id: 'ev' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), healerId: '', healerAvatar: '', rsvps: [], createdAt: now },
+          c.event, { healerName: str(raw.host, 120) || 'REAL Holistic Network', kind: 'partner', paid: !!raw.paid, signupUrl: url, status: 'approved', declineReason: '', updatedAt: now, reviewedAt: now }));
+        await saveEvents(E);
+        await logNote(`📣 Added event "${c.event.title}" (${c.event.date})`);
         break;
       }
       case 'eventStatus': {

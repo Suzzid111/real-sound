@@ -1727,9 +1727,9 @@ var PARTNER_EVENTS=[
   {id:"pe-hm-1026",title:"Hunter's Full Moon Women's Circle 🌕🍂",date:"2026-10-26",start:"18:00",location:"Indian Lake, South Kingstown, RI",healerName:"Hannah Morton · Hannah M Coaching",signupUrl:"https://www.facebook.com/share/19rJhZdPK7/"}
 ];
 function evAll(){
-  var list=(window.EVENTS||[]).map(function(e){return Object.assign({type:"healer"},e);});
+  var list=(window.EVENTS||[]).map(function(e){return Object.assign({type:e.kind==="partner"?"partner":"healer"},e);});
   var today=new Date().toISOString().slice(0,10);
-  PARTNER_EVENTS.forEach(function(e){if(e.date>=today)list.push(Object.assign({type:"partner",description:"Paid event. Details, tickets and payment are handled by the host, not REAL Holistic Network."},e));});
+  PARTNER_EVENTS.forEach(function(e){if(e.date>=today)list.push(Object.assign({type:"partner",paid:true},e));});
   ((window.CONTENT||{}).teachings||[]).forEach(function(t){
     if(t.kind==="class"&&t.date&&t.date>=today)list.push({type:"rhn",id:t.id,title:t.title,date:t.date,start:t.time||"",location:t.location,description:t.description,signupUrl:t.signupUrl,healerName:"REAL Holistic Network"});
   });
@@ -1770,7 +1770,7 @@ function evCard(e){
   if(e.type==="healer")action=(e.spots&&e.spotsLeft<=0)?'':'<button class="btn btn-gold" onclick="openRsvp(\''+e.id+'\')">Save my spot</button>';
   else{var su=safeUrl(e.signupUrl);action=su?'<a class="btn btn-gold" href="'+escHtml(su)+'" target="_blank" rel="noopener" style="text-decoration:none">'+(e.type==="partner"?'Details &amp; tickets':'Sign up')+'</a>':'';}
   var host=e.type==="healer"?'<span style="cursor:pointer;color:#6B4699;display:inline-flex;align-items:center;gap:6px;vertical-align:middle" onclick="openBooking(\''+e.healerId+'\')">'+avatarHtml(e,22)+escHtml(e.healerName)+'</span>':'<span style="color:#6B4699">'+escHtml(e.type==="partner"?e.healerName:"REAL Holistic Network")+'</span>';
-  return '<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="flex:1;min-width:180px"><div style="font-size:12px;color:#C9922A;font-weight:bold;letter-spacing:.05em">'+escHtml(time)+' · '+(e.type==="partner"?"PAID":"FREE")+'</div><div style="font-weight:bold;font-size:17px;color:#2A1F3D;margin:3px 0">'+escHtml(e.title)+'</div><div class="text-soft" style="font-size:13px">Hosted by '+host+'</div><div style="font-size:13px;color:#2A1F3D;margin-top:4px">📍 '+escHtml(e.location||"")+'</div></div>'+spots+'</div>'+(e.description?'<div class="text-soft" style="font-size:14px;line-height:1.6;margin:10px 0">'+nl2br(e.description)+'</div>':'<div style="height:10px"></div>')+action+'</div>';
+  return '<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="flex:1;min-width:180px"><div style="font-size:12px;color:#C9922A;font-weight:bold;letter-spacing:.05em">'+escHtml(time)+' · '+(e.type==="partner"&&e.paid?"PAID":"FREE")+'</div><div style="font-weight:bold;font-size:17px;color:#2A1F3D;margin:3px 0">'+escHtml(e.title)+'</div><div class="text-soft" style="font-size:13px">Hosted by '+host+'</div><div style="font-size:13px;color:#2A1F3D;margin-top:4px">📍 '+escHtml(e.location||"")+'</div></div>'+spots+'</div>'+(e.description?'<div class="text-soft" style="font-size:14px;line-height:1.6;margin:10px 0">'+nl2br(e.description)+'</div>':'<div style="height:10px"></div>')+(e.type==="partner"&&e.paid?'<div class="text-soft" style="font-size:12px;line-height:1.5;margin-bottom:10px">Paid event. Details, tickets and payment are handled by the host, not REAL Holistic Network.</div>':'')+action+'</div>';
 }
 
 // ---------------- visitor saves a spot ----------------
@@ -1864,7 +1864,24 @@ function renderAdminEvents(){
     var count=(e.rsvps||[]).reduce(function(n,g){return n+(g.guests||1);},0);
     return '<div class="booking-card"><div style="font-weight:bold;color:#2A1F3D">'+escHtml(e.title)+'</div><div class="text-soft" style="font-size:12px">'+escHtml(e.healerName)+' · '+evDayLabel(e.date)+' · '+evTime(e.start)+(e.end?'–'+evTime(e.end):'')+'</div><div style="font-size:13px;margin-top:4px">📍 '+escHtml(e.location)+'</div>'+(e.description?'<div class="text-soft" style="font-size:13px;margin-top:6px;line-height:1.5">'+nl2br(e.description)+'</div>':'')+(isPending?'':'<div class="text-soft" style="font-size:12px;margin-top:6px">👥 '+count+' signed up'+(e.spots?' of '+e.spots:'')+'</div>')+'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">'+(isPending?'<button class="btn btn-gold" style="padding:6px 14px;font-size:12px" onclick="admEventStatus(\''+e.id+'\',\'approved\')">✓ Approve</button><button class="btn btn-danger" style="padding:6px 14px;font-size:12px" onclick="admEventStatus(\''+e.id+'\',\'declined\')">✗ Decline</button>':'<button class="btn btn-danger" style="padding:6px 14px;font-size:12px" onclick="admEventStatus(\''+e.id+'\',\'remove\')">Remove from calendar</button>')+'</div></div>';
   };
-  el.innerHTML=(pending.length?'<div style="font-size:13px;color:#C9922A;font-weight:bold;margin-bottom:6px">⏳ WAITING FOR YOUR APPROVAL ('+pending.length+')</div>'+pending.map(function(e){return card(e,true);}).join(""):'<div class="text-soft" style="font-size:13px;margin-bottom:10px">No events waiting for approval.</div>')+(live.length?'<div style="font-size:13px;color:#6B4699;font-weight:bold;margin:14px 0 6px">LIVE ON THE CALENDAR ('+live.length+')</div>'+live.map(function(e){return card(e,false);}).join(""):'');
+  var addForm='<div class="card card-gold" style="margin-bottom:16px"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:4px">➕ Add an event</div><div class="text-soft" style="font-size:12px;margin-bottom:12px;line-height:1.5">For community partners, like a paid circle or workshop. It goes live on the calendar right away. People sign up on the host\'s own link.</div>'
+    +'<div class="field"><label>EVENT NAME</label><input id="ae-title" maxlength="120"></div>'
+    +'<div class="field"><label>HOSTED BY</label><input id="ae-host" maxlength="120" placeholder="e.g. Hannah Morton · Hannah M Coaching"></div>'
+    +'<div class="two-col"><div class="field"><label>DATE</label><input id="ae-date" type="date"></div><div class="field"><label>START TIME</label><input id="ae-start" type="time"></div></div>'
+    +'<div class="field"><label>END TIME (optional)</label><input id="ae-end" type="time"></div>'
+    +'<div class="field"><label>WHERE</label><input id="ae-loc" maxlength="200" placeholder="e.g. Indian Lake, South Kingstown, RI"></div>'
+    +'<div class="field"><label>ABOUT (optional, no links here)</label><textarea id="ae-desc" rows="3" maxlength="3000"></textarea></div>'
+    +'<div class="field"><label>SIGN-UP OR TICKET LINK</label><input id="ae-url" type="url" placeholder="https://..."></div>'
+    +'<label style="display:flex;gap:8px;align-items:center;font-size:13px;margin-bottom:12px;cursor:pointer"><input type="checkbox" id="ae-paid" checked style="width:auto;accent-color:#6B4699">This is a paid event</label>'
+    +'<button class="btn btn-purple full-width" id="ae-btn" onclick="admAddEvent()">Add to calendar</button></div>';
+  el.innerHTML=addForm+(pending.length?'<div style="font-size:13px;color:#C9922A;font-weight:bold;margin-bottom:6px">⏳ WAITING FOR YOUR APPROVAL ('+pending.length+')</div>'+pending.map(function(e){return card(e,true);}).join(""):'<div class="text-soft" style="font-size:13px;margin-bottom:10px">No events waiting for approval.</div>')+(live.length?'<div style="font-size:13px;color:#6B4699;font-weight:bold;margin:14px 0 6px">LIVE ON THE CALENDAR ('+live.length+')</div>'+live.map(function(e){return card(e,false);}).join(""):'');
+}
+async function admAddEvent(){
+  var g=function(id){return document.getElementById(id).value.trim();};
+  var btn=document.getElementById("ae-btn");btn.disabled=true;
+  var ok=await adminCall({action:"eventAdd",event:{title:g("ae-title"),host:g("ae-host"),date:g("ae-date"),start:g("ae-start"),end:g("ae-end"),location:g("ae-loc"),description:g("ae-desc"),signupUrl:g("ae-url"),paid:document.getElementById("ae-paid").checked}});
+  btn.disabled=false;
+  if(ok){toast("Added ✓ It's live on the calendar","#4A9B8E");renderAdmin();refreshPublic();}
 }
 async function admEventStatus(id,status){
   var reason="";
