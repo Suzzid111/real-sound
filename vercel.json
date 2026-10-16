@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/join",
+      "destination": "/index.html"
+    },
+    {
       "source": "/h/:slug",
       "destination": "/api/h?s=:slug"
     }

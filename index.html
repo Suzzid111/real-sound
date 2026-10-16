@@ -515,6 +515,14 @@ async function loadFromServer(){
   checkReschedLink();
   checkBookLink();
   checkConnectReturn();
+  checkJoinLink();
+}
+// Direct sign-up link: realholisticnetwork.com/join (or /?page=join) opens the Join page
+function checkJoinLink(){
+  var path=location.pathname.replace(/\/+$/,"").toLowerCase();
+  var q=/[?&]page=join\b/i.test(location.search);
+  if(path!=="/join"&&!q)return;
+  showPage("join");window.scrollTo(0,0);
 }
 var P=[];
 var B=[];
