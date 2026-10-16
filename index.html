@@ -1719,9 +1719,17 @@ async function admOrderLink(id){
 // spot right here; the host sees who's coming in their dashboard.
 // =====================================================================
 var EV_MONTH=null,EV_DAY=null,MYEVENTS=[],EV_EDIT=null;
+// Partner events: paid events run by community partners. Listed with the
+// host's permission; tickets and payment are handled by the host, not RHN.
+var PARTNER_EVENTS=[
+  {id:"pe-hm-1021",title:"RI Women's Collective Monthly Gathering",date:"2026-10-21",start:"16:30",location:"Wells Farm",healerName:"Hannah Morton · Hannah M Coaching",signupUrl:""},
+  {id:"pe-hm-1024",title:"Autumn Bouquet & Reiki Experience",date:"2026-10-24",start:"14:00",location:"Goddard Memorial",healerName:"Hannah Morton · Hannah M Coaching",signupUrl:""},
+  {id:"pe-hm-1026",title:"Hunter's Full Moon Women's Circle 🌕🍂",date:"2026-10-26",start:"18:00",location:"Indian Lake, South Kingstown, RI",healerName:"Hannah Morton · Hannah M Coaching",signupUrl:""}
+];
 function evAll(){
   var list=(window.EVENTS||[]).map(function(e){return Object.assign({type:"healer"},e);});
   var today=new Date().toISOString().slice(0,10);
+  PARTNER_EVENTS.forEach(function(e){if(e.date>=today)list.push(Object.assign({type:"partner",description:"Paid event. Details, tickets and payment are handled by the host, not REAL Holistic Network."},e));});
   ((window.CONTENT||{}).teachings||[]).forEach(function(t){
     if(t.kind==="class"&&t.date&&t.date>=today)list.push({type:"rhn",id:t.id,title:t.title,date:t.date,start:t.time||"",location:t.location,description:t.description,signupUrl:t.signupUrl,healerName:"REAL Holistic Network"});
   });
@@ -1760,9 +1768,9 @@ function evCard(e){
   var spots=e.type==="healer"&&e.spots?(e.spotsLeft>0?'<span class="badge-open">'+e.spotsLeft+' spot'+(e.spotsLeft===1?'':'s')+' left</span>':'<span class="badge-busy">Full</span>'):"";
   var action="";
   if(e.type==="healer")action=(e.spots&&e.spotsLeft<=0)?'':'<button class="btn btn-gold" onclick="openRsvp(\''+e.id+'\')">Save my spot</button>';
-  else{var su=safeUrl(e.signupUrl);action=su?'<a class="btn btn-gold" href="'+escHtml(su)+'" target="_blank" rel="noopener" style="text-decoration:none">Sign up</a>':'';}
-  var host=e.type==="healer"?'<span style="cursor:pointer;color:#6B4699;display:inline-flex;align-items:center;gap:6px;vertical-align:middle" onclick="openBooking(\''+e.healerId+'\')">'+avatarHtml(e,22)+escHtml(e.healerName)+'</span>':'<span style="color:#6B4699">REAL Holistic Network</span>';
-  return '<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="flex:1;min-width:180px"><div style="font-size:12px;color:#C9922A;font-weight:bold;letter-spacing:.05em">'+escHtml(time)+' · FREE</div><div style="font-weight:bold;font-size:17px;color:#2A1F3D;margin:3px 0">'+escHtml(e.title)+'</div><div class="text-soft" style="font-size:13px">Hosted by '+host+'</div><div style="font-size:13px;color:#2A1F3D;margin-top:4px">📍 '+escHtml(e.location||"")+'</div></div>'+spots+'</div>'+(e.description?'<div class="text-soft" style="font-size:14px;line-height:1.6;margin:10px 0">'+nl2br(e.description)+'</div>':'<div style="height:10px"></div>')+action+'</div>';
+  else{var su=safeUrl(e.signupUrl);action=su?'<a class="btn btn-gold" href="'+escHtml(su)+'" target="_blank" rel="noopener" style="text-decoration:none">'+(e.type==="partner"?'Details &amp; tickets':'Sign up')+'</a>':'';}
+  var host=e.type==="healer"?'<span style="cursor:pointer;color:#6B4699;display:inline-flex;align-items:center;gap:6px;vertical-align:middle" onclick="openBooking(\''+e.healerId+'\')">'+avatarHtml(e,22)+escHtml(e.healerName)+'</span>':'<span style="color:#6B4699">'+escHtml(e.type==="partner"?e.healerName:"REAL Holistic Network")+'</span>';
+  return '<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="flex:1;min-width:180px"><div style="font-size:12px;color:#C9922A;font-weight:bold;letter-spacing:.05em">'+escHtml(time)+' · '+(e.type==="partner"?"PAID":"FREE")+'</div><div style="font-weight:bold;font-size:17px;color:#2A1F3D;margin:3px 0">'+escHtml(e.title)+'</div><div class="text-soft" style="font-size:13px">Hosted by '+host+'</div><div style="font-size:13px;color:#2A1F3D;margin-top:4px">📍 '+escHtml(e.location||"")+'</div></div>'+spots+'</div>'+(e.description?'<div class="text-soft" style="font-size:14px;line-height:1.6;margin:10px 0">'+nl2br(e.description)+'</div>':'<div style="height:10px"></div>')+action+'</div>';
 }
 
 // ---------------- visitor saves a spot ----------------
