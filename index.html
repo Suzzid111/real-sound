@@ -1467,7 +1467,12 @@ function renderResources(list){
 
 // ---------------- recommended products (affiliate links) ----------------
 var AFFILIATE_NOTE="Some of these are affiliate links. That means if you buy through them, REAL Holistic Network may earn a small commission at no extra cost to you. We only share products we truly love and believe in.";
+// Products added directly in the site code (shown before ones added in admin).
+var BUILTIN_PRODUCTS=[
+  {id:"bp-lbri",title:"L'BRI Pure n' Natural",url:"https://lbri.com/suzzisglowandfinds",description:"Aloe-based natural skincare, body care, and beauty products, with aloe vera as the first ingredient. A favorite of mine for simple, plant-based self-care.",recommendedBy:"Suzzanna"}
+];
 function renderProducts(list){
+  list=BUILTIN_PRODUCTS.concat(list||[]);
   if(!list.length)return emptyCard("Favorite wellness products are coming soon.");
   return '<div class="disclaimer-box" style="margin-bottom:16px"><span style="font-size:12px;color:#6B4699;line-height:1.6">💛 '+AFFILIATE_NOTE+'</span></div><div class="healer-grid">'+list.map(function(p){
     var u=safeUrl(p.url),img=safeUrl(p.imageUrl);
