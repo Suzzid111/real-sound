@@ -3,6 +3,7 @@
 import Stripe from 'stripe';
 import { loadBookings, saveBookings, releaseSlot, logNote, newToken, sendNotice, sessionWhen } from './_lib.js';
 import { payHealerGifts, releaseBookingGifts, paidLine, cardPart, giftBackLine } from './_gifts.js';
+import { ensureKeys, confirmedEmail, clientWhen } from './_manage.js';
 
 export const stripe = () => new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -28,6 +29,7 @@ export async function setBookingStatus(id, status, onlyHealerId, who) {
   }
   b.status = status;
   if (status === 'confirmed' && !b.reviewKey) b.reviewKey = newToken().slice(0, 24);
+  ensureKeys(b);
   b.respondedAt = new Date().toISOString();
   // Gift certificates: pay the healer their share, or put the money back on the codes.
   if (status === 'confirmed') await payHealerGifts(b); else await releaseBookingGifts(b, 'declined');
@@ -35,11 +37,13 @@ export async function setBookingStatus(id, status, onlyHealerId, who) {
   if (status === 'declined') await releaseSlot(b).catch(() => {});
   // Let the client know right away.
   if (status === 'confirmed') {
-    await sendNotice(b.email, b.venueName, `Your session with ${b.practitionerName} is confirmed`,
-      `Good news! ${b.practitionerName} has confirmed your ${b.sessionType || 'session'} on ${sessionWhen(b)}.\n\n${paidLine(b)} Need to cancel? Cancellations made at least 24 hours before your session get a full refund. Just reply to this email or write to bookings.realsound@gmail.com.\n\nWe'll send you a reminder the day before. We hope you enjoy your session!\n\nWith gratitude,\nREAL Holistic Network`);
+    const { loadHealers } = await import('./_lib.js');
+    const h = (await loadHealers()).find(x => x.id === b.practitionerId) || {};
+    const m = confirmedEmail(b, h, `Good news! ${b.practitionerName} has confirmed your ${b.sessionType || 'session'}.`, paidLine(b));
+    await sendNotice(b.email, b.venueName, `Your session with ${b.practitionerName} is confirmed`, m.text, m.html);
   } else {
     await sendNotice(b.email, b.venueName, `About your booking request with ${b.practitionerName}`,
-      `Thank you for your booking request. Unfortunately ${b.practitionerName} isn't able to take this session on ${sessionWhen(b)}.\n\nYour card was NOT charged. The temporary hold has been released.${giftBackLine(b)}\n\nYou're welcome to choose another time or another healer at realholisticnetwork.com.\n\nWith gratitude,\nREAL Holistic Network`);
+      `Thank you for your booking request. Unfortunately ${b.practitionerName} isn't able to take this session on ${clientWhen(b)}.\n\nYour card was NOT charged. The temporary hold has been released.${giftBackLine(b)}\n\nYou're welcome to choose another time or another healer at realholisticnetwork.com.\n\nWith gratitude,\nREAL Holistic Network`);
   }
   await logNote(`${status === 'confirmed' ? '✅ Confirmed' : '✗ Declined'}: ${b.venueName} → ${b.practitionerName} (${b.date}) by ${who}`);
   return { ok: true, booking: b };
@@ -69,12 +73,12 @@ export async function proposeTime(healerId, body, site) {
   b.proposal = { date, time, startUTC: new Date(start).toISOString(), healerTz: tz, message: String(body.message || '').trim().slice(0, 500), key: newToken().slice(0, 24), at: new Date().toISOString() };
   b.status = 'proposed';
   await saveBookings(B);
-  const newWhen = sessionWhen({ startUTC: b.proposal.startUTC, healerTz: tz });
+  const newWhen = clientWhen({ startUTC: b.proposal.startUTC, healerTz: tz, clientTz: b.clientTz });
   const link = `${site}/?resched=${b.id}.${b.proposal.key}`;
   const msg = b.proposal.message;
   await sendNotice(b.email, b.venueName, `${b.practitionerName} suggested a new time for your session`,
-    `${b.practitionerName} can't make ${sessionWhen(b)}, but would love to see you on ${newWhen} instead.${msg ? '\n\nTheir note: "' + msg + '"' : ''}\n\nPlease choose here: ${link}\n\nIf you accept, your session is confirmed${cardPart(b) > 0 ? ` and your card is charged $${cardPart(b)}` : ''}. If you say no, your card is not charged${b.giftTotal ? ' and your gift certificate money goes back on your code' : ' and the hold is released'}.\n\nWith gratitude,\nREAL Holistic Network`,
-    `<p style="margin:0 0 14px">${esc(b.practitionerName)} can't make <strong>${esc(sessionWhen(b))}</strong>, but would love to see you on:</p><p style="font-size:18px;font-weight:bold;color:#6B4699;margin:0 0 16px">${esc(newWhen)}</p>${msg ? `<p style="margin:0 0 16px;font-style:italic">"${esc(msg)}"</p>` : ''}<p style="text-align:center;margin:0 0 18px"><a href="${esc(link)}" style="background:#C9922A;color:#ffffff;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:bold;display:inline-block">Accept or decline the new time</a></p><p style="font-size:13px;color:#7A6E8A;margin:0">If you accept, your session is confirmed${cardPart(b) > 0 ? ` and your card is charged $${esc(cardPart(b))}` : ''}. If you say no, your card is not charged${b.giftTotal ? ' and your gift certificate money goes back on your code' : ' and the hold is released'}.</p>`);
+    `${b.practitionerName} can't make ${clientWhen(b)}, but would love to see you on ${newWhen} instead.${msg ? '\n\nTheir note: "' + msg + '"' : ''}\n\nPlease choose here: ${link}\n\nIf you accept, your session is confirmed${cardPart(b) > 0 ? ` and your card is charged $${cardPart(b)}` : ''}. If you say no, your card is not charged${b.giftTotal ? ' and your gift certificate money goes back on your code' : ' and the hold is released'}.\n\nWith gratitude,\nREAL Holistic Network`,
+    `<p style="margin:0 0 14px">${esc(b.practitionerName)} can't make <strong>${esc(clientWhen(b))}</strong>, but would love to see you on:</p><p style="font-size:18px;font-weight:bold;color:#6B4699;margin:0 0 16px">${esc(newWhen)}</p>${msg ? `<p style="margin:0 0 16px;font-style:italic">"${esc(msg)}"</p>` : ''}<p style="text-align:center;margin:0 0 18px"><a href="${esc(link)}" style="background:#C9922A;color:#ffffff;text-decoration:none;padding:13px 26px;border-radius:8px;font-weight:bold;display:inline-block">Accept or decline the new time</a></p><p style="font-size:13px;color:#7A6E8A;margin:0">If you accept, your session is confirmed${cardPart(b) > 0 ? ` and your card is charged $${esc(cardPart(b))}` : ''}. If you say no, your card is not charged${b.giftTotal ? ' and your gift certificate money goes back on your code' : ' and the hold is released'}.</p>`);
   await logNote(`📅 ${b.practitionerName} suggested a new time to ${b.venueName}: ${newWhen}`);
   return { ok: true };
 }
@@ -110,12 +114,13 @@ export async function answerProposal(code, yes) {
     const old = sessionWhen(b);
     Object.assign(b, { date: b.proposal.date, time: b.proposal.time, startUTC: b.proposal.startUTC, healerTz: b.proposal.healerTz, lockId: null, status: 'confirmed', respondedAt: new Date().toISOString() });
     if (!b.reviewKey) b.reviewKey = newToken().slice(0, 24);
+    ensureKeys(b);
     b.proposal.answer = 'accepted';
     await payHealerGifts(b);
     await saveBookings(B);
     const when = sessionWhen(b);
-    await sendNotice(b.email, b.venueName, `Your session with ${b.practitionerName} is confirmed`,
-      `Your ${b.sessionType || 'session'} with ${b.practitionerName} is confirmed for ${when}.\n\n${paidLine(b)} Need to cancel? Cancellations made at least 24 hours before your session get a full refund. Just reply to this email or write to bookings.realsound@gmail.com.\n\nWe'll send you a reminder the day before.\n\nWith gratitude,\nREAL Holistic Network`);
+    const m = confirmedEmail(b, h, `Your ${b.sessionType || 'session'} with ${b.practitionerName} is confirmed for the new time.`, paidLine(b));
+    await sendNotice(b.email, b.venueName, `Your session with ${b.practitionerName} is confirmed`, m.text, m.html);
     if (h.email) await sendNotice(h.email, h.name, `${b.venueName} accepted your new time`, `Good news! ${b.venueName} accepted the new time you suggested.\n\nYour ${b.sessionType || 'session'} is now confirmed for ${when} (instead of ${old}). The payment has gone through.\n\nClient email: ${b.email}\n\nREAL Holistic Network`);
     await logNote(`✅ ${b.venueName} accepted ${b.practitionerName}'s new time: ${when}`);
     return { ok: true, status: 'confirmed', when };

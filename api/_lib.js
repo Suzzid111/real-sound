@@ -81,6 +81,8 @@ export function publicHealer(p) {
     instruments: p.instruments || [], venueTypes: p.venueTypes || [], modalities: normalizeServices(p.modalities),
     rate: p.rate, sessionTypes: (p.sessionTypes || []).map(tierView), calendlyUrl: p.calendlyUrl || '',
     available: !!p.available,
+    // questions the healer asks new clients when they book (never the video link)
+    intakeQuestions: Array.isArray(p.intakeQuestions) ? p.intakeQuestions : [],
     photo: p.photoV ? '/api/photo?id=' + encodeURIComponent(p.id) + '&v=' + p.photoV : '',
     availability: p.availability || null,
     // Stripe account id (not secret: the card form needs it to pay the healer directly)
@@ -139,7 +141,8 @@ export async function logNote(msg) {
 // ---------- slot reservations (see reserve-slot.js) ----------
 export async function releaseSlot(b) {
   if (!b || !b.startUTC || !b.lockId) return;
-  const startMs = Date.parse(b.startUTC), dur = b.durationMin || 60;
+  // the break after a session was reserved too
+  const startMs = Date.parse(b.startUTC), dur = (b.durationMin || 60) + (b.bufferMin || 0);
   const first = Math.floor(startMs / 60000 / 15) * 15, end = Math.ceil((startMs / 60000 + dur) / 15) * 15;
   const keys = [];
   for (let m = first; m < end; m += 15) keys.push(`rs:lock:${b.practitionerId}:${m}`);
@@ -397,6 +400,6 @@ export function tierView(t) {
     const m = SERVICE_MATCH.find(([re, name]) => name === service);
     if (m) details = details.replace(new RegExp(m[0].source + '\\w*', 'ig'), ' ').replace(/\b(reading|session)s?\b/ig, ' ').replace(/[\s·,&-]+/g, ' ').trim();
   }
-  return { id: t.id, name: t.name, price: t.price, service, details };
+  return { id: t.id, name: t.name, price: t.price, service, details, online: !!t.online };
 }
 export function tierName(service, details) { return details ? `${service} · ${details}` : service; }

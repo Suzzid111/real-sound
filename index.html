@@ -102,6 +102,8 @@ input:focus,select:focus,textarea:focus{border-color:#6B4699}
 .status-confirmed{background:#e6f9ee;color:#2d8a50;font-size:11px;padding:3px 8px;border-radius:8px}
 .status-proposed{background:#FFF4DC;color:#8A5F10;font-size:11px;padding:3px 8px;border-radius:8px}
 .status-declined{background:#fde8ea;color:#b84a52;font-size:11px;padding:3px 8px;border-radius:8px}
+.status-cancelled{background:#EEEAF2;color:#6E6480;font-size:11px;padding:3px 8px;border-radius:8px}
+.online-tag{display:inline-block;background:#EAF4F8;color:#2E6E86;font-size:11px;padding:2px 8px;border-radius:8px;vertical-align:middle}
 .stripe-box{background:linear-gradient(135deg,#FAF8FF,#F0EAF8);border:1px solid rgba(107,70,153,.15);border-radius:8px;padding:14px;margin:12px 0}
 #card-element{background:#fff;border:1px solid rgba(107,70,153,.2);border-radius:8px;padding:12px}
 #card-errors{color:#C4727A;font-size:12px;margin-top:6px;min-height:18px}
@@ -142,6 +144,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
     <button class="nav-btn" id="nav-events" onclick="showPage('events')">Events</button>
     <button class="nav-btn" id="nav-learn" onclick="showPage('learn')">Learn</button>
     <button class="nav-btn" id="nav-gifts" onclick="showPage('gifts')">🎁 Gift Certificates</button>
+    <button class="nav-btn" id="nav-mybookings" onclick="showPage('mybookings')">My Bookings</button>
     <button class="nav-btn" id="nav-join" onclick="showPage('join')">Join as Healer</button>
     <button class="nav-btn" id="nav-login" onclick="showPage('login')">Healer Login</button>
     <button class="nav-btn" id="nav-admin" onclick="showPage('admin')">⚙</button>
@@ -252,6 +255,14 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
   <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">Give the Gift of Healing</h2>
   <p class="text-soft" style="margin-bottom:18px;font-size:14px;line-height:1.7">A REAL Holistic Network gift certificate works with any healer, for any session. Send it by email, or print it and give it in person. Anything not used stays on the code for next time.</p>
   <div id="gifts-body"></div>
+</div>
+</div>
+
+<!-- MY BOOKINGS (clients) -->
+<div id="page-mybookings" class="page">
+<div class="wrap" style="max-width:560px">
+  <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">My Bookings</h2>
+  <div id="mybookings-body"></div>
 </div>
 </div>
 
@@ -513,6 +524,8 @@ async function loadFromServer(){
   checkResetLink();
   checkReviewLink();
   checkReschedLink();
+  checkManageLink();
+  checkMyBookingsLink();
   checkBookLink();
   checkConnectReturn();
   checkJoinLink();
@@ -566,6 +579,7 @@ function showPage(p){
   if(p==="find")renderFind();
   if(p==="learn")renderLearn();
   if(p==="gifts")renderGifts();
+  if(p==="mybookings")renderMyBookingsPage();
   if(p==="events")renderEvents();
   if(p==="workplace")renderWorkplace();
   if(p==="join")renderJoinPills();
@@ -636,6 +650,7 @@ function updateBkTierPrice(){
   selTier=getTiers(selP).find(function(t){return t.id===sel.value;})||getTiers(selP)[0];
   var priceEl=document.getElementById("bk-price-display");
   if(priceEl)priceEl.textContent="$"+selTier.price;
+  var on=document.getElementById("bk-online-note");if(on)on.innerHTML=bkOnlineNote();
   bkSlot=null;setBkHidden();renderSlotPicker();
 }
 
@@ -646,9 +661,9 @@ function openBooking(id){
   var tiers=getTiers(selP);
   selTier=tiers[0];
   document.getElementById("bk-healer").innerHTML=avatarHtml(selP,64)+'<div style="flex:1"><div style="font-weight:bold;color:#2A1F3D">'+selP.name+'</div><div style="font-size:12px;margin:2px 0">'+ratingHtml(selP)+'</div><div class="text-soft" style="font-size:12px">'+selP.location+'</div><div class="mod-tags" style="margin-top:4px">'+selP.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div style="text-align:right"><div style="font-size:20px;color:#C9922A;font-weight:bold" id="bk-price-display">$'+selTier.price+'</div><div class="text-soft" style="font-size:11px">per session</div></div>';
-  var tierField=tiers.length>1?'<div class="field"><label>CHOOSE YOUR SESSION</label><select id="b-tier" onchange="updateBkTierPrice()">'+tiers.map(function(t){return '<option value="'+t.id+'">'+escHtml(t.name)+' — $'+t.price+'</option>';}).join("")+'</select></div>':'<div class="field"><label>YOUR SESSION</label><div style="display:flex;justify-content:space-between;gap:10px;padding:11px 14px;border:1.5px solid rgba(107,70,153,.2);border-radius:8px;background:#fff"><span style="color:#2A1F3D">'+escHtml(tiers[0].name)+'</span><strong style="color:#2A1F3D">$'+tiers[0].price+'</strong></div></div>';
+  var tierField=tiers.length>1?'<div class="field"><label>CHOOSE YOUR SESSION</label><select id="b-tier" onchange="updateBkTierPrice()">'+tiers.map(function(t){return '<option value="'+t.id+'">'+escHtml(t.name)+(t.online?' (online)':'')+' — $'+t.price+'</option>';}).join("")+'</select><div id="bk-online-note">'+bkOnlineNote()+'</div></div>':'<div class="field"><label>YOUR SESSION</label><div style="display:flex;justify-content:space-between;gap:10px;padding:11px 14px;border:1.5px solid rgba(107,70,153,.2);border-radius:8px;background:#fff"><span style="color:#2A1F3D">'+escHtml(tiers[0].name)+(tiers[0].online?' <span class="online-tag">💻 Online</span>':'')+'</span><strong style="color:#2A1F3D">$'+tiers[0].price+'</strong></div><div id="bk-online-note">'+bkOnlineNote()+'</div></div>';
   var calendlyBtn=selP.calendlyUrl?'<a href="'+(/^https?:\/\//.test(selP.calendlyUrl)?selP.calendlyUrl:'https://'+selP.calendlyUrl)+'" target="_blank" rel="noopener" class="btn btn-outline full-width" style="margin-bottom:14px;text-align:center;display:block;text-decoration:none">📅 Schedule a call with '+selP.name+' first</a>':'';
-  document.getElementById("bk-step1").innerHTML=reviewsListHtml(selP)+'<div class="card">'+calendlyBtn+'<h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin-bottom:20px">Tell us about your event</h3>'+tierField+'<div class="field"><label>VENUE / ORGANIZATION NAME</label><input id="b-venue" placeholder="e.g. Lotus Yoga Studio or Sunrise Nursing Home"></div><div class="field"><label>YOUR EMAIL</label><input id="b-email" type="email" placeholder="you@example.com"></div>'+bkDateTimeField()+'<div class="field"><label>VENUE TYPE</label><select id="b-vtype"><option value="">Select...</option>'+VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<option>'+v+'</option>';}).join("")+'</select></div><div class="field"><label>GROUP SIZE</label><input id="b-group" type="number" placeholder="e.g. 20"></div><div class="field"><label>NOTES FOR THE HEALER</label><textarea id="b-notes" rows="3" placeholder="Themes, intentions, accessibility needs, special requests..."></textarea></div><button class="btn btn-purple full-width" style="padding:14px;font-size:15px" onclick="bkStep2()">Review Booking →</button></div>';
+  document.getElementById("bk-step1").innerHTML=reviewsListHtml(selP)+'<div class="card">'+calendlyBtn+'<h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin-bottom:20px">Your booking details</h3>'+tierField+'<div class="field"><label for="b-venue">YOUR NAME</label><input id="b-venue" autocomplete="name" placeholder="Your name (or your studio or organization, for a group)"></div><div class="field"><label for="b-email">YOUR EMAIL</label><input id="b-email" type="email" autocomplete="email" placeholder="you@example.com"></div>'+bkDateTimeField()+bkIntakeFields()+'<details style="margin-bottom:14px"><summary style="cursor:pointer;font-size:13px;color:#6B4699">Booking for a group or venue? (optional)</summary><div style="margin-top:10px"><div class="field"><label for="b-vtype">VENUE TYPE</label><select id="b-vtype"><option value="">Select...</option>'+VENUES.filter(function(v){return v!=="All";}).map(function(v){return '<option>'+v+'</option>';}).join("")+'</select></div><div class="field"><label for="b-group">GROUP SIZE</label><input id="b-group" type="number" min="1" placeholder="e.g. 20"></div></div></details><div class="field"><label for="b-notes">NOTES FOR THE HEALER <span style="text-transform:none;letter-spacing:0;color:#A990C9">(optional)</span></label><textarea id="b-notes" rows="3" placeholder="Themes, intentions, accessibility needs, special requests..."></textarea></div><button class="btn btn-purple full-width" style="padding:14px;font-size:15px" onclick="bkStep2()">Review Booking →</button></div>';
   document.getElementById("bk-step1").style.display="block";
   document.getElementById("bk-step2").style.display="none";
   document.getElementById("bk-step3").style.display="none";
@@ -657,16 +672,29 @@ function openBooking(id){
   if(hasCalendar(selP))refreshPublic().then(function(){if(!bkSlot)renderSlotPicker();});
 }
 
+// Online sessions, questions for new clients, and the healer's break between sessions
+function bkOnlineNote(){return selTier&&selTier.online?'<div class="text-soft" style="font-size:12px;margin-top:6px">💻 This session is online. Your video link comes in your confirmation email.</div>':'';}
+function bkQuestions(){return (selP&&Array.isArray(selP.intakeQuestions))?selP.intakeQuestions:[];}
+function bkIntakeFields(){
+  var qs=bkQuestions();if(!qs.length)return "";
+  return '<div class="card" style="padding:14px;margin-bottom:14px;background:#FDFBFF"><div class="section-title" style="margin-bottom:6px">'+escHtml(selP.name).toUpperCase()+'\'S QUESTIONS</div><div class="text-soft" style="font-size:12px;margin-bottom:10px">Only '+escHtml(selP.name)+' sees your answers.</div>'+qs.map(function(q,i){return '<div class="field"><label for="b-q-'+i+'" style="text-transform:none;letter-spacing:0;font-size:13px;color:#2A1F3D">'+escHtml(q)+'</label><textarea id="b-q-'+i+'" rows="2" maxlength="1000"></textarea></div>';}).join("")+'</div>';
+}
+function bkBuffer(p){var a=getAvail(p);return a&&a.bufferMin?+a.bufferMin:0;}
+
 function bkStep2(){
   var v=document.getElementById("b-venue").value,e=document.getElementById("b-email").value,d=document.getElementById("b-date").value;
   if(hasCalendar(selP)&&!bkSlot){toast("Please choose a date and time","#C4727A");return;}
-  if(!v||!e||!d){toast("Please fill in required fields","#C4727A");return;}
+  if(!v||!e||!d){toast("Please fill in your name, email, and date","#C4727A");return;}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e.trim())){toast("Please check your email address","#C4727A");return;}
+  var qs=bkQuestions();for(var qi=0;qi<qs.length;qi++){if(!document.getElementById("b-q-"+qi).value.trim()){toast("Please answer "+selP.name+"'s questions","#C4727A");document.getElementById("b-q-"+qi).focus();return;}}
   if(window.REQUIRE_CONNECT&&!selP.payAcct){toast(selP.name+" is still finishing their payment setup. Please check back soon or choose another healer.","#C4727A");return;}
   var hasConflict=(selP.schedule||[]).some(function(s){return s.date===d;})||B.some(function(b){return b.practitionerId===selP.id&&b.status==="confirmed"&&b.date===d;});
   var conflictWarning=hasConflict?'<div class="disclaimer-box" style="border-color:#C4727A;background:linear-gradient(135deg,#fde8ea,#fde8ea)"><span style="font-size:13px;color:#A45560">⚠️ '+selP.name+' already has something on their schedule this date. Consider messaging first or choosing another date.</span></div>':'';
   var fee=selTier.price,tot=fee;
-  var rows=[["Venue/Org",v],["Session type",selTier.name],["Date",bkDisplayDate()],["Time",bkDisplayTime()],["Type",document.getElementById("b-vtype").value||"—"],["Group",document.getElementById("b-group").value?document.getElementById("b-group").value+" people":"—"],["Session fee","$"+fee]];
-  document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin-bottom:20px">Review your booking</h3>'+conflictWarning+''+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#2A1F3D">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">Your card is charged only after the healer confirms. Cancellation policy: cancel at least 24 hours before your session for a full refund; later cancellations and no-shows are not refunded. To cancel, email bookings.realsound@gmail.com. I understand that REAL Holistic Network is a marketplace platform. REAL Holistic Network is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Holistic Network bears no liability for any injury or damage arising from this session.</span></label></div><label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#7A6E8A;margin:4px 0 12px;cursor:pointer"><input type="checkbox" id="b-news" style="width:auto;margin-top:2px;accent-color:#6B4699"><span>Send me healing tips, events and offers from REAL Holistic Network (optional, unsubscribe anytime)</span></label><div id="bk-gift"></div><div class="stripe-box" id="bk-card-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="card-element"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div id="card-errors"></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" id="pay-btn" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">'+bkPayLabel()+'</button></div></div>';
+  var rows=[["Name",escHtml(v)],["Session type",escHtml(selTier.name)+(selTier.online?' <span class="online-tag">💻 Online</span>':'')],["Date",bkDisplayDate()],["Time",bkDisplayTime()],["Session fee","$"+fee]];
+  if(document.getElementById("b-vtype").value)rows.splice(4,0,["Venue type",escHtml(document.getElementById("b-vtype").value)]);
+  if(document.getElementById("b-group").value)rows.splice(4,0,["Group",escHtml(document.getElementById("b-group").value)+" people"]);
+  document.getElementById("bk-step2").innerHTML='<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin-bottom:20px">Review your booking</h3>'+conflictWarning+''+rows.map(function(r){return '<div class="review-row"><span class="review-key">'+r[0].toUpperCase()+'</span><span style="color:#2A1F3D">'+r[1]+'</span></div>';}).join("")+'<div style="display:flex;justify-content:space-between;padding:12px 0;font-size:17px;font-weight:bold"><span class="text-gold">TOTAL</span><span class="text-gold">$'+tot+'</span></div><div class="disclaimer-box"><label class="disclaimer-label"><input type="checkbox" id="b-agreed" style="margin-top:3px;accent-color:#6B4699"><span class="disclaimer-text">Your card is charged only after the healer confirms. Cancellation policy: cancel at least 24 hours before your session for a full refund; later cancellations and no-shows are not refunded. You can cancel anytime with the link in your email, or under My Bookings. I understand that REAL Holistic Network is a marketplace platform. REAL Holistic Network is not responsible for the conduct or services of any practitioner. By confirming I agree that REAL Holistic Network bears no liability for any injury or damage arising from this session.</span></label></div><label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#7A6E8A;margin:4px 0 12px;cursor:pointer"><input type="checkbox" id="b-news" style="width:auto;margin-top:2px;accent-color:#6B4699"><span>Send me healing tips, events and offers from REAL Holistic Network (optional, unsubscribe anytime)</span></label><div id="bk-gift"></div><div class="stripe-box" id="bk-card-box"><div style="font-size:11px;letter-spacing:.1em;color:#6B4699;margin-bottom:10px">PAYMENT DETAILS</div><div id="card-element"></div><div style="font-size:10px;color:#A990C9;margin-top:8px;text-align:center">🔒 Secured by Stripe</div></div><div id="card-errors"></div><div style="display:flex;gap:10px;margin-top:8px"><button class="btn btn-ghost" style="flex:1" onclick="bkStep1()">Edit</button><button class="btn btn-gold" id="pay-btn" style="flex:2;padding:14px;font-size:15px" onclick="confirmBooking()">'+bkPayLabel()+'</button></div></div>';
   document.getElementById("bk-step1").style.display="none";
   document.getElementById("bk-step2").style.display="block";
   renderBkGift();
@@ -714,7 +742,7 @@ async function confirmBooking(){
       btn.disabled=false;btn.textContent=bkPayLabel();
       return;
     }
-    var saved=await api("/api/booking",{practitionerId:selP.id,tierId:selTier.id,sessionType:selTier.name,giftCodes:giftCodes,paymentIntentId:piData.paymentIntentId||"",stripeAccount:piData.stripeAccount||"",venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null,healerTz:useSlot?getAvail(selP).tz:null,lockId:useSlot?bkLockId:null,refHealer:refHealerId(),source:LANDING_SRC||"direct"});
+    var saved=await api("/api/booking",{practitionerId:selP.id,tierId:selTier.id,sessionType:selTier.name,giftCodes:giftCodes,paymentIntentId:piData.paymentIntentId||"",stripeAccount:piData.stripeAccount||"",venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null,healerTz:useSlot?getAvail(selP).tz:null,lockId:useSlot?bkLockId:null,refHealer:refHealerId(),source:LANDING_SRC||"direct",clientTz:browserTz(),intake:bkQuestions().map(function(q,i){return document.getElementById("b-q-"+i).value.trim();}),bufferMin:useSlot?bkBuffer(selP):0});
     if(saved.ok&&document.getElementById("b-news")&&document.getElementById("b-news").checked)api("/api/community",{action:"subscribe",email:document.getElementById("b-email").value,source:"booking"});
     if(!saved.ok){releaseHold();document.getElementById("card-errors").textContent=saved.error||"Something went wrong. Your card was not charged.";btn.disabled=false;btn.textContent=bkPayLabel();return;}
     var bk={id:saved.booking.id,practitionerId:selP.id,practitionerName:selP.name,venueName:document.getElementById("b-venue").value,email:document.getElementById("b-email").value,date:document.getElementById("b-date").value,time:document.getElementById("b-time").value,venueType:document.getElementById("b-vtype").value,groupSize:document.getElementById("b-group").value,notes:document.getElementById("b-notes").value,sessionType:selTier.name,total:tot,healerTz:useSlot?getAvail(selP).tz:null,status:"pending",startUTC:useSlot?bkSlot.toISOString():null,durationMin:useSlot?tierDuration(selP,selTier):null};
@@ -722,7 +750,7 @@ async function confirmBooking(){
     if(useSlot)reserveSlot("keep",{bookingId:bk.id}).catch(function(){});
     logAdminNotification("🔔 New booking request: "+bk.venueName+" → "+bk.practitionerName+" ("+bk.date+")");
     document.getElementById("bk-step2").style.display="none";
-    document.getElementById("bk-step3").innerHTML='<div class="card card-gold" style="text-align:center;padding:36px"><div style="font-size:52px;margin-bottom:16px">🔔</div><h2 class="text-gold" style="font-weight:normal;margin-bottom:10px">Request Sent!</h2><p class="text-soft" style="margin-bottom:8px;line-height:1.7;font-size:14px">'+selP.name+' will confirm within 24 hours.</p><p class="text-soft" style="margin-bottom:24px;font-size:13px">'+(gplan.total?(gplan.total>=tot?'Your gift certificate covers this session. If they can\'t make it, the money goes right back on your code.':'Your gift certificate covers $'+gplan.total+'. Your card will be charged $'+(tot-gplan.total)+' once they accept.'):'Your card will be charged once they accept.')+'</p><button class="btn btn-outline" onclick="showPage(\'find\')">Back to healers</button></div>';
+    document.getElementById("bk-step3").innerHTML='<div class="card card-gold" style="text-align:center;padding:36px"><div style="font-size:52px;margin-bottom:16px">🔔</div><h2 class="text-gold" style="font-weight:normal;margin-bottom:10px">Request Sent!</h2><p class="text-soft" style="margin-bottom:8px;line-height:1.7;font-size:14px">'+escHtml(selP.name)+' will confirm soon. We emailed you a copy of your request.</p><p class="text-soft" style="margin-bottom:24px;font-size:13px">'+(gplan.total?(gplan.total>=tot?'Your gift certificate covers this session. If they can\'t make it, the money goes right back on your code.':'Your gift certificate covers $'+gplan.total+'. Your card will be charged $'+(tot-gplan.total)+' once they accept.'):'Your card will be charged once they accept.')+'</p>'+(saved.booking.manageCode?'<button class="btn btn-purple" style="margin:0 6px 8px 0" onclick="openManage(\''+saved.booking.manageCode+'\')">View or cancel my booking</button>':'')+'<button class="btn btn-outline" onclick="showPage(\'find\')">Back to healers</button></div>';
     document.getElementById("bk-step3").style.display="block";
     toast("Booking request sent! 🎵");
   }catch(e){
@@ -809,7 +837,33 @@ async function healerSave(fields,action){
   refreshPublic();
   return true;
 }
-function myEarned(){return myB().filter(function(b){return b.status==="confirmed";}).reduce(function(s,b){return s+b.fee;},0);}
+// Sessions the healer is paid for: confirmed ones, plus late cancellations (not refunded, per the policy).
+function isPaidBooking(b){return b.status==="confirmed"||(b.status==="cancelled"&&b.wasConfirmed&&!b.refunded);}
+function myEarned(){return myB().filter(isPaidBooking).reduce(function(s,b){return s+b.fee;},0);}
+// "Tue, Oct 14 · 6:30 PM" in the healer's time zone
+function bookingWhenText(b){
+  var tz=b.healerTz||((getAvail(curUser)||{}).tz)||"America/New_York";
+  if(b.startUTC){var d=new Date(b.startUTC);return fmtDay(d,tz)+" · "+fmtTime(d,tz);}
+  var t=b.time?(function(){var h=+b.time.slice(0,2),m=b.time.slice(3);return " · "+((h%12)||12)+":"+m+(h<12?" AM":" PM");})():"";
+  return (b.date?fmtDay(new Date(b.date+"T12:00:00Z"),"UTC"):"")+t;
+}
+function bookingStatusHtml(b,admin){
+  if(b.status==="cancelled")return '<span class="status-cancelled">cancelled'+(b.wasConfirmed?(b.refunded?' · refunded':(admin?' · late, not refunded':' · late, you\'re paid')):'')+'</span>';
+  if(b.status==="proposed")return '<span class="status-proposed">new time sent</span>';
+  return '<span class="status-'+escHtml(b.status)+'">'+escHtml(b.status)+'</span>';
+}
+// Notes and answers to the healer's questions, tucked into a tap-to-open box
+function bookingExtrasHtml(b){
+  var parts=[];
+  if(b.notes)parts.push('<div style="margin-bottom:6px"><strong>Notes:</strong> '+escHtml(b.notes)+'</div>');
+  (b.intake||[]).forEach(function(x){parts.push('<div style="margin-bottom:6px"><strong>'+escHtml(x.q)+'</strong><br>'+escHtml(x.a)+'</div>');});
+  if(b.email)parts.push('<div class="text-soft">✉ <a href="mailto:'+escHtml(b.email)+'" style="color:#6B4699">'+escHtml(b.email)+'</a></div>');
+  if(!parts.length)return "";
+  return '<details style="margin-top:8px;font-size:13px;color:#2A1F3D;line-height:1.5"><summary style="cursor:pointer;color:#6B4699;font-size:12px">'+((b.intake||[]).length?"Their answers & details":"Details")+'</summary><div style="margin-top:8px">'+parts.join("")+'</div></details>';
+}
+function bookingSubline(b){
+  return (b.sessionType?escHtml(b.sessionType)+' · ':'')+bookingWhenText(b)+(b.online?' <span class="online-tag">💻 Online</span>':'')+(b.groupSize?' · '+escHtml(b.groupSize)+' people':'');
+}
 
 // ----- Getting paid: each healer connects their own Stripe account -----
 var PAY_CHECKED=false;
@@ -864,7 +918,7 @@ async function checkConnectReturn(){
 
 function renderOverview(){
   var mb=myB(),pend=mb.filter(function(b){return b.status==="pending";}),conf=mb.filter(function(b){return b.status==="confirmed";});
-  document.getElementById("ptab-overview").innerHTML='<div id="pay-card"></div><div id="share-card"></div><div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#6B4699">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+(b.sessionType?b.sessionType+' · ':'')+b.date+' · '+b.venueType+' · '+b.groupSize+' people</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div>'+refBadge(b)+'</div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div><div style="margin-top:10px"><button class="btn btn-ghost" style="padding:7px 12px;font-size:12px" onclick="openPropose(\''+b.id+'\')">📅 Can\'t make it? Suggest a new time</button><div id="prop-'+b.id+'"></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No pending requests yet.</div>');
+  document.getElementById("ptab-overview").innerHTML='<div id="pay-card"></div><div id="share-card"></div><div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#6B4699">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+escHtml(b.venueName)+'</div><div class="text-soft" style="font-size:12px">'+bookingSubline(b)+'</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div>'+refBadge(b)+bookingExtrasHtml(b)+'</div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div><div style="margin-top:10px"><button class="btn btn-ghost" style="padding:7px 12px;font-size:12px" onclick="openPropose(\''+b.id+'\')">📅 Can\'t make it? Suggest a new time</button><div id="prop-'+b.id+'"></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No pending requests yet.</div>');
   renderPayCard();
   renderShareCard();
 }
@@ -895,34 +949,34 @@ async function respond(id,status){
 }
 
 function renderMyBookings(){
-  var mb=myB();
-  document.getElementById("ptab-bookings").innerHTML='<div class="section-title">ALL BOOKINGS ('+mb.length+')</div>'+(mb.length?mb.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+(b.sessionType?b.sessionType+' · ':'')+b.date+' · '+b.venueType+'</div>'+refBadge(b)+'</div><div style="text-align:right"><span class="status-'+b.status+'">'+(b.status==="proposed"?"new time sent":b.status)+'</span>'+(b.status==="proposed"&&b.proposal?'<div class="text-soft" style="font-size:11px;margin-top:4px">Waiting for client to answer</div>':'')+'<div class="text-teal" style="font-size:13px;margin-top:6px">$'+b.fee+' your cut</div>'+(b.status==="confirmed"&&b.reviewKey&&!b.reviewed?'<button class="btn btn-ghost" style="margin-top:8px;padding:5px 10px;font-size:12px" onclick="askForReview(\''+b.id+'\')">⭐ Ask for a review</button>':(b.reviewed?'<div class="text-soft" style="font-size:11px;margin-top:6px">⭐ Reviewed</div>':''))+'</div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No bookings yet.</div>');
+  var mb=myB().slice().sort(function(a,b){return String(b.startUTC||b.date||"").localeCompare(String(a.startUTC||a.date||""));});
+  document.getElementById("ptab-bookings").innerHTML='<div class="section-title">ALL BOOKINGS ('+mb.length+')</div>'+(mb.length?mb.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+escHtml(b.venueName)+'</div><div class="text-soft" style="font-size:12px">'+bookingSubline(b)+'</div>'+refBadge(b)+bookingExtrasHtml(b)+'</div><div style="text-align:right">'+bookingStatusHtml(b)+(b.status==="proposed"&&b.proposal?'<div class="text-soft" style="font-size:11px;margin-top:4px">Waiting for client to answer</div>':'')+'<div class="text-teal" style="font-size:13px;margin-top:6px'+(b.status==="declined"||(b.status==="cancelled"&&!isPaidBooking(b))?';text-decoration:line-through;opacity:.6':'')+'">$'+b.fee+' your cut</div>'+(b.status==="confirmed"&&b.reviewKey&&!b.reviewed?'<button class="btn btn-ghost" style="margin-top:8px;padding:5px 10px;font-size:12px" onclick="askForReview(\''+b.id+'\')">⭐ Ask for a review</button>':(b.reviewed?'<div class="text-soft" style="font-size:11px;margin-top:6px">⭐ Reviewed</div>':''))+'</div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No bookings yet.</div>');
 }
 
 function renderEarnings(){
-  var conf=myB().filter(function(b){return b.status==="confirmed";});
+  var conf=myB().filter(isPaidBooking);
   var earned=conf.reduce(function(s,b){return s+b.fee;},0);
   var fees=conf.reduce(function(s,b){return s+b.platformFee;},0);
-  document.getElementById("ptab-earnings").innerHTML='<div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+earned+'</div><div class="stat-label">TOTAL EARNED</div></div><div class="stat"><div class="stat-num" style="color:#A990C9">$'+fees+'</div><div class="stat-label">PLATFORM FEES</div></div><div class="stat"><div class="stat-num" style="color:#C9922A">'+conf.length+'</div><div class="stat-label">SESSIONS DONE</div></div></div><div class="section-title">CONFIRMED SESSIONS</div>'+(conf.length?conf.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#2A1F3D">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.date+' · '+b.venueType+'</div></div><div style="text-align:right"><div style="font-size:18px;color:#4A9B8E;font-weight:bold">$'+b.fee+'</div><div class="text-soft" style="font-size:11px">your earnings</div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No confirmed sessions yet.</div>');
+  document.getElementById("ptab-earnings").innerHTML='<div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+earned+'</div><div class="stat-label">TOTAL EARNED</div></div><div class="stat"><div class="stat-num" style="color:#A990C9">$'+fees+'</div><div class="stat-label">PLATFORM FEES</div></div><div class="stat"><div class="stat-num" style="color:#C9922A">'+conf.length+'</div><div class="stat-label">SESSIONS DONE</div></div></div><div class="section-title">CONFIRMED SESSIONS</div>'+(conf.length?conf.map(function(b){return '<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-weight:bold;color:#2A1F3D">'+escHtml(b.venueName)+'</div><div class="text-soft" style="font-size:12px">'+bookingSubline(b)+(b.status==="cancelled"?' · late cancellation':'')+'</div></div><div style="text-align:right"><div style="font-size:18px;color:#4A9B8E;font-weight:bold">$'+b.fee+'</div><div class="text-soft" style="font-size:11px">your earnings</div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No confirmed sessions yet.</div>');
 }
 
 function renderMyProfile(){
   var p=curUser;
   var tierRows=getTiers(p).map(function(t){return '<div class="review-row"><span class="review-key">'+t.name.toUpperCase()+'</span><span style="color:#2A1F3D">$'+t.price+'</span></div>';}).join("");
-  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card" style="margin-bottom:16px"><div class="section-title">YOUR PHOTO</div>'+photoPickerHtml(p,'uploadMyPhoto(this)')+'</div><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">'+avatarHtml(p,58)+'<div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">'+priceLabel(p)+'</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div class="card" style="margin-bottom:16px" id="my-services"></div><div class="card" style="margin-bottom:16px" id="my-tiers"></div>'+myReviewsCard()+changePwCard(false)+'</div>';
-  MOD_DRAFT=null;renderMyServices();TIER_DRAFT=null;renderMyTiers();
+  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card" style="margin-bottom:16px"><div class="section-title">YOUR PHOTO</div>'+photoPickerHtml(p,'uploadMyPhoto(this)')+'</div><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">'+avatarHtml(p,58)+'<div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">'+priceLabel(p)+'</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div class="card" style="margin-bottom:16px" id="my-services"></div><div class="card" style="margin-bottom:16px" id="my-tiers"></div><div class="card" style="margin-bottom:16px" id="my-online"></div><div class="card" style="margin-bottom:16px" id="my-intake"></div>'+myReviewsCard()+changePwCard(false)+'</div>';
+  MOD_DRAFT=null;renderMyServices();TIER_DRAFT=null;renderMyTiers();renderMyOnline();INTAKE_DRAFT=null;renderMyIntake();
 }
 
 // ----- Healers set their own sessions & prices (each tied to an official healing service) -----
 var TIER_DRAFT=null,TIER_ORIG="";
-function tierRowsFromUser(){return getTiers(curUser).filter(function(t){return t.id!=="legacy";}).map(function(t){return {id:t.id,service:t.service||"",details:t.details!=null?t.details:"",price:t.price};});}
+function tierRowsFromUser(){return getTiers(curUser).filter(function(t){return t.id!=="legacy";}).map(function(t){return {id:t.id,service:t.service||"",details:t.details!=null?t.details:"",price:t.price,online:!!t.online};});}
 function renderMyTiers(){
   var el=document.getElementById("my-tiers");if(!el||!curUser)return;
-  if(!TIER_DRAFT){TIER_DRAFT=tierRowsFromUser();TIER_ORIG=JSON.stringify(TIER_DRAFT);if(!TIER_DRAFT.length)TIER_DRAFT.push({id:"",service:"",details:"",price:""});}
+  if(!TIER_DRAFT){TIER_DRAFT=tierRowsFromUser();TIER_ORIG=JSON.stringify(TIER_DRAFT);if(!TIER_DRAFT.length)TIER_DRAFT.push({id:"",service:"",details:"",price:"",online:false});}
   var opts=function(sel){return '<option value="">Choose a healing service…</option>'+MODS.map(function(m){return '<option value="'+escHtml(m)+'"'+(m===sel?' selected':'')+'>'+escHtml(m)+'</option>';}).join("");};
   el.innerHTML='<div class="section-title">YOUR SESSIONS & PRICES</div><div class="text-soft" style="font-size:13px;margin-bottom:14px;line-height:1.6">For each session, choose the healing service, add details if you like (for example "30 min" or "with written report"), and set your price. Clients pay exactly this price. You keep 85% (Stripe\'s card fee comes out of your share).</div>'
-    +TIER_DRAFT.map(function(t,i){return '<div style="border:1px solid #EEE6F6;border-radius:12px;padding:12px;margin-bottom:10px;background:#FDFBFF"><div class="field" style="margin-bottom:8px"><label for="ts-'+i+'">HEALING SERVICE</label><select id="ts-'+i+'" onchange="TIER_DRAFT['+i+'].service=this.value;tierSaveBtn()">'+opts(t.service)+'</select></div><div style="display:flex;gap:8px;align-items:flex-end"><div class="field" style="flex:1;min-width:0;margin-bottom:0"><label for="td-'+i+'">DETAILS (optional)</label><input id="td-'+i+'" value="'+escHtml(t.details)+'" maxlength="60" placeholder="e.g. 30 min" oninput="TIER_DRAFT['+i+'].details=this.value;tierSaveBtn()"></div><div class="field" style="width:96px;margin-bottom:0"><label for="tp-'+i+'">PRICE ($)</label><input id="tp-'+i+'" type="number" min="1" step="1" inputmode="numeric" value="'+escHtml(t.price)+'" oninput="TIER_DRAFT['+i+'].price=this.value;tierSaveBtn()"></div><button type="button" class="btn btn-danger" style="padding:9px 11px;font-size:12px" aria-label="Remove this session" onclick="TIER_DRAFT.splice('+i+',1);renderMyTiers()">✕</button></div></div>';}).join("")
-    +'<button type="button" class="btn btn-ghost full-width" style="margin-bottom:10px" onclick="TIER_DRAFT.push({id:\'\',service:\'\',details:\'\',price:\'\'});renderMyTiers()">+ Add another session</button>'
+    +TIER_DRAFT.map(function(t,i){return '<div style="border:1px solid #EEE6F6;border-radius:12px;padding:12px;margin-bottom:10px;background:#FDFBFF"><div class="field" style="margin-bottom:8px"><label for="ts-'+i+'">HEALING SERVICE</label><select id="ts-'+i+'" onchange="TIER_DRAFT['+i+'].service=this.value;tierSaveBtn()">'+opts(t.service)+'</select></div><div style="display:flex;gap:8px;align-items:flex-end"><div class="field" style="flex:1;min-width:0;margin-bottom:0"><label for="td-'+i+'">DETAILS (optional)</label><input id="td-'+i+'" value="'+escHtml(t.details)+'" maxlength="60" placeholder="e.g. 30 min" oninput="TIER_DRAFT['+i+'].details=this.value;tierSaveBtn()"></div><div class="field" style="width:96px;margin-bottom:0"><label for="tp-'+i+'">PRICE ($)</label><input id="tp-'+i+'" type="number" min="1" step="1" inputmode="numeric" value="'+escHtml(t.price)+'" oninput="TIER_DRAFT['+i+'].price=this.value;tierSaveBtn()"></div><button type="button" class="btn btn-danger" style="padding:9px 11px;font-size:12px" aria-label="Remove this session" onclick="TIER_DRAFT.splice('+i+',1);renderMyTiers()">✕</button></div><label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:#2A1F3D;cursor:pointer"><input type="checkbox" style="width:auto;accent-color:#6B4699"'+(t.online?' checked':'')+' onchange="TIER_DRAFT['+i+'].online=this.checked;tierSaveBtn()">💻 This session is online (by video)</label></div>';}).join("")
+    +'<button type="button" class="btn btn-ghost full-width" style="margin-bottom:10px" onclick="TIER_DRAFT.push({id:\'\',service:\'\',details:\'\',price:\'\',online:false});renderMyTiers()">+ Add another session</button>'
     +'<button id="my-tier-save" class="btn btn-purple full-width" onclick="saveMyTiers()">Save my sessions & prices</button>'
     +(curUser.calendlyUrl?'<div class="review-row" style="margin-top:12px"><span class="review-key">CALENDLY</span><span style="color:#2A1F3D">'+escHtml(curUser.calendlyUrl)+'</span></div>':'');
   tierSaveBtn();
@@ -932,7 +986,37 @@ async function saveMyTiers(){
   var rows=TIER_DRAFT.filter(function(t){return t.service||String(t.details).trim()||String(t.price).trim();});
   if(!rows.length){toast("Please add at least one session","#C4727A");return;}
   for(var i=0;i<rows.length;i++){var t=rows[i];if(!t.service){toast("Please choose a healing service for each session","#C4727A");return;}if(!(parseInt(t.price,10)>=1)){toast("Please enter a price in whole dollars for "+t.service,"#C4727A");return;}if(/massage/i.test(t.details)){toast("Massage therapy is not offered on REAL Holistic Network","#C4727A");return;}if(containsLink(t.details)){toast("Session details can't include website links","#C4727A");return;}}
-  if(await healerSave({sessionTypes:rows.map(function(t){return {id:t.id,service:t.service,details:String(t.details).trim(),price:parseInt(t.price,10)};})})){TIER_DRAFT=null;toast("Sessions & prices saved ✓","#4A9B8E");renderMyProfile();}
+  if(await healerSave({sessionTypes:rows.map(function(t){return {id:t.id,service:t.service,details:String(t.details).trim(),price:parseInt(t.price,10),online:!!t.online};})})){TIER_DRAFT=null;toast("Sessions & prices saved ✓","#4A9B8E");renderMyProfile();}
+}
+
+// ----- Online sessions: the healer's private video link -----
+function renderMyOnline(){
+  var el=document.getElementById("my-online");if(!el||!curUser)return;
+  var anyOnline=getTiers(curUser).some(function(t){return t.online;});
+  el.innerHTML='<div class="section-title">ONLINE SESSIONS</div><div class="text-soft" style="font-size:13px;margin-bottom:12px;line-height:1.6">Paste the link clients use to join you online (for example your Zoom or Google Meet room). It is kept private: clients only get it in their confirmation and reminder emails, for sessions you marked as online above.</div>'
+    +(anyOnline&&!curUser.videoLink?'<div style="background:#FFF4DC;color:#8A5F10;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px">You have online sessions but no video link yet. Please add one so clients know how to join.</div>':'')
+    +'<div class="field"><label for="my-video">YOUR VIDEO LINK</label><input id="my-video" type="url" inputmode="url" maxlength="300" placeholder="https://zoom.us/j/..." value="'+escHtml(curUser.videoLink||"")+'"></div><button class="btn btn-purple full-width" onclick="saveMyVideoLink()">Save my video link</button>';
+}
+async function saveMyVideoLink(){
+  var v=document.getElementById("my-video").value.trim();
+  if(v&&!/^https:\/\//i.test(v)){toast("Please paste the full link, starting with https://","#C4727A");return;}
+  if(await healerSave({videoLink:v})){toast(v?"Video link saved ✓":"Video link removed","#4A9B8E");renderMyOnline();}
+}
+
+// ----- Questions the healer asks new clients when they book -----
+var INTAKE_DRAFT=null;
+function renderMyIntake(){
+  var el=document.getElementById("my-intake");if(!el||!curUser)return;
+  if(!INTAKE_DRAFT)INTAKE_DRAFT=(curUser.intakeQuestions||[]).slice();
+  el.innerHTML='<div class="section-title">QUESTIONS FOR CLIENTS WHEN THEY BOOK</div><div class="text-soft" style="font-size:13px;margin-bottom:12px;line-height:1.6">Ask up to 5 questions (for example "What would you like to focus on?" or "Have you had Reiki before?"). Clients answer them when they book, and only you see the answers. Keep them short and kind. Please don\'t ask for medical diagnoses or anything a client may not want to share.</div>'
+    +INTAKE_DRAFT.map(function(q,i){return '<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input aria-label="Question '+(i+1)+'" value="'+escHtml(q)+'" maxlength="200" placeholder="Type a question…" oninput="INTAKE_DRAFT['+i+']=this.value" style="flex:1"><button type="button" class="btn btn-danger" style="padding:9px 11px;font-size:12px" aria-label="Remove this question" onclick="INTAKE_DRAFT.splice('+i+',1);renderMyIntake()">✕</button></div>';}).join("")
+    +(INTAKE_DRAFT.length<5?'<button type="button" class="btn btn-ghost full-width" style="margin-bottom:10px" onclick="INTAKE_DRAFT.push(\'\');renderMyIntake()">+ Add a question</button>':'')
+    +'<button class="btn btn-purple full-width" onclick="saveMyIntake()">Save my questions</button>';
+}
+async function saveMyIntake(){
+  var qs=INTAKE_DRAFT.map(function(q){return String(q).trim();}).filter(Boolean);
+  if(qs.some(containsLink)){toast("Questions can't include website links","#C4727A");return;}
+  if(await healerSave({intakeQuestions:qs})){INTAKE_DRAFT=null;toast(qs.length?"Questions saved ✓":"Questions removed","#4A9B8E");renderMyIntake();}
 }
 
 // ----- Healers choose the healing services they offer -----
@@ -1047,13 +1131,13 @@ function renderAdmin(){
     document.getElementById("admin-owner-controls").innerHTML='<div class="card card-purple" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div><div style="font-weight:bold;color:#2A1F3D;font-size:13px">Team Admin Access</div><div class="text-soft" style="font-size:11px">Team code is currently '+(TEAM_ADMIN_ACTIVE?"ON — helpers can log in":"OFF — helper code is locked out")+'</div></div><div style="display:flex;gap:8px"><button class="btn '+(TEAM_ADMIN_ACTIVE?"btn-danger":"btn-teal")+'" style="font-size:12px;padding:7px 14px" onclick="toggleTeamAccess()">Turn '+(TEAM_ADMIN_ACTIVE?"OFF":"ON")+'</button><button class="btn btn-ghost" style="font-size:12px;padding:7px 14px" onclick="sendTestEmail()">✉ Send test email</button></div></div>'+'<div class="card card-gold" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:12px"><div><div style="font-weight:bold;color:#2A1F3D;font-size:13px">Require Stripe for online booking'+(ADMIN_DATA.stripeMode==="test"?' (sandbox)':'')+'</div><div class="text-soft" style="font-size:11px">'+(ADMIN_DATA.requireConnect?"ON: only healers who connected Stripe can be booked online. Their money goes straight to them.":"OFF: healers without Stripe can still be booked, and their payments come to YOUR Stripe account (you would pay them yourself).")+'</div></div><button class="btn '+(ADMIN_DATA.requireConnect?"btn-ghost":"btn-gold")+'" style="font-size:12px;padding:7px 14px" onclick="toggleRequireConnect()">Turn '+(ADMIN_DATA.requireConnect?"OFF":"ON")+'</button></div>'+adminServicesCard();
   }
   var conf=B.filter(function(b){return b.status==="confirmed";});
-  var rev=conf.reduce(function(s,b){return s+b.platformFee;},0);
+  var rev=B.filter(isPaidBooking).reduce(function(s,b){return s+b.platformFee;},0);
   document.getElementById("admin-notes").innerHTML=ADMIN_NOTES.length?ADMIN_NOTES.slice(0,8).map(function(n){return '<div class="booking-card" style="padding:10px 14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span style="font-size:13px">'+n.msg+'</span><span class="text-soft" style="font-size:11px">'+new Date(n.ts).toLocaleString()+'</span></div>';}).join(""):'<div class="text-soft" style="font-size:13px">No recent activity logged yet.</div>';
   document.getElementById("admin-stats").innerHTML='<div class="stat"><div class="stat-num">'+B.length+'</div><div class="stat-label">TOTAL BOOKINGS</div></div><div class="stat"><div class="stat-num" style="color:#6B4699">'+B.filter(function(b){return b.status==="pending";}).length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+rev+'</div><div class="stat-label">YOUR REVENUE</div></div>';
   // Signup source breakdown
   var sources={};P.forEach(function(p){var s=p.source||'direct';sources[s]=(sources[s]||0)+1;});
   var srcHtml=Object.keys(sources).map(function(s){return '<span style="background:#F0EAF8;color:#6B4699;padding:3px 10px;border-radius:8px;font-size:12px;margin-right:6px">'+s+': '+sources[s]+'</span>';}).join('');
-  document.getElementById("admin-bookings").innerHTML=(srcHtml?'<div style="margin-bottom:16px"><div class="section-title">SIGNUP SOURCES</div>'+srcHtml+'</div>':'')+(B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:2px">'+b.venueName+'</div><div class="text-soft" style="font-size:12px">'+b.practitionerName+(b.sessionType?' · '+b.sessionType:'')+' · '+b.date+' · '+b.venueType+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span>'+(b.referral?' · 💜 healer\'s own client (10%)':'')+'</div>'+adminGiftLine(b)+'</div><span class="status-'+b.status+'">'+b.status+'</span>'+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>');
+  document.getElementById("admin-bookings").innerHTML=(srcHtml?'<div style="margin-bottom:16px"><div class="section-title">SIGNUP SOURCES</div>'+srcHtml+'</div>':'')+(B.length?B.map(function(b){return '<div class="booking-card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:2px">'+escHtml(b.venueName)+'</div><div class="text-soft" style="font-size:12px">'+escHtml(b.practitionerName)+' · '+bookingSubline(b)+'</div><div class="text-soft" style="font-size:12px">Your cut: <span class="text-teal">$'+b.platformFee+'</span>'+(b.referral?' · 💜 healer\'s own client (10%)':'')+'</div>'+adminGiftLine(b)+bookingExtrasHtml(b)+'</div>'+bookingStatusHtml(b,true)+(b.status==="pending"?'<div style="display:flex;gap:6px"><button class="btn btn-gold" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'confirmed\')">✓</button><button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="aRespond(\''+b.id+'\',\'declined\')">✗</button></div>':'')+'</div>';}).join(""):'<div class="text-soft" style="font-size:14px;margin-bottom:20px">No bookings yet.</div>');
   document.getElementById("admin-practitioners").innerHTML=P.map(function(p){
     if(editingHealerId===p.id)return healerEditForm(p);
     return '<div class="booking-card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+avatarHtml(p,40)+'<div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:12px">'+p.location+' · '+priceLabel(p)+(p.source?' · via '+p.source:'')+(p.joinedAt?' · '+new Date(p.joinedAt).toLocaleDateString():'')+'</div><div class="text-soft" style="font-size:12px">✉ <a href="mailto:'+p.email+'" style="color:#6B4699">'+p.email+'</a></div>'+payTermsBadge(p)+stripeBadge(p)+(hasCalendar(p)?'<div style="font-size:11px;color:#6B4699">⏰ Booking calendar on</div>':'')+'</div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"Active":"Paused")+'</span><div style="display:flex;gap:6px"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="copyText(shareUrlFor({id:\''+p.id+'\',name:'+JSON.stringify(p.name).replace(/"/g,"&quot;")+'}))" title="Copy this healer\'s booking link">🔗 Link</button><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="editHealer(\''+p.id+'\')">Edit</button>'+(isOwner?'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="removeP(\''+p.id+'\')">Remove</button>':'')+'</div></div>';
@@ -1205,7 +1289,7 @@ function openSlots(p,durationMin){
   var a=getAvail(p);if(!a)return [];
   var tz=a.tz||"America/New_York",step=a.step||30,now=Date.now();
   var earliest=now+(a.minNoticeHours!=null?a.minNoticeHours:24)*3600000;
-  var days=a.maxDaysAhead||60,busy=busyIntervals(p),todayStr=dateInTz(new Date(),tz).date,res=[];
+  var days=a.maxDaysAhead||60,busy=busyIntervals(p),todayStr=dateInTz(new Date(),tz).date,res=[],buf=(+a.bufferMin||0)*60000;
   for(var i=0;i<=days;i++){
     var ds=addDaysStr(todayStr,i),dow=new Date(ds+"T12:00:00Z").getUTCDay();
     (a.weekly[dow]||[]).forEach(function(w){
@@ -1214,7 +1298,8 @@ function openSlots(p,durationMin){
       for(var s=ws;s+durationMin*60000<=we;s+=step*60000){
         if(s<earliest)continue;
         var e=s+durationMin*60000;
-        if(busy.some(function(x){return s<x[1]&&e>x[0];}))continue;
+        // keep the healer's break between sessions free on both sides
+        if(busy.some(function(x){return s<x[1]+buf&&e+buf>x[0];}))continue;
         res.push(new Date(s));
       }
     });
@@ -1264,13 +1349,14 @@ function bkDisplayTime(){return bkIsSlot()?fmtTime(bkSlot,browserTz())+" ("+tier
 
 // ---- Server reservation of the chosen slot ----
 async function reserveSlot(action,extra){
-  var body=Object.assign({action:action,practitionerId:selP.id,start:bkSlot?bkSlot.toISOString():null,durationMin:tierDuration(selP,selTier),lockId:bkLockId},extra||{});
+  // the break after the session is reserved too, so nobody can book right up against it
+  var body=Object.assign({action:action,practitionerId:selP.id,start:bkSlot?bkSlot.toISOString():null,durationMin:tierDuration(selP,selTier)+bkBuffer(selP),lockId:bkLockId},extra||{});
   var r=await fetch("/api/reserve-slot",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
   return r.json();
 }
 function releaseBookingSlot(b){
   if(!b||!b.startUTC||!b.lockId)return;
-  fetch("/api/reserve-slot",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"release",practitionerId:b.practitionerId,start:b.startUTC,durationMin:b.durationMin||60,lockId:b.lockId})}).catch(function(){});
+  fetch("/api/reserve-slot",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"release",practitionerId:b.practitionerId,start:b.startUTC,durationMin:(b.durationMin||60)+(b.bufferMin||0),lockId:b.lockId})}).catch(function(){});
 }
 
 // =====================================================================
@@ -1295,9 +1381,10 @@ function renderAvailability(){
     +'<div class="card card-gold" style="margin-bottom:16px"><h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin:0 0 6px">Your booking hours</h3><p class="text-soft" style="font-size:13px;margin:0 0 14px;line-height:1.6">Clients will only see open times inside these hours. Anything on your Schedule tab and any booking you already have is blocked out automatically. To take a day off, add it on your Schedule tab without a time.</p>'
     +'<div class="field"><label>YOUR TIME ZONE</label>'+sel("av-tz",tzOpts.map(function(t){return t[0];}),tz,function(v){var f=tzOpts.find(function(t){return t[0]===v;});return f[1];})+'</div>'+rows+'</div>'
     +'<div class="card" style="margin-bottom:16px"><div class="section-title">HOW LONG IS EACH SESSION?</div>'+durRows+'</div>'
-    +'<div class="card" style="margin-bottom:16px"><div class="two-col"><div class="field"><label>MINIMUM NOTICE</label>'+sel("av-notice",[2,12,24,48,72],a.minNoticeHours!=null?a.minNoticeHours:24,function(v){return v+" hours ahead";})+'</div><div class="field"><label>CLIENTS CAN BOOK UP TO</label>'+sel("av-ahead",[14,30,60,90],a.maxDaysAhead||60,function(v){return v+" days ahead";})+'</div></div><div class="field"><label>START TIMES EVERY</label>'+sel("av-step",[15,30,60],a.step||30,function(v){return v+" minutes";})+'</div></div>'
+    +'<div class="card" style="margin-bottom:16px"><div class="two-col"><div class="field"><label>MINIMUM NOTICE</label>'+sel("av-notice",[2,12,24,48,72],a.minNoticeHours!=null?a.minNoticeHours:24,function(v){return v+" hours ahead";})+'</div><div class="field"><label>CLIENTS CAN BOOK UP TO</label>'+sel("av-ahead",[14,30,60,90],a.maxDaysAhead||60,function(v){return v+" days ahead";})+'</div></div><div class="two-col"><div class="field"><label>START TIMES EVERY</label>'+sel("av-step",[15,30,60],a.step||30,function(v){return v+" minutes";})+'</div><div class="field"><label>BREAK BETWEEN SESSIONS</label>'+sel("av-buffer",[0,5,10,15,20,30,45,60],+a.bufferMin||0,function(v){return v?v+" minutes":"No break";})+'</div></div><div class="text-soft" style="font-size:12px;margin-top:-4px">A break gives you time to rest, reset your space, and get ready for the next client.</div></div>'
     +'<button class="btn btn-purple full-width" style="padding:14px" onclick="saveAvailability()">Save Booking Hours</button>'
     +(hasCalendar(p)?'<button class="btn btn-ghost full-width" style="margin-top:10px" onclick="clearAvailability()">Turn off the booking calendar</button>':'')
+    +'<div class="card" style="margin-top:16px" id="cal-sync-card">'+calSyncHtml()+'</div>'
     +'</div>';
 }
 var AV_DRAFT=null;
@@ -1317,8 +1404,26 @@ async function saveAvailability(){
   }
   if(!any){toast("Turn on at least one day","#C4727A");return;}
   var durations={};getTiers(curUser).forEach(function(t,i){durations[t.name]=+document.getElementById("av-dur-"+i).value;});
-  if(!(await healerSave({availability:{tz:document.getElementById("av-tz").value,weekly:weekly,durations:durations,minNoticeHours:+document.getElementById("av-notice").value,maxDaysAhead:+document.getElementById("av-ahead").value,step:+document.getElementById("av-step").value}})))return;
+  if(!(await healerSave({availability:{tz:document.getElementById("av-tz").value,weekly:weekly,durations:durations,minNoticeHours:+document.getElementById("av-notice").value,maxDaysAhead:+document.getElementById("av-ahead").value,step:+document.getElementById("av-step").value,bufferMin:+document.getElementById("av-buffer").value}})))return;
   AV_DRAFT=null;toast("Booking hours saved ✓ Clients can now pick a time","#4A9B8E");renderAvailability();
+}
+// ----- Healer: see REAL Holistic Network bookings inside Google / Apple Calendar -----
+function calFeedUrl(){return curUser&&curUser.calFeedKey?location.origin+"/api/manage?feed="+curUser.id+"."+curUser.calFeedKey:"";}
+function calSyncHtml(){
+  var u=calFeedUrl();
+  var head='<div class="section-title">SEE YOUR BOOKINGS IN YOUR OWN CALENDAR</div><div class="text-soft" style="font-size:13px;line-height:1.6;margin-bottom:12px">Your REAL Holistic Network sessions can show up in Google Calendar, iPhone Calendar, or Outlook automatically. Requests you haven\'t confirmed yet show as "Request (not confirmed yet)".</div>';
+  if(!u)return head+'<button class="btn btn-purple full-width" onclick="makeCalFeed(false)">Get my calendar link</button>';
+  return head+'<input readonly value="'+escHtml(u)+'" onclick="this.select()" style="font-size:12px;margin-bottom:8px"><button class="btn btn-purple full-width" style="margin-bottom:12px" onclick="copyText(calFeedUrl())">Copy my calendar link</button>'
+    +'<div style="font-size:13px;line-height:1.7;color:#4A3F5C"><strong>Google Calendar (on a computer):</strong> open calendar.google.com, click the + next to "Other calendars", choose "From URL", paste the link, and click "Add calendar".<br><strong>iPhone:</strong> open Settings → Calendar (on newer iPhones, Settings → Apps → Calendar) → Calendar Accounts → Add Account → Other → Add Subscribed Calendar, then paste the link.<br><strong>Outlook:</strong> Add calendar → Subscribe from web, then paste the link.</div>'
+    +'<div class="text-soft" style="font-size:12px;margin-top:10px;line-height:1.6">New bookings can take a few hours to appear, because your calendar app checks for updates on its own schedule. Keep this link private. If you shared it by mistake, <a href="#" onclick="makeCalFeed(true);return false" style="color:#6B4699">make a new link</a> (the old one stops working).</div>';
+}
+async function makeCalFeed(reset){
+  if(reset&&!confirm("Make a new calendar link? The old link stops working, so you'll need to add the new one to your calendar again."))return;
+  var j=await api("/api/healer",{action:"calFeed",reset:!!reset},AUTH_TOKEN);
+  if(!j.ok){toast(j.error||"Couldn't make the link. Please try again.","#C4727A");return;}
+  curUser=j.healer;MYB=j.bookings||MYB;
+  var el=document.getElementById("cal-sync-card");if(el)el.innerHTML=calSyncHtml();
+  toast(reset?"New calendar link made ✓":"Your calendar link is ready ✓","#4A9B8E");
 }
 async function clearAvailability(){
   if(!confirm("Turn off the booking calendar? Clients will go back to requesting a date and time."))return;
@@ -2006,6 +2111,102 @@ async function checkReschedLink(){
   document.getElementById("rs-yes").onclick=function(){answer(true);};
   document.getElementById("rs-no").onclick=function(){answer(false);};
 }
+// ---------------- client: view / cancel a booking (/?booking=... and My Bookings) ----------------
+function clientStatusHtml(v){
+  var m={pending:['status-pending','Waiting for '+escHtml(v.healerName)+' to confirm'],proposed:['status-proposed','New time suggested · check your email'],confirmed:['status-confirmed','Confirmed'],declined:['status-declined','Not available'],cancelled:['status-cancelled','Cancelled'+(v.refunded?' · refunded':'')]}[v.status]||['status-pending',escHtml(v.status)];
+  return '<span class="'+m[0]+'">'+m[1]+'</span>';
+}
+function cancelWarning(v){
+  if(!v.cancelCharged)return "Your card won't be charged"+(v.giftTotal?", and your gift certificate money goes back on your code.":".");
+  if(v.cancelRefund)return "You'll get a full refund of $"+v.total+(v.giftTotal?" (the gift certificate part goes back on your code)":"")+".";
+  return "It's less than "+v.cancelHours+" hours before your session, so under our cancellation policy this is not refunded.";
+}
+// One booking card. `act` is "code" (private email link) or "list" (My Bookings).
+function clientBookingCard(v,act,key){
+  var btns=[];
+  if(v.videoLink&&!v.past)btns.push('<a class="btn btn-teal" style="text-decoration:none;font-size:13px;padding:9px 14px" href="'+escHtml(v.videoLink)+'" target="_blank" rel="noopener">💻 Join online</a>');
+  if(v.googleCal&&!v.past)btns.push('<a class="btn btn-ghost" style="text-decoration:none;font-size:13px;padding:9px 14px" href="'+escHtml(v.googleCal)+'" target="_blank" rel="noopener">📅 Google Calendar</a>');
+  if(v.icsUrl&&!v.past)btns.push('<a class="btn btn-ghost" style="text-decoration:none;font-size:13px;padding:9px 14px" href="'+escHtml(v.icsUrl)+'">📅 Apple / Outlook</a>');
+  if(v.reviewUrl)btns.push('<a class="btn btn-gold" style="text-decoration:none;font-size:13px;padding:9px 14px" href="'+escHtml(v.reviewUrl)+'">⭐ Leave a review</a>');
+  if(P.some(function(p){return p.id===v.healerId;}))btns.push('<button class="btn btn-outline" style="font-size:13px;padding:9px 14px" onclick="closeManage();openBooking(\''+v.healerId+'\')">Book again</button>');
+  var cancel=v.canCancel?'<div id="cx-'+v.id+'" style="margin-top:12px"><button class="btn btn-danger" style="font-size:13px;padding:9px 14px" onclick="askCancel(\''+v.id+'\')">Cancel this '+(v.status==="confirmed"?"session":"request")+'</button></div>':'';
+  return '<div class="booking-card" data-cx-act="'+act+'" data-cx-key="'+escHtml(key||"")+'" data-cx-warn="'+escHtml(cancelWarning(v))+'"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+escHtml(v.sessionType||"Session")+' with '+escHtml(v.healerName)+'</div><div style="font-size:14px;color:#6B4699;margin:4px 0">'+escHtml(v.when)+'</div><div class="text-soft" style="font-size:12px">$'+escHtml(v.total)+(v.giftTotal?' · $'+escHtml(v.giftTotal)+' by gift certificate':'')+(v.online?' · <span class="online-tag">💻 Online</span>':'')+'</div></div><div>'+clientStatusHtml(v)+'</div></div>'+(btns.length?'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+btns.join("")+'</div>':'')+cancel+'</div>';
+}
+function askCancel(id){
+  var box=document.getElementById("cx-"+id);if(!box)return;
+  var card=box.closest(".booking-card");
+  box.innerHTML='<div style="background:#FDF3F4;border-radius:10px;padding:12px"><div style="font-size:14px;color:#2A1F3D;margin-bottom:6px;font-weight:bold">Cancel this booking?</div><div style="font-size:13px;color:#4A3F5C;line-height:1.6;margin-bottom:10px">'+escHtml(card.getAttribute("data-cx-warn"))+'</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost" style="font-size:13px;padding:8px 14px" onclick="keepBooking(\''+id+'\')">Keep my booking</button><button class="btn btn-danger" style="font-size:13px;padding:8px 14px" id="cxgo-'+id+'" onclick="doCancel(\''+id+'\')">Yes, cancel it</button></div></div>';
+}
+function keepBooking(id){var b=document.getElementById("cx-"+id);if(b)b.innerHTML='<button class="btn btn-danger" style="font-size:13px;padding:9px 14px" onclick="askCancel(\''+id+'\')">Cancel this booking</button>';}
+async function doCancel(id){
+  var box=document.getElementById("cx-"+id),card=box.closest(".booking-card"),act=card.getAttribute("data-cx-act"),key=card.getAttribute("data-cx-key");
+  var go=document.getElementById("cxgo-"+id);if(go){go.disabled=true;go.textContent="Cancelling…";}
+  var j=act==="list"?await api("/api/manage",{action:"cancelMine",token:key,id:id}):await api("/api/manage",{action:"cancel",code:key});
+  if(!j.ok){box.innerHTML='<div style="color:#A45560;font-size:13px;line-height:1.6">'+escHtml(j.error||"Something went wrong. Please try again.")+'</div>';return;}
+  toast(j.charged?(j.refunded?"Cancelled. Your refund is on its way ✓":"Cancelled ✓"):"Cancelled. Your card was not charged ✓","#4A9B8E");
+  refreshPublic();
+  if(act==="list"){MB_LIST=j.bookings;renderMyBookingsList();}else openManage(key,true);
+}
+function closeManage(){var o=document.getElementById("manage-overlay");if(o)o.remove();}
+async function openManage(code,keep){
+  var o=document.getElementById("manage-overlay");
+  if(!o){o=document.createElement("div");o.id="manage-overlay";o.style.cssText="position:fixed;inset:0;background:rgba(42,31,61,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto";document.body.appendChild(o);}
+  if(!keep)o.innerHTML='<div class="card" style="max-width:480px;width:100%;background:#fff"><div class="text-soft">Loading…</div></div>';
+  var j=await api("/api/manage",{action:"info",code:code});
+  var close='<button class="btn btn-ghost full-width" style="margin-top:6px" onclick="closeManage()">Close</button>';
+  if(!j.ok){o.innerHTML='<div class="card" style="max-width:480px;width:100%;background:#fff"><div style="color:#2A1F3D;margin-bottom:10px">'+escHtml(j.error)+'</div><div class="text-soft" style="font-size:13px;margin-bottom:10px">You can also see all your bookings under <a href="#" style="color:#6B4699" onclick="closeManage();showPage(\'mybookings\');return false">My Bookings</a>.</div>'+close+'</div>';return;}
+  o.innerHTML='<div class="card" style="max-width:480px;width:100%;background:#fff"><div class="section-title">YOUR BOOKING</div>'+clientBookingCard(j.booking,"code",code)+'<div class="text-soft" style="font-size:12px;line-height:1.6;margin:8px 0">Cancel at least '+j.booking.cancelHours+' hours before your session for a full refund. Later cancellations and no-shows are not refunded.</div>'+close+'</div>';
+}
+function checkManageLink(){
+  var m=location.search.match(/[?&]booking=(b\d+\.[a-f0-9]{24})/);if(!m)return;
+  try{history.replaceState(null,"",location.pathname);}catch(e){}
+  openManage(m[1]);
+}
+// "My Bookings": the client gets a private link by email (no password needed)
+var MB_TOKEN=null,MB_LIST=null;
+function checkMyBookingsLink(){
+  var m=location.search.match(/[?&]mybookings=([a-f0-9]{48})/);if(!m)return;
+  try{history.replaceState(null,"",location.pathname);}catch(e){}
+  MB_TOKEN=m[1];MB_LIST=null;
+  try{sessionStorage.setItem("rs:mbt",MB_TOKEN);}catch(e){}
+  showPage("mybookings");window.scrollTo(0,0);
+}
+function mbEmailForm(note){
+  return '<p class="text-soft" style="font-size:14px;line-height:1.7;margin-bottom:16px">'+(note||"See your bookings, add them to your calendar, cancel, or book again. Enter the email you booked with and we'll send you a private link. No password needed.")+'</p><div class="card"><div class="field"><label for="mb-email">YOUR EMAIL</label><input id="mb-email" type="email" autocomplete="email" placeholder="you@example.com" onkeydown="if(event.key===\'Enter\')sendMbLink()"></div><button class="btn btn-purple full-width" id="mb-btn" onclick="sendMbLink()">Email me my link</button><div id="mb-msg" style="font-size:13px;margin-top:10px;line-height:1.6"></div></div>';
+}
+async function sendMbLink(){
+  var e=document.getElementById("mb-email").value.trim(),msg=document.getElementById("mb-msg"),btn=document.getElementById("mb-btn");
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){msg.style.color="#C4727A";msg.textContent="Please enter the email address you booked with.";return;}
+  btn.disabled=true;btn.textContent="Sending…";
+  var j=await api("/api/manage",{action:"link",email:e});
+  btn.disabled=false;btn.textContent="Email me my link";
+  if(!j.ok){msg.style.color="#C4727A";msg.textContent=j.error||"Something went wrong. Please try again.";return;}
+  msg.style.color="#4A9B8E";msg.textContent="If you've booked with that email, a private link is on its way. Please check your inbox (and spam folder).";
+}
+async function renderMyBookingsPage(){
+  var el=document.getElementById("mybookings-body");if(!el)return;
+  if(!MB_TOKEN){try{MB_TOKEN=sessionStorage.getItem("rs:mbt");}catch(e){}}
+  if(!MB_TOKEN){el.innerHTML=mbEmailForm();return;}
+  if(!MB_LIST){
+    el.innerHTML='<div class="text-soft">Loading your bookings…</div>';
+    var j=await api("/api/manage",{action:"list",token:MB_TOKEN});
+    if(!j.ok){MB_TOKEN=null;try{sessionStorage.removeItem("rs:mbt");}catch(e){}el.innerHTML=mbEmailForm(escHtml(j.error||"Please ask for a new link."));return;}
+    MB_LIST=j.bookings;el.setAttribute("data-email",j.email||"");
+  }
+  renderMyBookingsList();
+}
+function renderMyBookingsList(){
+  var el=document.getElementById("mybookings-body");if(!el)return;
+  var now=Date.now(),list=MB_LIST||[];
+  var up=list.filter(function(v){return !v.past&&["pending","proposed","confirmed"].indexOf(v.status)>-1;}).sort(function(a,b){return (a.start||0)-(b.start||0);});
+  var rest=list.filter(function(v){return up.indexOf(v)<0;});
+  var email=el.getAttribute("data-email")||"";
+  el.innerHTML='<p class="text-soft" style="font-size:13px;margin-bottom:16px">'+(email?'Bookings for '+escHtml(email)+'. ':'')+'<a href="#" style="color:#6B4699" onclick="mbSignOut();return false">Not you?</a></p>'
+    +'<div class="section-title">UPCOMING ('+up.length+')</div>'+(up.length?up.map(function(v){return clientBookingCard(v,"list",MB_TOKEN);}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:22px;margin-bottom:16px">No upcoming sessions. <a href="#" style="color:#6B4699" onclick="showPage(\'find\');return false">Find a healer →</a></div>')
+    +(rest.length?'<div class="section-title" style="margin-top:20px">PAST & CANCELLED</div>'+rest.map(function(v){return clientBookingCard(v,"list",MB_TOKEN);}).join(""):'');
+}
+function mbSignOut(){MB_TOKEN=null;MB_LIST=null;try{sessionStorage.removeItem("rs:mbt");}catch(e){}renderMyBookingsPage();}
+
 async function checkReviewLink(){
   var m=location.search.match(/[?&]review=([\w.]+)/);if(!m)return;
   var code=m[1];

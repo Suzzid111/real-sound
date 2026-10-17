@@ -165,6 +165,31 @@ export async function payHealerGifts(b) {
   }
 }
 
+// A confirmed booking was cancelled with a full refund: take back the healer's
+// share of the gift money (if it was already sent) and put the full amount
+// back on the codes. Safe to call more than once. Changes `b` (caller saves).
+// Returns { problems: [text] } for anything the owner should check by hand.
+export async function refundBookingGifts(b) {
+  const problems = [];
+  if (!b || !b.giftUses || !b.giftUses.length || b.giftReleased || b.giftRefunded) return { problems };
+  for (const u of b.giftUses) {
+    if (u.payout && u.payout.status === 'sent' && u.payout.transferId) {
+      try {
+        await stripe().transfers.createReversal(u.payout.transferId, {}, { idempotencyKey: `gift-rev-${b.id}-${u.code}` });
+        u.payout.status = 'reversed';
+        u.payout.reversedAt = new Date().toISOString();
+      } catch (e) {
+        problems.push(`couldn't take back $${(u.payout.cents / 100).toFixed(2)} sent to ${b.practitionerName} for ${u.code} (${str(e && e.message, 200)})`);
+      }
+    } else if (u.payout) {
+      u.payout.status = 'cancelled';
+    }
+  }
+  b.giftRefunded = new Date().toISOString();
+  await giveBack(b.giftUses, b.id, 'refunded');
+  return { problems };
+}
+
 // Every gift certificate, newest first (for the admin panel).
 export const loadGiftIndex = () => getJSON('gifts', []);
 export const saveGiftIndex = L => setJSON('gifts', L.slice(0, 2000));

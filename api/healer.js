@@ -49,6 +49,7 @@ export default async function handler(req, res) {
             minNoticeHours: Math.max(0, Math.min(336, parseInt(a.minNoticeHours, 10) || 0)),
             maxDaysAhead: Math.max(1, Math.min(180, parseInt(a.maxDaysAhead, 10) || 60)),
             step: [15, 30, 60].includes(+a.step) ? +a.step : 30,
+            bufferMin: [0, 5, 10, 15, 20, 30, 45, 60].includes(+a.bufferMin) ? +a.bufferMin : 0,
             updatedAt: new Date().toISOString()
           };
         }
@@ -62,7 +63,7 @@ export default async function handler(req, res) {
           if (details && (LINK_RE.test(details) || /massage/i.test(details))) return res.json({ ok: false, error: /massage/i.test(details) ? 'Massage therapy is not offered on REAL Holistic Network' : "Session details can't include website links" });
           if (!Number.isFinite(price) || price < 1 || price > 10000) return res.json({ ok: false, error: `Please enter a price in whole dollars for ${service}` });
           const keep = old.find(o => o.id === t.id);
-          tiers.push({ id: keep ? keep.id : 't' + Date.now() + i, name: tierName(service, details), service, details, price });
+          tiers.push({ id: keep ? keep.id : 't' + Date.now() + i, name: tierName(service, details), service, details, price, online: t.online === true });
         }
         if (!tiers.length) return res.json({ ok: false, error: 'Please keep at least one session' });
         if (new Set(tiers.map(t => t.name.toLowerCase())).size !== tiers.length) return res.json({ ok: false, error: 'Two sessions are the same. Add details (like "30 min" and "60 min") to tell them apart.' });
@@ -82,6 +83,16 @@ export default async function handler(req, res) {
         if (mods.error) return res.json({ ok: false, error: mods.error });
         if (!mods.list.length) return res.json({ ok: false, error: 'Please choose at least one healing service' });
         p.modalities = mods.list;
+      }
+      if ('videoLink' in f) {
+        const v = str(f.videoLink, 300);
+        if (v && !/^https:\/\/[^\s<>"']+\.[^\s<>"']+$/i.test(v)) return res.json({ ok: false, error: 'Please paste the full video link, starting with https:// (for example your Zoom or Google Meet link)' });
+        if (v) p.videoLink = v; else delete p.videoLink;
+      }
+      if ('intakeQuestions' in f) {
+        const qs = (Array.isArray(f.intakeQuestions) ? f.intakeQuestions : []).slice(0, 5).map(q => str(q, 200).replace(/\s+/g, ' ')).filter(Boolean);
+        if (qs.some(q => LINK_RE.test(q))) return res.json({ ok: false, error: "Questions can't include website links" });
+        p.intakeQuestions = qs;
       }
       if (f.payTermsVersion) {
         p.payTermsVersion = str(f.payTermsVersion, 40);
@@ -112,6 +123,12 @@ export default async function handler(req, res) {
       if (!old) E.push(ev);
       await saveEvents(E);
       await alertOwner(`📣 Event waiting for your approval: "${ev.title}" by ${p.name} (${ev.date})`, ['Approve or decline it in your admin panel.']);
+    } else if (body.action === 'calFeed') {
+      // private link that lets the healer's own calendar app show their bookings
+      const P = await loadHealers();
+      const p = P.find(x => x.id === s.id);
+      if (!p) return res.status(401).json({ ok: false, error: 'Account not found', relogin: true });
+      if (!p.calFeedKey || body.reset === true) { p.calFeedKey = newToken().slice(0, 32); await saveHealers(P); }
     } else if (body.action === 'photo') {
       const c = cleanPhoto(body.photo);
       if (c.error) return res.json({ ok: false, error: c.error });

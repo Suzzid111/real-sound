@@ -3,6 +3,7 @@
 import { loadBookings, saveBookings, loadHealers, sendNotice, sessionWhen, logNote, todayET, releaseSlot } from './_lib.js';
 import { stripe } from './_bookings.js';
 import { releaseBookingGifts, giftBackLine } from './_gifts.js';
+import { ensureKeys, manageLink, clientWhen } from './_manage.js';
 
 export default async function handler(req, res) {
   // Vercel adds this secret to its own scheduled calls; nobody else can trigger it.
@@ -19,10 +20,15 @@ export default async function handler(req, res) {
       if (day !== tomorrow) continue;
       const when = sessionWhen(b);
       const h = P.find(x => x.id === b.practitionerId);
+      ensureKeys(b);
+      const video = b.online && h && h.videoLink ? h.videoLink : '';
       await sendNotice(b.email, b.venueName, `Reminder: your session with ${b.practitionerName} is tomorrow`,
-        `This is a friendly reminder that your ${b.sessionType || 'session'} with ${b.practitionerName} is tomorrow, ${when}.\n\nA few gentle tips: wear comfortable clothes, drink some water, and give yourself a few quiet minutes afterward.\n\nIf something has come up, please reply to this email as soon as possible.\n\nWe hope it's a beautiful session.\nREAL Holistic Network`);
-      if (h && h.email) await sendNotice(h.email, h.name, `Reminder: ${b.sessionType || 'session'} tomorrow with ${b.venueName}`,
-        `Hi ${h.name},\n\nJust a reminder: you have a ${b.sessionType || 'session'} tomorrow, ${when}, with ${b.venueName}${b.groupSize ? ' (group of ' + b.groupSize + ')' : ''}.${b.notes ? '\n\nTheir notes: ' + b.notes : ''}\n\nClient email: ${b.email}\n\nWishing you a wonderful session!\nREAL Holistic Network`);
+        `This is a friendly reminder that your ${b.sessionType || 'session'} with ${b.practitionerName} is tomorrow, ${clientWhen(b)}.${video ? `\n\nThis is an online session. Join here: ${video}` : ''}\n\nA few gentle tips: wear comfortable clothes, drink some water, and give yourself a few quiet minutes afterward.\n\nIf something has come up, you can view or cancel your booking here: ${manageLink(b)}\n(Cancellations less than 24 hours ahead are not refunded.)\n\nWe hope it's a beautiful session.\nREAL Holistic Network`);
+      if (h && h.email) {
+        const answers = (b.intake || []).map(x => `• ${x.q}\n  ${x.a}`).join('\n');
+        await sendNotice(h.email, h.name, `Reminder: ${b.sessionType || 'session'} tomorrow with ${b.venueName}`,
+          `Hi ${h.name},\n\nJust a reminder: you have a ${b.sessionType || 'session'} tomorrow, ${when}, with ${b.venueName}${b.groupSize ? ' (group of ' + b.groupSize + ')' : ''}.${video ? `\n\nIt's online. Your video link: ${video}` : (b.online ? "\n\nIt's an online session, but you haven't saved a video link yet. Please add it in your dashboard (My Profile), or email the client a link." : '')}${b.notes ? '\n\nTheir notes: ' + b.notes : ''}${answers ? '\n\nTheir answers to your questions:\n' + answers : ''}\n\nClient email: ${b.email}\n\nWishing you a wonderful session!\nREAL Holistic Network`);
+      }
       b.reminderSent = new Date().toISOString();
       sent++;
     }
