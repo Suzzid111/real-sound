@@ -1,7 +1,7 @@
 // api/booking.js — saves a new booking request after the client's card has
 // been authorized. The server checks the real Stripe payment (amount and
 // status) against the healer's actual price before saving anything.
-import { loadHealers, loadBookings, saveBookings, logNote, alertOwner, redis, str, tooManyTries, clientIp, connectOf, platformFeeCents, bookingPct, saveReferralClaim } from './_lib.js';
+import { loadHealers, loadBookings, saveBookings, logNote, alertOwner, sendNotice, sessionWhen, redis, str, tooManyTries, clientIp, connectOf, platformFeeCents, bookingPct, saveReferralClaim } from './_lib.js';
 import { stripe } from './_bookings.js';
 import { planGifts, holdGifts, releaseBookingGifts } from './_gifts.js';
 
@@ -90,6 +90,15 @@ export default async function handler(req, res) {
     }
     if (rate.referral) { try { await saveReferralClaim(p, bk.email, rate.claim, bk.id); } catch (e) {} }
     await alertOwner(`🔔 New booking request: ${bk.venueName} → ${bk.practitionerName} (${bk.date})`, [`Client: ${bk.venueName} (${bk.email})`, `Healer: ${bk.practitionerName}`, `Session: ${bk.sessionType} ($${bk.total}${bk.giftTotal ? ', $' + bk.giftTotal + ' paid by gift certificate' : ''})`, `When: ${bk.date} ${bk.time || ''}`, `Notes: ${bk.notes || 'None'}`, bk.referral ? `💜 ${bk.practitionerName} brought this client with their own link (10% commission)` : '']);
+    // Tell the healer right away, so they can confirm before the card hold runs out.
+    const when = sessionWhen(bk);
+    if (p.email) {
+      await sendNotice(p.email, p.name, `New booking request: ${bk.sessionType} with ${bk.venueName}`,
+        `Hi ${p.name},\n\nYou have a new booking request!\n\nClient: ${bk.venueName}\nSession: ${bk.sessionType} ($${bk.total})\nWhen: ${when}${bk.groupSize ? '\nGroup size: ' + bk.groupSize : ''}${bk.notes ? '\n\nTheir notes: ' + bk.notes : ''}\n\nPlease log in to your dashboard at realholisticnetwork.com to confirm it, decline it, or suggest a new time. The client's card is only charged after you confirm.\n\nPlease answer within a few days — the hold on the client's card lasts about a week.\n\nREAL Holistic Network`);
+    }
+    // And let the client know their request arrived.
+    await sendNotice(bk.email, bk.venueName, `We received your booking request with ${bk.practitionerName}`,
+      `Thank you for booking with REAL Holistic Network!\n\nYour request for a ${bk.sessionType} with ${bk.practitionerName} on ${when} has been sent.\n\n${cardDollars > 0 ? 'Your card has NOT been charged yet. It is only charged once your session is confirmed.' : 'Your gift certificate is being held for this session.'} ${bk.practitionerName} will confirm soon, and you'll get an email as soon as they do.\n\nWith gratitude,\nREAL Holistic Network`);
     return res.json({ ok: true, booking: { id: bk.id, date: bk.date, time: bk.time, total: bk.total } });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });
