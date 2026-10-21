@@ -309,7 +309,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
         </div>
         <button type="button" class="btn btn-ghost full-width" style="margin-top:8px" onclick="addJoinTier()">+ Add Session</button>
       </div>
-      <div class="field"><label>HOW DID YOU HEAR ABOUT US?</label><select id="j-heard" onchange="document.getElementById('j-heard-other').style.display=this.value==='Other'?'block':'none'"><option value="">Please choose…</option><option>TikTok</option><option>Facebook or a Facebook group</option><option>Instagram</option><option>Flyer or business card</option><option>A friend or another healer</option><option>Google search</option><option>An event</option><option>Other</option></select><input id="j-heard-other" maxlength="100" placeholder="Please tell us where" style="display:none;margin-top:8px"></div>
+      <div class="field"><label>HOW DID YOU HEAR ABOUT US?</label><select id="j-heard" onchange="var o=document.getElementById('j-heard-other');o.style.display=(this.value==='Other'||this.value==='A friend or another healer')?'block':'none';o.placeholder=this.value==='Other'?'Please tell us where':'Who told you about us? (their name)'"><option value="">Please choose…</option><option>TikTok</option><option>Facebook or a Facebook group</option><option>Instagram</option><option>Flyer or business card</option><option>A friend or another healer</option><option>Google search</option><option>An event</option><option>Other</option></select><input id="j-heard-other" maxlength="100" placeholder="Please tell us where" style="display:none;margin-top:8px"></div>
       <div class="field"><label>CALENDLY LINK <span style="text-transform:none;letter-spacing:0;color:#A990C9">(optional)</span></label><input id="j-calendly" placeholder="e.g. calendly.com/yourname"></div>
       <div class="field"><label>HEALING SERVICES</label><div class="pills" id="j-mods"></div></div>
       <div class="field"><label>INSTRUMENTS</label><div class="pills" id="j-instr"></div></div>
@@ -784,6 +784,7 @@ async function submitJoin(){
   var heard=document.getElementById("j-heard").value,heardOther=document.getElementById("j-heard-other").value.trim();
   if(!heard){toast("Please tell us how you heard about us","#C4727A");return;}
   if(heard==="Other"&&!heardOther){toast("Please tell us where you heard about us","#C4727A");return;}
+  if(heard==="A friend or another healer"&&!heardOther){toast("Please tell us who told you about us","#C4727A");return;}
   if(!document.getElementById("j-agreed").checked){toast("Please agree to the Founding Healer terms","#C4727A");return;}
   if(!document.getElementById("j-pay-agreed").checked){toast("Please agree to how payments work","#C4727A");return;}
   if(blockedFieldsCheck([name,loc,bio]))return;
@@ -1094,7 +1095,7 @@ async function sendTestEmail(){
   else toast((j&&j.error)||"Test alert failed","#C4727A");
 }
 
-function heardLabel(p){return p.heardFrom?(p.heardFrom==="Other"&&p.heardOther?"Other: "+p.heardOther:p.heardFrom):"";}
+function heardLabel(p){return p.heardFrom?(p.heardOther?(p.heardFrom==="Other"?"Other":"Friend/healer")+": "+p.heardOther:p.heardFrom):"";}
 function exportHealerEmails(){
   var P=ADMIN_DATA.practitioners;
   var rows=[["Name","Email","Location","Joined","How they heard about us"]].concat(P.map(function(p){return [p.name,p.email,p.location,p.joinedAt?new Date(p.joinedAt).toLocaleDateString():"",heardLabel(p)];}));

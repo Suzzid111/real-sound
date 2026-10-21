@@ -61,7 +61,7 @@ async function signup(req, res, b) {
   if (!b.agreedTerms || !b.agreedPayTerms) return res.json({ ok: false, error: 'Please agree to the terms' });
   const HEARD = ['TikTok', 'Facebook or a Facebook group', 'Instagram', 'Flyer or business card', 'A friend or another healer', 'Google search', 'An event', 'Other'];
   const heardFrom = HEARD.includes(str(b.heardFrom, 60)) ? str(b.heardFrom, 60) : '';
-  const heardOther = heardFrom === 'Other' ? str(b.heardOther, 100) : '';
+  const heardOther = ['Other', 'A friend or another healer'].includes(heardFrom) ? str(b.heardOther, 100) : '';
   if (!heardFrom) return res.json({ ok: false, error: 'Please tell us how you heard about us' });
   const list = a => (Array.isArray(a) ? a : []).slice(0, 30).map(x => str(x, 80)).filter(Boolean);
 
