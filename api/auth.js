@@ -59,6 +59,10 @@ async function signup(req, res, b) {
     .filter(t => t.name && Number.isFinite(t.price) && t.price > 0);
   if (!tiers.length) return res.json({ ok: false, error: 'Please add at least one session type & price' });
   if (!b.agreedTerms || !b.agreedPayTerms) return res.json({ ok: false, error: 'Please agree to the terms' });
+  const HEARD = ['TikTok', 'Facebook or a Facebook group', 'Instagram', 'Flyer or business card', 'A friend or another healer', 'Google search', 'An event', 'Other'];
+  const heardFrom = HEARD.includes(str(b.heardFrom, 60)) ? str(b.heardFrom, 60) : '';
+  const heardOther = heardFrom === 'Other' ? str(b.heardOther, 100) : '';
+  if (!heardFrom) return res.json({ ok: false, error: 'Please tell us how you heard about us' });
   const list = a => (Array.isArray(a) ? a : []).slice(0, 30).map(x => str(x, 80)).filter(Boolean);
 
   const P = await loadHealers();
@@ -70,12 +74,12 @@ async function signup(req, res, b) {
     rate: Math.min(...tiers.map(t => t.price)), sessionTypes: tiers, calendlyUrl,
     instruments: list(b.instruments), venueTypes: list(b.venueTypes), modalities: normalizeServices(list(b.modalities).concat(tiers.map(t => t.service).filter(Boolean))),
     bio, available: true, avatar: avatars[Math.floor(Math.random() * avatars.length)],
-    source: str(b.source, 60) || 'direct', joinedAt: now,
+    source: str(b.source, 60) || 'direct', heardFrom, heardOther, joinedAt: now,
     payTermsVersion: str(b.payTermsVersion, 40), payTermsAcceptedAt: now
   };
   P.push(p);
   await saveHealers(P);
-  await alertOwner(`🌟 New healer signed up: ${name} (${location})`, [`Name: ${name}`, `Email: ${email}`, `Location: ${location}`, `Healing services: ${p.modalities.join(', ') || '—'}`, `Sessions: ${tiers.map(t => `${t.name} ($${t.price})`).join(', ')}`, `Found us through: ${p.source}`]);
+  await alertOwner(`🌟 New healer signed up: ${name} (${location})`, [`Name: ${name}`, `Email: ${email}`, `Location: ${location}`, `Healing services: ${p.modalities.join(', ') || '—'}`, `Sessions: ${tiers.map(t => `${t.name} ($${t.price})`).join(', ')}`, `Found us through: ${p.source}`, `Heard about us: ${heardFrom}${heardOther ? ' — ' + heardOther : ''}`]);
   const token = await createSession({ role: 'healer', id: p.id });
   return res.json({ ok: true, token, healer: selfHealer(p), bookings: [] });
 }
