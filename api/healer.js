@@ -84,6 +84,24 @@ export default async function handler(req, res) {
         if (!mods.list.length) return res.json({ ok: false, error: 'Please choose at least one healing service' });
         p.modalities = mods.list;
       }
+      if ('profile' in f) {
+        // the healer's own name, town, ZIP and bio (same rules as sign-up: no outside links)
+        const pr = f.profile || {};
+        const name = str(pr.name, 100), location = str(pr.location, 120), zip = str(pr.zip, 10), bio = str(pr.bio, 3000);
+        if (!name || !location) return res.json({ ok: false, error: 'Please fill in your name and location' });
+        if (zip && !/^\d{5}$/.test(zip)) return res.json({ ok: false, error: 'Please enter a 5-digit ZIP code' });
+        if ([name, location, bio].some(x => LINK_RE.test(x))) return res.json({ ok: false, error: "Please remove website links from your profile — links to outside sites aren't allowed." });
+        const nameChanged = name !== p.name;
+        p.name = name; p.location = location; p.zip = zip; p.bio = bio;
+        if (nameChanged) {
+          // keep their events showing the new name
+          const E = await loadEvents();
+          let touched = false;
+          E.forEach(e => { if (e.healerId === p.id) { e.healerName = name; touched = true; } });
+          if (touched) await saveEvents(E);
+        }
+        await logNote(`✏️ ${p.name} updated their profile`);
+      }
       if ('videoLink' in f) {
         const v = str(f.videoLink, 300);
         if (v && !/^https:\/\/[^\s<>"']+\.[^\s<>"']+$/i.test(v)) return res.json({ ok: false, error: 'Please paste the full video link, starting with https:// (for example your Zoom or Google Meet link)' });

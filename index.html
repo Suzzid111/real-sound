@@ -623,8 +623,8 @@ function sessionPriceList(p){
 }
 function healerCard(p,mini){
   var tags=p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("");
-  if(mini)return '<div class="healer-card" onclick="openBooking(\''+p.id+'\')"><div class="healer-top">'+avatarHtml(p,46)+'<div><div class="healer-name">'+p.name+'</div><div class="healer-loc">'+p.location+'</div><div style="font-size:11px;margin-top:2px">'+ratingHtml(p)+'</div></div><div style="margin-left:auto;color:#C9922A;font-weight:bold">'+priceLabel(p)+'</div></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><div style="font-size:13px;color:#A990C9;line-height:1.5">'+p.bio.slice(0,80)+'...</div></div></div>';
-  return '<div class="healer-card"><div class="healer-top">'+avatarHtml(p,46)+'<div style="flex:1"><div class="healer-name">'+p.name+'</div><div class="healer-loc">📍 '+p.location+'</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"● Open":"○ Busy")+'</span></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><p style="font-size:13px;color:#A990C9;margin:0 0 10px;line-height:1.5">'+(p.bio||'')+'</p>'+sessionPriceList(p)+'<div style="display:flex;align-items:center;justify-content:space-between"><div><span style="font-size:20px;font-weight:bold;color:#2A1F3D">'+priceLabel(p)+'</span><span class="text-soft" style="font-size:12px">'+(getTiers(p).length>1?"":"/session")+'</span><div style="font-size:12px;margin-top:2px">'+ratingHtml(p)+'</div></div>'+(p.available?'<button class="btn btn-gold" onclick="openBooking(\''+p.id+'\')">Book →</button>':'<button class="btn btn-ghost" disabled>Unavailable</button>')+'</div></div></div>';
+  if(mini)return '<div class="healer-card" onclick="openBooking(\''+p.id+'\')"><div class="healer-top">'+avatarHtml(p,46)+'<div><div class="healer-name">'+p.name+'</div><div class="healer-loc">'+p.location+'</div><div style="font-size:11px;margin-top:2px">'+ratingHtml(p)+'</div></div><div style="margin-left:auto;color:#C9922A;font-weight:bold">'+priceLabel(p)+'</div></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><div style="font-size:13px;color:#A990C9;line-height:1.5">'+escHtml((p.bio||'').slice(0,80))+'...</div></div></div>';
+  return '<div class="healer-card"><div class="healer-top">'+avatarHtml(p,46)+'<div style="flex:1"><div class="healer-name">'+p.name+'</div><div class="healer-loc">📍 '+p.location+'</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"● Open":"○ Busy")+'</span></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><p style="font-size:13px;color:#A990C9;margin:0 0 10px;line-height:1.5">'+escHtml(p.bio||'')+'</p>'+sessionPriceList(p)+'<div style="display:flex;align-items:center;justify-content:space-between"><div><span style="font-size:20px;font-weight:bold;color:#2A1F3D">'+priceLabel(p)+'</span><span class="text-soft" style="font-size:12px">'+(getTiers(p).length>1?"":"/session")+'</span><div style="font-size:12px;margin-top:2px">'+ratingHtml(p)+'</div></div>'+(p.available?'<button class="btn btn-gold" onclick="openBooking(\''+p.id+'\')">Book →</button>':'<button class="btn btn-ghost" disabled>Unavailable</button>')+'</div></div></div>';
 }
 
 function renderFind(){
@@ -968,7 +968,7 @@ function renderEarnings(){
 function renderMyProfile(){
   var p=curUser;
   var tierRows=getTiers(p).map(function(t){return '<div class="review-row"><span class="review-key">'+t.name.toUpperCase()+'</span><span style="color:#2A1F3D">$'+t.price+'</span></div>';}).join("");
-  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card" style="margin-bottom:16px"><div class="section-title">YOUR PHOTO</div>'+photoPickerHtml(p,'uploadMyPhoto(this)')+'</div><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">'+avatarHtml(p,58)+'<div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+p.name+'</div><div class="text-soft" style="font-size:13px">📍 '+p.location+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">'+priceLabel(p)+'</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px">'+p.bio+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div></div><div class="card" style="margin-bottom:16px" id="my-services"></div><div class="card" style="margin-bottom:16px" id="my-tiers"></div><div class="card" style="margin-bottom:16px" id="my-online"></div><div class="card" style="margin-bottom:16px" id="my-intake"></div>'+myReviewsCard()+changePwCard(false)+'</div>';
+  document.getElementById("ptab-profile").innerHTML='<div style="max-width:520px"><div class="card" style="margin-bottom:16px"><div class="section-title">YOUR PHOTO</div>'+photoPickerHtml(p,'uploadMyPhoto(this)')+'</div><div class="card card-gold" style="margin-bottom:16px"><div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">'+avatarHtml(p,58)+'<div><div style="font-weight:bold;font-size:20px;color:#2A1F3D">'+escHtml(p.name)+'</div><div class="text-soft" style="font-size:13px">📍 '+escHtml(p.location)+'</div><div class="text-gold" style="font-weight:bold;margin-top:2px">'+priceLabel(p)+'</div></div></div><p class="text-soft" style="font-size:14px;line-height:1.6;margin:0 0 12px;white-space:pre-line">'+escHtml(p.bio||"")+'</p><div class="mod-tags">'+p.modalities.map(function(m){return '<span class="mod-tag">'+m+'</span>';}).join("")+'</div><button type="button" class="btn btn-outline full-width" style="margin-top:14px" onclick="toggleProfileEdit(true)">✏️ Edit my profile</button></div><div class="card" style="margin-bottom:16px;display:none" id="my-details"></div><div class="card" style="margin-bottom:16px" id="my-services"></div><div class="card" style="margin-bottom:16px" id="my-tiers"></div><div class="card" style="margin-bottom:16px" id="my-online"></div><div class="card" style="margin-bottom:16px" id="my-intake"></div>'+myReviewsCard()+changePwCard(false)+'</div>';
   MOD_DRAFT=null;renderMyServices();TIER_DRAFT=null;renderMyTiers();renderMyOnline();INTAKE_DRAFT=null;renderMyIntake();
 }
 
@@ -992,6 +992,29 @@ async function saveMyTiers(){
   if(!rows.length){toast("Please add at least one session","#C4727A");return;}
   for(var i=0;i<rows.length;i++){var t=rows[i];if(!t.service){toast("Please choose a healing service for each session","#C4727A");return;}if(!(parseInt(t.price,10)>=1)){toast("Please enter a price in whole dollars for "+t.service,"#C4727A");return;}if(/massage/i.test(t.details)){toast("Massage therapy is not offered on REAL Holistic Network","#C4727A");return;}if(containsLink(t.details)){toast("Session details can't include website links","#C4727A");return;}}
   if(await healerSave({sessionTypes:rows.map(function(t){return {id:t.id,service:t.service,details:String(t.details).trim(),price:parseInt(t.price,10),online:!!t.online};})})){TIER_DRAFT=null;toast("Sessions & prices saved ✓","#4A9B8E");renderMyProfile();}
+}
+
+// ----- Healers edit their own name, location, ZIP and bio -----
+function toggleProfileEdit(open){
+  var el=document.getElementById("my-details");if(!el||!curUser)return;
+  if(!open){el.style.display="none";el.innerHTML="";return;}
+  var p=curUser;
+  el.innerHTML='<div class="section-title">EDIT MY PROFILE</div><div class="text-soft" style="font-size:13px;margin-bottom:12px;line-height:1.6">This is what clients see on your profile. Please don\'t include website links. Clients book you right here on REAL Holistic Network.</div>'
+    +'<div class="field"><label for="pe-name">YOUR NAME</label><input id="pe-name" maxlength="100" value="'+escHtml(p.name||"")+'"></div>'
+    +'<div class="field"><label for="pe-loc">LOCATION (CITY, STATE)</label><input id="pe-loc" maxlength="120" placeholder="e.g. Cranston, RI" value="'+escHtml(p.location||"")+'"></div>'
+    +'<div class="field"><label for="pe-zip">ZIP CODE</label><input id="pe-zip" maxlength="5" inputmode="numeric" placeholder="e.g. 02910" value="'+escHtml(p.zip||"")+'"></div>'
+    +'<div class="field"><label for="pe-bio">ABOUT YOU (BIO)</label><textarea id="pe-bio" rows="6" maxlength="3000">'+escHtml(p.bio||"")+'</textarea></div>'
+    +'<button class="btn btn-purple full-width" style="margin-bottom:8px" onclick="saveMyDetails()">Save my profile</button>'
+    +'<button type="button" class="btn btn-ghost full-width" onclick="toggleProfileEdit(false)">Cancel</button>';
+  el.style.display="block";
+  el.scrollIntoView({behavior:"smooth",block:"start"});
+}
+async function saveMyDetails(){
+  var name=document.getElementById("pe-name").value.trim(),loc=document.getElementById("pe-loc").value.trim(),zip=document.getElementById("pe-zip").value.trim(),bio=document.getElementById("pe-bio").value.trim();
+  if(!name||!loc){toast("Please fill in your name and location","#C4727A");return;}
+  if(zip&&!/^\d{5}$/.test(zip)){toast("Please enter a 5-digit ZIP code","#C4727A");return;}
+  if(containsLink(name)||containsLink(loc)||containsLink(bio)){toast("Please remove website links from your profile","#C4727A");return;}
+  if(await healerSave({profile:{name:name,location:loc,zip:zip,bio:bio}})){toast("Profile saved ✓","#4A9B8E");renderMyProfile();}
 }
 
 // ----- Online sessions: the healer's private video link -----
@@ -1164,7 +1187,7 @@ function healerEditForm(p){
     +'<div class="field"><label>NAME</label><input id="eh-name" value="'+p.name.replace(/"/g,'&quot;')+'"></div>'
     +'<div class="field"><label>LOCATION</label><input id="eh-location" value="'+p.location.replace(/"/g,'&quot;')+'"></div>'
     +'<div class="field"><label>EMAIL (admin-only)</label><input id="eh-email" value="'+p.email.replace(/"/g,'&quot;')+'"></div>'
-    +'<div class="field"><label>BIO</label><textarea id="eh-bio" rows="3">'+p.bio+'</textarea></div>'
+    +'<div class="field"><label>BIO</label><textarea id="eh-bio" rows="3">'+escHtml(p.bio||"")+'</textarea></div>'
     +'<div class="field"><label>NEW PASSWORD <span style="text-transform:none;letter-spacing:0;color:#A990C9">(leave blank to keep their current one)</span></label><input id="eh-password" type="text" placeholder="Temporary password to send the healer"></div>'
     +'<div class="field"><label>HEALING SERVICES (separate with commas)</label><textarea id="eh-mods" rows="2">'+escHtml((p.modalities||[]).join(", "))+'</textarea></div>'
     +'<div class="field"><label>CALENDLY LINK</label><input id="eh-calendly" value="'+(p.calendlyUrl||"").replace(/"/g,'&quot;')+'"></div>'
