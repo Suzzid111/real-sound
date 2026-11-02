@@ -142,6 +142,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
     <button class="nav-btn active" id="nav-home" onclick="showPage('home')">Home</button>
     <button class="nav-btn" id="nav-find" onclick="showPage('find')">Find a Healer</button>
     <button class="nav-btn" id="nav-events" onclick="showPage('events')">Events</button>
+    <button class="nav-btn" id="nav-shops" onclick="showPage('shops')">Shops</button>
     <button class="nav-btn" id="nav-learn" onclick="showPage('learn')">Learn</button>
     <button class="nav-btn" id="nav-gifts" onclick="showPage('gifts')">🎁 Gift Certificates</button>
     <button class="nav-btn" id="nav-mybookings" onclick="showPage('mybookings')">My Bookings</button>
@@ -221,6 +222,22 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
   <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">Wellness for Your Workplace or Group</h2>
   <p class="text-soft" style="margin-bottom:18px;font-size:14px;max-width:640px;line-height:1.7">From a calming sound bath for your team to a monthly Reiki circle for residents, our healers bring the experience to you. Tell us a little about your group and we'll put together options that fit your space, schedule and budget.</p>
   <div id="workplace-body"></div>
+</div>
+</div>
+
+<!-- SHOPS -->
+<div id="page-shops" class="page">
+<div class="wrap">
+  <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">Find a Metaphysical Shop</h2>
+  <p class="text-soft" style="margin-bottom:16px;font-size:14px;line-height:1.7">Crystal shops, metaphysical stores and holistic boutiques. Enter a ZIP code to see the ones closest to you. Now listing Rhode Island, with more states coming soon.</p>
+  <div class="zip-search">
+    <input id="shop-zip" placeholder="Enter ZIP code" maxlength="5" type="text" inputmode="numeric" aria-label="ZIP code" onkeydown="if(event.key==='Enter')searchShops()"/>
+    <button class="zbtn" onclick="searchShops()">Search</button>
+    <button class="zclear" onclick="clearShops()">Clear</button>
+  </div>
+  <div id="shop-msg" style="font-size:12px;color:#A990C9;margin-bottom:10px;display:none"></div>
+  <div class="healer-grid" id="shop-list"></div>
+  <p class="text-soft" style="font-size:12px;margin-top:18px;line-height:1.6">Own a shop or see one we're missing? Email <a href="mailto:bookings.realsound@gmail.com" style="color:#6B4699">bookings.realsound@gmail.com</a> and we'll add it free. Please call ahead to check hours.</p>
 </div>
 </div>
 
@@ -582,6 +599,7 @@ function showPage(p){
   if(p==="gifts")renderGifts();
   if(p==="mybookings")renderMyBookingsPage();
   if(p==="events")renderEvents();
+  if(p==="shops")renderShops();
   if(p==="workplace")renderWorkplace();
   if(p==="join")renderJoinPills();
   if(p==="login")renderLogin();
@@ -603,6 +621,68 @@ function clearZip(){
   zipFilter="";mFilter="All";
   document.getElementById("zip-input").value="";
   renderFind();
+}
+
+// ---------- Metaphysical shop directory ----------
+// lat/lng is the shop's street address when we have one, otherwise the center of its town,
+// so distances are approximate ("about X miles").
+var SHOPS=[
+ {name:"Earthtones Metaphysical Shop",town:"Providence",state:"RI",address:"103 Wickenden St, Providence, RI",phone:"(401) 648-7505",sells:"Crystals, herbs, tarot, essential oils",lat:41.8198,lng:-71.4006},
+ {name:"Spectrum-India",town:"Providence (Thayer St area)",state:"RI",sells:"Spiritual shop, jewelry, art",lat:41.8290,lng:-71.4010},
+ {name:"Botanica La Altagracia",town:"Providence (Smith Hill)",state:"RI",sells:"Botanica and spiritual goods",lat:41.8330,lng:-71.4200},
+ {name:"The Veiled Crow",town:"Cranston",state:"RI",address:"1862 Broad St, Cranston, RI",phone:"401-919-5499",website:"veiledcrow.com",sells:"Witchcraft supplies, tarot, books, candles, oils, incense",lat:41.7760,lng:-71.4050},
+ {name:"White Light Books (White Light RI)",town:"Cranston",state:"RI",address:"1464 Park Ave, Cranston, RI 02920",phone:"401-543-4357 (text)",sells:"Rhode Island's oldest metaphysical store: gemstones, jewelry, books, readings, classes and events",lat:41.7870,lng:-71.4370},
+ {name:"CICI and The Moon",town:"Johnston",state:"RI",website:"ciciandthemoon.com",sells:"Metaphysical shop and apothecary: herbs, plants, handmade creations",lat:41.8220,lng:-71.5070},
+ {name:"Wild Witches",town:"North Providence",state:"RI",sells:"Crystals, spell items",lat:41.8500,lng:-71.4660},
+ {name:"Crystal Healing Arts",town:"Pawtucket",state:"RI",sells:"Metaphysical goods, tarot cards",lat:41.8790,lng:-71.3830},
+ {name:"Positive New Beginnings Holistic & Wellness Center",town:"East Providence",state:"RI",address:"222 Warren Ave, East Providence, RI 02914",sells:"Gift store and holistic center",lat:41.8170,lng:-71.3700},
+ {name:"Apple Valley Minerals",town:"Smithfield",state:"RI",sells:"Crystals",lat:41.9220,lng:-71.5490},
+ {name:"Bewitched of Scituate",town:"Scituate (Scituate Village)",state:"RI",website:"bewitchedofscituate.com",sells:"Handmade and vintage items, herbals, stones, classes and readings",lat:41.8320,lng:-71.5870},
+ {name:"Guiding Light Holistic Healing",town:"North Scituate",state:"RI",address:"177 Danielson Pike, North Scituate, RI 02857",sells:"Holistic healing shop: Reiki, sound healing, tarot, classes",lat:41.8330,lng:-71.5850},
+ {name:"Elite Ideas Trading",town:"Warwick",state:"RI",sells:"Crystals, home decor, water fountains",lat:41.7000,lng:-71.4160},
+ {name:"Third Rock Emporium",town:"East Greenwich",state:"RI",sells:"Crystals, tumblestones, jewelry, pendulums, fossils",lat:41.6600,lng:-71.4560},
+ {name:"Crystals & Brews",town:"Coventry",state:"RI",sells:"Crystals",lat:41.6900,lng:-71.6000},
+ {name:"The Mystics Touch Gift Shop",town:"Coventry",state:"RI",address:"192 Pilgrim Ave, Ste 5, Coventry, RI 02816",sells:"Gift shop, herbs, psychic readings",lat:41.6930,lng:-71.5300},
+ {name:"The Sage Cauldron",town:"Coventry",state:"RI",address:"67 Sandy Bottom Rd, Coventry, RI 02816",phone:"(401) 615-7444",sells:"Metaphysical products, psychic and spiritual services",lat:41.6960,lng:-71.5500},
+ {name:"Anchored Soul",town:"North Kingstown (Wickford)",state:"RI",address:"2 Main St, North Kingstown, RI",website:"anchoredsoulri.com",sells:"Holistic boutique: crystals, custom art, workshops and events",lat:41.5720,lng:-71.4480}
+];
+var shopZip="",shopOrigin=null,ZIP_CACHE={};
+function milesBetween(a,b,c,d){var R=3958.8,r=Math.PI/180,x=Math.sin((c-a)*r/2),y=Math.sin((d-b)*r/2);var h=x*x+Math.cos(a*r)*Math.cos(c*r)*y*y;return 2*R*Math.asin(Math.sqrt(h));}
+function zipToPlace(z){
+  if(ZIP_CACHE[z])return Promise.resolve(ZIP_CACHE[z]);
+  return fetch("https://api.zippopotam.us/us/"+z).then(function(r){if(!r.ok)throw new Error("notfound");return r.json();}).then(function(j){
+    var pl=j.places&&j.places[0];if(!pl)throw new Error("notfound");
+    var o={lat:parseFloat(pl.latitude),lng:parseFloat(pl.longitude),label:pl["place name"]+", "+pl["state abbreviation"]};
+    ZIP_CACHE[z]=o;return o;
+  });
+}
+function searchShops(){
+  var z=document.getElementById("shop-zip").value.trim();
+  if(!/^\d{5}$/.test(z)){toast("Please enter a 5-digit ZIP code","#C4727A");return;}
+  var msg=document.getElementById("shop-msg");msg.style.display="block";msg.textContent="Looking up ZIP "+z+"…";
+  zipToPlace(z).then(function(o){shopZip=z;shopOrigin=o;renderShops();})
+  .catch(function(e){shopZip="";shopOrigin=null;renderShops();msg.style.display="block";msg.textContent=e.message==="notfound"?"We couldn't find ZIP "+z+". Please check it and try again.":"ZIP search isn't working right now. Here are all our shops.";});
+}
+function clearShops(){shopZip="";shopOrigin=null;document.getElementById("shop-zip").value="";renderShops();}
+function renderShops(){
+  var list=SHOPS.map(function(s){var c={};for(var k in s)c[k]=s[k];c.mi=shopOrigin?milesBetween(shopOrigin.lat,shopOrigin.lng,s.lat,s.lng):null;return c;});
+  if(shopOrigin)list.sort(function(a,b){return a.mi-b.mi;});
+  else list.sort(function(a,b){return a.town.localeCompare(b.town)||a.name.localeCompare(b.name);});
+  var msg=document.getElementById("shop-msg");
+  if(shopOrigin){msg.style.display="block";msg.textContent="Closest to "+shopZip+" ("+shopOrigin.label+"). Distances are approximate"+(list.length&&list[0].mi>60?". We don't have shops near you yet, but more states are coming soon.":".");}
+  else msg.style.display="none";
+  document.getElementById("shop-list").innerHTML=list.map(function(s){
+    var site=s.website?'<a href="https://'+escHtml(s.website)+'" target="_blank" rel="noopener" style="color:#6B4699;font-size:13px">'+escHtml(s.website)+' ↗</a>':'';
+    var tel=s.phone?'<a href="tel:'+escHtml(s.phone.replace(/[^\d]/g,"").slice(0,10))+'" style="color:#6B4699;font-size:13px">📞 '+escHtml(s.phone)+'</a>':'';
+    var mapQ=encodeURIComponent(s.address||(s.name+", "+s.town.replace(/\s*\(.*\)/,"")+", "+s.state));
+    return '<div class="card" style="display:flex;flex-direction:column;gap:6px">'
+      +(s.mi!=null?'<div style="font-size:11px;letter-spacing:.12em;color:#C9922A;font-weight:bold">ABOUT '+(s.mi<1?'1':Math.round(s.mi))+' MILE'+(Math.round(s.mi)>1?'S':'')+' AWAY</div>':'')
+      +'<div style="font-weight:bold;font-size:17px;color:#2A1F3D">'+escHtml(s.name)+'</div>'
+      +'<div style="font-size:13px;color:#6B4699">📍 '+escHtml(s.address||(s.town+", "+s.state))+'</div>'
+      +'<div class="text-soft" style="font-size:13px;line-height:1.6">'+escHtml(s.sells)+'</div>'
+      +'<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px">'+tel+site+'<a href="https://www.google.com/maps/search/?api=1&query='+mapQ+'" target="_blank" rel="noopener" style="color:#6B4699;font-size:13px">Directions ↗</a></div>'
+      +'</div>';
+  }).join("");
 }
 
 function renderHome(){
