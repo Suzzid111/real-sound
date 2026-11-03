@@ -661,13 +661,19 @@ var SHOPS=[
 ];
 var shopZip="",shopOrigin=null,ZIP_CACHE={};
 function milesBetween(a,b,c,d){var R=3958.8,r=Math.PI/180,x=Math.sin((c-a)*r/2),y=Math.sin((d-b)*r/2);var h=x*x+Math.cos(a*r)*Math.cos(c*r)*y*y;return 2*R*Math.asin(Math.sqrt(h));}
+// Backup ZIP locations when the online lookup can't be reached: every ZIP in a shop address, then 3-digit area centers.
+var ZIP3={"028":[41.82,-71.41],"029":[41.80,-71.42],"027":[41.72,-71.05],"023":[42.06,-70.98],"020":[42.10,-71.25],"021":[42.36,-71.06],"022":[42.33,-71.10],"024":[42.42,-71.20],"025":[41.70,-70.40],"026":[41.66,-70.20],"017":[42.30,-71.55],"014":[42.55,-71.80],"015":[42.20,-71.85],"016":[42.27,-71.80],"018":[42.60,-71.20],"019":[42.55,-70.90],"060":[41.75,-72.70],"061":[41.76,-72.68],"062":[41.80,-72.10],"063":[41.40,-72.10],"064":[41.35,-72.90],"065":[41.30,-72.92],"066":[41.20,-73.20],"067":[41.55,-73.05],"068":[41.10,-73.40],"069":[41.05,-73.55]};
+function localZip(z){
+  for(var i=0;i<SHOPS.length;i++){var s=SHOPS[i];var m=(s.address||"").match(/\b(\d{5})\b/);if(m&&m[1]===z)return {lat:s.lat,lng:s.lng,label:s.town.replace(/\s*\(.*\)/,"")+", "+s.state};}
+  var c=ZIP3[z.slice(0,3)];return c?{lat:c[0],lng:c[1],label:"ZIP "+z}:null;
+}
 function zipToPlace(z){
   if(ZIP_CACHE[z])return Promise.resolve(ZIP_CACHE[z]);
   return fetch("https://api.zippopotam.us/us/"+z).then(function(r){if(!r.ok)throw new Error("notfound");return r.json();}).then(function(j){
     var pl=j.places&&j.places[0];if(!pl)throw new Error("notfound");
     var o={lat:parseFloat(pl.latitude),lng:parseFloat(pl.longitude),label:pl["place name"]+", "+pl["state abbreviation"]};
     ZIP_CACHE[z]=o;return o;
-  });
+  }).catch(function(e){var o=localZip(z);if(o){ZIP_CACHE[z]=o;return o;}throw e;});
 }
 function searchShops(){
   var z=document.getElementById("shop-zip").value.trim();
@@ -679,10 +685,11 @@ function searchShops(){
 function clearShops(){shopZip="";shopOrigin=null;document.getElementById("shop-zip").value="";renderShops();}
 function renderShops(){
   var list=SHOPS.map(function(s){var c={};for(var k in s)c[k]=s[k];c.mi=shopOrigin?milesBetween(shopOrigin.lat,shopOrigin.lng,s.lat,s.lng):null;return c;});
-  if(shopOrigin)list.sort(function(a,b){return a.mi-b.mi;});
+  var total=list.length,near=0;
+  if(shopOrigin){list.sort(function(a,b){return a.mi-b.mi;});near=list.filter(function(s){return s.mi<=20;}).length;list=list.slice(0,Math.max(near,5));}
   else list.sort(function(a,b){return a.town.localeCompare(b.town)||a.name.localeCompare(b.name);});
   var msg=document.getElementById("shop-msg");
-  if(shopOrigin){msg.style.display="block";msg.textContent="Closest to "+shopZip+" ("+shopOrigin.label+"). Distances are approximate"+(list.length&&list[0].mi>60?". We don't have shops near you yet, but more states are coming soon.":".");}
+  if(shopOrigin){msg.style.display="block";msg.textContent=(near?near+" shop"+(near>1?"s":"")+" within 20 miles of "+shopZip+" ("+shopOrigin.label+"). ":"No shops within 20 miles of "+shopZip+" yet, so here are the 5 closest. ")+"Distances are approximate. Clear the search to see all "+total+" shops.";}
   else msg.style.display="none";
   document.getElementById("shop-list").innerHTML=list.map(function(s){
     var site=s.website?'<a href="https://'+escHtml(s.website)+'" target="_blank" rel="noopener" style="color:#6B4699;font-size:13px">'+escHtml(s.website)+' ↗</a>':'';
