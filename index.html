@@ -229,13 +229,14 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
 <div id="page-shops" class="page">
 <div class="wrap">
   <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">Find a Metaphysical Shop</h2>
-  <p class="text-soft" style="margin-bottom:16px;font-size:14px;line-height:1.7">Crystal shops, metaphysical stores and holistic boutiques. Enter a ZIP code to see the ones closest to you. Now listing Rhode Island and southeastern Massachusetts, with more states coming soon.</p>
+  <p class="text-soft" style="margin-bottom:16px;font-size:14px;line-height:1.7">Crystal shops, metaphysical stores and holistic boutiques. Enter a ZIP code to see the ones closest to you. Now listing Rhode Island and Massachusetts, with more states coming soon.</p>
   <div class="zip-search">
     <input id="shop-zip" placeholder="Enter ZIP code" maxlength="5" type="text" inputmode="numeric" aria-label="ZIP code" onkeydown="if(event.key==='Enter')searchShops()"/>
     <button class="zbtn" onclick="searchShops()">Search</button>
     <button class="zclear" onclick="clearShops()">Clear</button>
   </div>
   <div id="shop-msg" style="font-size:12px;color:#A990C9;margin-bottom:10px;display:none"></div>
+  <div id="shop-contact" style="display:none"></div>
   <div class="healer-grid" id="shop-list"></div>
   <p class="text-soft" style="font-size:12px;margin-top:18px;line-height:1.6">Own a shop or see one we're missing? Email <a href="mailto:bookings.realsound@gmail.com" style="color:#6B4699">bookings.realsound@gmail.com</a> and we'll add it free. Please call ahead to check hours.</p>
 </div>
@@ -703,7 +704,19 @@ function searchShops(){
   .catch(function(e){shopZip="";shopOrigin=null;renderShops();msg.style.display="block";msg.textContent=e.message==="notfound"?"We couldn't find ZIP "+z+". Please check it and try again.":"ZIP search isn't working right now. Here are all our shops.";});
 }
 function clearShops(){shopZip="";shopOrigin=null;document.getElementById("shop-zip").value="";renderShops();}
+// Local RHN contacts, shown when someone searches a ZIP in their area
+var LOCAL_CONTACTS=[
+ {name:"Tricia",area:"Lakeland, Florida",email:"tgk35@yahoo.com",match:function(z){var n=parseInt(z.slice(0,3),10);return n>=320&&n<=349;}}
+];
+function renderShopContact(){
+  var el=document.getElementById("shop-contact");if(!el)return;
+  var c=null;if(shopZip){for(var i=0;i<LOCAL_CONTACTS.length;i++){if(LOCAL_CONTACTS[i].match(shopZip)){c=LOCAL_CONTACTS[i];break;}}}
+  if(!c){el.style.display="none";el.innerHTML="";return;}
+  el.style.display="block";
+  el.innerHTML='<div class="card card-gold" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="font-size:26px">💜</div><div style="flex:1;min-width:200px"><div style="font-size:11px;letter-spacing:.12em;color:#C9922A;font-weight:bold">YOUR LOCAL RHN CONTACT</div><div style="font-weight:bold;font-size:16px;color:#2A1F3D">'+escHtml(c.name)+' · '+escHtml(c.area)+'</div><div class="text-soft" style="font-size:13px;line-height:1.5">Questions about holistic shops or healers near you? Reach out anytime.</div></div><a class="btn btn-gold" href="mailto:'+escHtml(c.email)+'?subject='+encodeURIComponent("Real Holistic Network question")+'" style="text-decoration:none">Email '+escHtml(c.name)+'</a></div>';
+}
 function renderShops(){
+  renderShopContact();
   var list=SHOPS.map(function(s){var c={};for(var k in s)c[k]=s[k];c.mi=shopOrigin?milesBetween(shopOrigin.lat,shopOrigin.lng,s.lat,s.lng):null;return c;});
   var total=list.length,near=0;
   if(shopOrigin){list.sort(function(a,b){return a.mi-b.mi;});near=list.filter(function(s){return s.mi<=20;}).length;list=list.slice(0,Math.max(near,5));}
