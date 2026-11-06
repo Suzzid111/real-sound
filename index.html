@@ -229,7 +229,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
 <div id="page-shops" class="page">
 <div class="wrap">
   <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">Find a Metaphysical Shop</h2>
-  <p class="text-soft" style="margin-bottom:16px;font-size:14px;line-height:1.7">Crystal shops, metaphysical stores and holistic boutiques. Enter a ZIP code to see the ones closest to you. Now listing Rhode Island, Massachusetts and Lakeland, Florida, with more states coming soon.</p>
+  <p class="text-soft" style="margin-bottom:16px;font-size:14px;line-height:1.7">Crystal shops, metaphysical stores and holistic boutiques. Enter a ZIP code to see the ones closest to you. Now listing Rhode Island, Massachusetts, and Lakeland and Winter Haven, Florida, with more states coming soon.</p>
   <div class="zip-search">
     <input id="shop-zip" placeholder="Enter ZIP code" maxlength="5" type="text" inputmode="numeric" aria-label="ZIP code" onkeydown="if(event.key==='Enter')searchShops()"/>
     <button class="zbtn" onclick="searchShops()">Search</button>
@@ -692,7 +692,10 @@ var SHOPS=[
  {name:"Botanica St Francis",town:"Lakeland",state:"FL",address:"1539 W Memorial Blvd, Lakeland, FL 33815",phone:"(863) 606-6008",sells:"Botanica and spiritual goods",lat:28.0390,lng:-81.9690},
  {name:"Marie's Spiritual Garden",town:"Lakeland",state:"FL",address:"306 W Memorial Blvd, Lakeland, FL 33815",phone:"(863) 329-3791",sells:"Spiritual shop",lat:28.0390,lng:-81.9555},
  {name:"Botanica Oya y el Rey Shango",town:"Lakeland",state:"FL",address:"1322 E Memorial Blvd, Suite 2, Lakeland, FL 33801",phone:"(407) 272-5718",sells:"Botanica and spiritual goods",lat:28.0385,lng:-81.9340},
- {name:"Mi Guadalupana Botanica",town:"Lakeland",state:"FL",address:"2701 Swindell Rd, Building 6, Lakeland, FL 33805",phone:"(813) 777-9289",sells:"Botanica and spiritual goods",lat:28.0700,lng:-81.9890}
+ {name:"Mi Guadalupana Botanica",town:"Lakeland",state:"FL",address:"2701 Swindell Rd, Building 6, Lakeland, FL 33805",phone:"(813) 777-9289",sells:"Botanica and spiritual goods",lat:28.0700,lng:-81.9890},
+ {name:"MystiK Tides",town:"Winter Haven",state:"FL",address:"201 Ave O SW, Winter Haven, FL",phone:"(863) 602-2625",sells:"Metaphysical shop. Hours: Wed-Fri 10-5, Sat 9-3. Please check hours before visiting",lat:28.0195,lng:-81.7330},
+ {name:"Moon Dreamz",town:"Winter Haven",state:"FL",address:"2750 US-17, Winter Haven, FL",phone:"(863) 662-4473",sells:"Metaphysical shop. Hours: Thu-Sat 11-6. Please check hours before visiting",lat:28.0470,lng:-81.7270},
+ {name:"La Sainte Famille Botanica",town:"Winter Haven",state:"FL",address:"2795 Recker Hwy, Winter Haven, FL",phone:"(407) 535-1068",sells:"Botanica and spiritual goods. Hours: Tue-Fri 11:30-6:30, Sat 10-7. Please check hours before visiting",lat:27.9890,lng:-81.7160}
 ];
 var shopZip="",shopOrigin=null,ZIP_CACHE={};
 function milesBetween(a,b,c,d){var R=3958.8,r=Math.PI/180,x=Math.sin((c-a)*r/2),y=Math.sin((d-b)*r/2);var h=x*x+Math.cos(a*r)*Math.cos(c*r)*y*y;return 2*R*Math.asin(Math.sqrt(h));}
