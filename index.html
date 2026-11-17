@@ -563,6 +563,7 @@ async function loadFromServer(){
   try{var pgq=new URLSearchParams(location.search).get("page");if(pgq&&document.getElementById("page-"+pgq)&&["shops","find","events","learn","gifts","join"].indexOf(pgq)>-1)showPage(pgq);}catch(e){}
   checkConnectReturn();
   checkJoinLink();
+  checkNewsletterLink();
 }
 // Direct sign-up link: realholisticnetwork.com/join (or /?page=join) opens the Join page
 function checkJoinLink(){
@@ -570,6 +571,19 @@ function checkJoinLink(){
   var q=/[?&]page=join\b/i.test(location.search);
   if(path!=="/join"&&!q)return;
   showPage("join");window.scrollTo(0,0);
+}
+// Direct newsletter link: realholisticnetwork.com/newsletter (or /?page=newsletter)
+// opens the home page and jumps to the newsletter sign-up box
+function checkNewsletterLink(){
+  var path=location.pathname.replace(/\/+$/,"").toLowerCase();
+  var q=/[?&]page=newsletter\b/i.test(location.search);
+  if(path!=="/newsletter"&&!q)return;
+  showPage("home");
+  setTimeout(function(){
+    var box=document.getElementById("nl-home");if(!box)return;
+    box.scrollIntoView({behavior:"smooth",block:"center"});
+    var em=document.getElementById("nl-home-email");if(em)try{em.focus({preventScroll:true});}catch(e){}
+  },400);
 }
 var P=[];
 var B=[];

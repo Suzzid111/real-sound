@@ -5,6 +5,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/newsletter",
+      "destination": "/index.html"
+    },
+    {
       "source": "/h/:slug",
       "destination": "/api/h?s=:slug"
     },
