@@ -206,7 +206,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
   <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">Find a Healer</h2>
   <p class="text-soft" style="margin-bottom:16px;font-size:14px">Browse verified practitioners and send a booking request.</p>
   <div class="zip-search">
-    <input id="zip-input" placeholder="Enter ZIP code" maxlength="5" type="text" inputmode="numeric" aria-label="ZIP code" onkeydown="if(event.key==='Enter')searchByZip()"/>
+    <input id="zip-input" placeholder="Name, town or ZIP code" maxlength="60" type="search" aria-label="Search by healer name, town or ZIP code" oninput="liveFindSearch()" onkeydown="if(event.key==='Enter')searchByZip()"/>
     <select id="svc-select" aria-label="Healing service" onchange="mFilter=this.value;renderFind()"></select>
     <button class="zbtn" onclick="searchByZip()">Search</button>
     <button class="zclear" onclick="clearZip()">Clear</button>
@@ -231,9 +231,9 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
 <div id="page-shops" class="page">
 <div class="wrap">
   <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">Find a Metaphysical Shop</h2>
-  <p class="text-soft" style="margin-bottom:16px;font-size:14px;line-height:1.7">Crystal shops, metaphysical stores and holistic boutiques. Enter a ZIP code to see the ones closest to you. Now listing Rhode Island, Massachusetts and Florida, with more states coming soon.</p>
+  <p class="text-soft" style="margin-bottom:16px;font-size:14px;line-height:1.7">Crystal shops, metaphysical stores and holistic boutiques. Search by shop name or town, or enter a ZIP code to see the ones closest to you. Now listing Rhode Island, Massachusetts and Florida, with more states coming soon.</p>
   <div class="zip-search">
-    <input id="shop-zip" placeholder="Enter ZIP code" maxlength="5" type="text" inputmode="numeric" aria-label="ZIP code" onkeydown="if(event.key==='Enter')searchShops()"/>
+    <input id="shop-zip" placeholder="Shop name, town or ZIP code" maxlength="60" type="search" aria-label="Search by shop name, town or ZIP code" oninput="liveShopSearch()" onkeydown="if(event.key==='Enter')searchShops()"/>
     <button class="zbtn" onclick="searchShops()">Search</button>
     <button class="zclear" onclick="clearShops()">Clear</button>
   </div>
@@ -517,7 +517,7 @@ var SVC_ICONS={"Sound Bath & Gong Bath":"🎵","Reiki & Crystal Healing":"🙌",
 function renderHomeServices(){var el=document.getElementById("home-services");if(!el)return;el.innerHTML=MODS.map(function(m,i){return '<button type="button" class="grid-item" style="font-family:inherit;width:100%" onclick="filterMod(MODS['+i+']);showPage(\'find\')"><div class="grid-icon">'+(SVC_ICONS[m]||"💜")+'</div><div class="grid-label">'+escHtml(m)+'</div></button>';}).join("");}
 var MODS=["Sound Bath & Gong Bath","Reiki & Crystal Healing","Breathwork","Meditation","Art Therapy","Herbalist","Life Coach","Astrology & Birth Charts","Tarot"];
 var INSTR=["Crystal Bowls","Gong","Tibetan Bowls","Tuning Forks","Chimes","Voice","Steel Tongue Drum","Rain Drum","Drums"];
-var zipFilter="";
+var zipFilter="";var nameFilter="";
 
 function lsGet(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
 function lsSet(k,v){} // private data is no longer cached in the browser
@@ -617,13 +617,20 @@ function filterMod(m){mFilter=m;}
 
 function searchByZip(){
   var z=document.getElementById("zip-input").value.trim();
-  if(z&&!/^\d{5}$/.test(z)){toast("Please enter a 5-digit ZIP code","#C4727A");return;}
-  if(!z&&mFilter==="All"){toast("Please enter a ZIP code or choose a healing service","#C4727A");return;}
-  zipFilter=z;
+  if(!z&&mFilter==="All"){toast("Type a name, town or ZIP code, or choose a healing service","#C4727A");return;}
+  if(/^\d{5}$/.test(z)){zipFilter=z;nameFilter="";}
+  else if(/^\d+$/.test(z)){toast("Please enter a 5-digit ZIP code","#C4727A");return;}
+  else{zipFilter="";nameFilter=z.toLowerCase();}
   renderFind();
 }
+// Search as you type for names and towns (ZIP codes wait for the Search button)
+function liveFindSearch(){
+  var z=document.getElementById("zip-input").value.trim();
+  if(/^\d/.test(z))return;
+  nameFilter=z.toLowerCase();zipFilter="";renderFind();
+}
 function clearZip(){
-  zipFilter="";mFilter="All";
+  zipFilter="";nameFilter="";mFilter="All";
   document.getElementById("zip-input").value="";
   renderFind();
 }
@@ -650,12 +657,22 @@ function zipToPlace(z){
 }
 function searchShops(){
   var z=document.getElementById("shop-zip").value.trim();
+  if(!z){clearShops();return;}
+  if(!/^\d/.test(z)){shopZip="";shopOrigin=null;shopText=z.toLowerCase();renderShops();return;}
   if(!/^\d{5}$/.test(z)){toast("Please enter a 5-digit ZIP code","#C4727A");return;}
+  shopText="";
   var msg=document.getElementById("shop-msg");msg.style.display="block";msg.textContent="Looking up ZIP "+z+"…";
   zipToPlace(z).then(function(o){shopZip=z;shopOrigin=o;renderShops();})
   .catch(function(e){shopZip="";shopOrigin=null;renderShops();msg.style.display="block";msg.textContent=e.message==="notfound"?"We couldn't find ZIP "+z+". Please check it and try again.":"ZIP search isn't working right now. Here are all our shops.";});
 }
-function clearShops(){shopZip="";shopOrigin=null;document.getElementById("shop-zip").value="";renderShops();}
+var shopText="";
+// Search as you type for shop names and towns (ZIP codes wait for the Search button)
+function liveShopSearch(){
+  var z=document.getElementById("shop-zip").value.trim();
+  if(/^\d/.test(z))return;
+  shopText=z.toLowerCase();shopZip="";shopOrigin=null;renderShops();
+}
+function clearShops(){shopText="";shopZip="";shopOrigin=null;document.getElementById("shop-zip").value="";renderShops();}
 // Local RHN contacts, shown when someone searches a ZIP in their area
 var LOCAL_CONTACTS=[
  {name:"Tricia",area:"Lakeland, Florida",email:"tgk35@yahoo.com",match:function(z){var n=parseInt(z.slice(0,3),10);return n>=320&&n<=349;}}
@@ -673,8 +690,10 @@ function renderShops(){
   var total=list.length,near=0;
   if(shopOrigin){list.sort(function(a,b){return a.mi-b.mi;});near=list.filter(function(s){return s.mi<=20;}).length;list=list.slice(0,Math.max(near,5));}
   else list.sort(function(a,b){return a.town.localeCompare(b.town)||a.name.localeCompare(b.name);});
+  if(shopText){var words=shopText.split(/[\s,]+/).filter(Boolean);list=list.filter(function(s){var hay=(s.name+" "+s.town+" "+s.state+" "+(s.address||"")).toLowerCase();return words.every(function(w){return hay.indexOf(w)>-1;});});}
   var msg=document.getElementById("shop-msg");
   if(shopOrigin){msg.style.display="block";msg.textContent=(near?near+" shop"+(near>1?"s":"")+" within 20 miles of "+shopZip+" ("+shopOrigin.label+"). ":"No shops within 20 miles of "+shopZip+" yet, so here are the 5 closest. ")+"Distances are approximate. Clear the search to see all "+total+" shops.";}
+  else if(shopText){msg.style.display="block";msg.textContent=list.length?list.length+" shop"+(list.length>1?"s":"")+" matching \u201c"+shopText+"\u201d. Clear the search to see all "+total+" shops.":"No shops match \u201c"+shopText+"\u201d yet. Try a town or ZIP code, or tell us about it and we'll add it.";}
   else msg.style.display="none";
   document.getElementById("shop-list").innerHTML=list.map(function(s){
     var site=s.website?'<a href="https://'+escHtml(s.website)+'" target="_blank" rel="noopener" style="color:#6B4699;font-size:13px">'+escHtml(s.website)+' ↗</a>':'';
@@ -720,12 +739,13 @@ function renderFind(){
   if(sel){sel.innerHTML='<option value="All">All healing services</option>'+svcs.map(function(m){return '<option value="'+escHtml(m)+'"'+(mFilter===m?' selected':'')+'>'+escHtml(m)+'</option>';}).join("");sel.value=mFilter;}
   document.getElementById("mod-pills").innerHTML="";
   var msg=document.getElementById("zip-msg");
-  if(msg){var parts=[];if(mFilter!=="All")parts.push(mFilter);if(zipFilter)parts.push("near ZIP "+zipFilter);msg.style.display=parts.length?"block":"none";msg.textContent=parts.length?"Showing: "+parts.join(" · "):"";}
+  if(msg){var parts=[];if(mFilter!=="All")parts.push(mFilter);if(zipFilter)parts.push("near ZIP "+zipFilter);if(nameFilter)parts.push("matching \u201c"+nameFilter+"\u201d");msg.style.display=parts.length?"block":"none";msg.textContent=parts.length?"Showing: "+parts.join(" · "):"";}
   var f=P.filter(function(p){
     var vOk=vFilter==="All"||p.venueTypes.indexOf(vFilter)>-1;
     var mOk=mFilter==="All"||p.modalities.indexOf(mFilter)>-1;
     var zOk=!zipFilter||!p.zip||(p.zip.substring(0,3)===zipFilter.substring(0,3));
-    return vOk&&mOk&&zOk;
+    var nOk=!nameFilter||nameFilter.split(/[\s,]+/).filter(Boolean).every(function(w){return ((p.name||"")+" "+(p.location||"")).toLowerCase().indexOf(w)>-1;});
+    return vOk&&mOk&&zOk&&nOk;
   });
   document.getElementById("healer-list").innerHTML=f.length?f.map(function(p){return healerCard(p,false);}).join(""):'<div style="text-align:center;padding:60px 0;color:#A990C9"><div style="font-size:40px;margin-bottom:12px">🔍</div>No practitioners found for this filter.</div>';
 }
