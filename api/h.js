@@ -21,6 +21,8 @@ export default async function handler(req, res) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://www.realholisticnetwork.com/healer/${esc(slug)}">
 <meta property="og:type" content="profile">
 <meta property="og:site_name" content="REAL Holistic Network">
 <meta property="og:title" content="${esc(title)}">

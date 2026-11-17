@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://realholisticnetwork.com/sitemap.xml
+Sitemap: https://www.realholisticnetwork.com/sitemap.xml

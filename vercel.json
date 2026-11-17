@@ -7,6 +7,26 @@
     {
       "source": "/h/:slug",
       "destination": "/api/h?s=:slug"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/seo?t=sitemap"
+    },
+    {
+      "source": "/healers",
+      "destination": "/api/seo?t=healers"
+    },
+    {
+      "source": "/healer/:slug",
+      "destination": "/api/seo?t=healer&s=:slug"
+    },
+    {
+      "source": "/shops",
+      "destination": "/api/seo?t=shops"
+    },
+    {
+      "source": "/shops/:st",
+      "destination": "/api/seo?t=shops&st=:st"
     }
   ],
   "crons": [
@@ -38,5 +58,10 @@
       "destination": "https://realholisticnetwork.com/:path*",
       "permanent": true
     }
-  ]
+  ],
+  "functions": {
+    "api/seo.js": {
+      "includeFiles": "shops-data.js"
+    }
+  }
 }
