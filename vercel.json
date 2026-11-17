@@ -62,6 +62,9 @@
   "functions": {
     "api/seo.js": {
       "includeFiles": "shops-data.js"
+    },
+    "api/cron-reminders.js": {
+      "includeFiles": "shops-data.js"
     }
   }
 }

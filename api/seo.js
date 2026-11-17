@@ -7,6 +7,7 @@
 //   /shops/<state>           every shop in that state, grouped by town
 //   /sitemap.xml             the list of all these pages, for Google and Bing
 import fs from 'fs';
+import crypto from 'crypto';
 import path from 'path';
 import { loadHealers, publicHealer, healerSlug, esc, loadReviews, reviewStats, loadServices } from './_lib.js';
 
@@ -162,6 +163,22 @@ async function sitemap(req) {
   const urls = ['/', '/healers', '/shops', '/join', ...sts.map(s => '/shops/' + s.toLowerCase()), ...P.map(p => '/healer/' + healerSlug(p))];
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
     urls.map(u => `  <url><loc>${esc(BASE + u)}</loc></url>`).join('\n') + `\n</urlset>\n`;
+}
+
+// ---------- every Google-friendly page, with a fingerprint of what's on it ----------
+// Used by the daily IndexNow ping (api/_indexnow.js) to tell Bing which pages are new or changed.
+export async function pageFingerprints(req) {
+  await loadServices();
+  const P = (await loadHealers()).map(p => [healerSlug(p), publicHealer(p)]);
+  const S = await loadShops(req);
+  const fp = x => crypto.createHash('sha1').update(JSON.stringify(x)).digest('hex').slice(0, 16);
+  const out = [];
+  out.push({ url: BASE + '/healers', fp: fp(P.map(([s, h]) => [s, h.name, h.location, h.modalities])) });
+  for (const [slug, h] of P) out.push({ url: BASE + '/healer/' + slug, fp: fp([h.name, h.location, h.zip, h.bio, h.modalities, h.sessionTypes, h.photo]) });
+  const sts = [...new Set(S.map(s => s.state))].sort();
+  out.push({ url: BASE + '/shops', fp: fp(sts.map(st => [st, S.filter(s => s.state === st).length])) });
+  for (const st of sts) out.push({ url: BASE + '/shops/' + st.toLowerCase(), fp: fp(S.filter(s => s.state === st)) });
+  return out;
 }
 
 export default async function handler(req, res) {

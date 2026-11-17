@@ -4,6 +4,7 @@ import { loadBookings, saveBookings, loadHealers, sendNotice, sessionWhen, logNo
 import { stripe } from './_bookings.js';
 import { releaseBookingGifts, giftBackLine } from './_gifts.js';
 import { ensureKeys, manageLink, clientWhen } from './_manage.js';
+import { pingIndexNow } from './_indexnow.js';
 
 export default async function handler(req, res) {
   // Vercel adds this secret to its own scheduled calls; nobody else can trigger it.
@@ -46,7 +47,10 @@ export default async function handler(req, res) {
       closed++;
     }
     if (closed) { await saveBookings(B); await logNote(`⌛ Closed ${closed} unanswered new-time request${closed > 1 ? 's' : ''} (client not charged)`); }
-    return res.json({ ok: true, sent });
+    // Tell Bing about new or changed healer and shop pages (never blocks the reminders).
+    let indexed = 0;
+    try { indexed = await pingIndexNow(req); } catch (e) { await logNote('IndexNow ping failed: ' + e.message).catch(() => {}); }
+    return res.json({ ok: true, sent, indexed });
   } catch (err) {
     return res.status(500).json({ ok: false, error: err.message });
   }
