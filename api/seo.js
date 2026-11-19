@@ -51,7 +51,7 @@ footer{text-align:center;font-size:13px;color:#7A6A92;padding:20px}
 </style></head><body>
 <header><a href="/">◉ REAL HOLISTIC NETWORK</a></header>
 <main>${body}</main>
-<footer><a href="/">Home</a> · <a href="/healers">Practitioners</a> · <a href="/shops">Holistic shops</a> · <a href="/join">Join as a practitioner</a><br>REAL Holistic Network: find holistic practitioners near you, or online.</footer>
+<footer><a href="/">Home</a> · <a href="/healers">Practitioners</a> · <a href="/shops">Holistic shops</a> · <a href="/join">Join as a practitioner</a> · <a href="/sue">About the founder</a><br>REAL Holistic Network: find holistic practitioners near you, or online.</footer>
 </body></html>`;
 }
 
@@ -121,6 +121,44 @@ ${reviews}
   return page({ title, desc, canonical: url, body, jsonld: ld });
 }
 
+
+// ---------- /sue — the founder's page (helps Google connect Sue Downing's accounts) ----------
+const SUE_LINKS = [
+  ['Instagram', 'https://www.instagram.com/suzzid111/', '@suzzid111'],
+  ['TikTok', 'https://www.tiktok.com/@suzzid9', '@suzzid9 · Get REAL with SuzziD'],
+  ['REAL Holistic Network on TikTok', 'https://www.tiktok.com/@realholisticnetwork', '@realholisticnetwork'],
+];
+async function founderPage() {
+  let me = null;
+  try { me = (await loadHealers()).find(x => /suzz?ann?a\s+downing|sue\s+downing/i.test(String(x.name || ''))) || null; } catch (e) {}
+  const h = me ? publicHealer(me) : null;
+  const slug = me ? healerSlug(me) : '';
+  const url = BASE + '/sue';
+  const body = `${h && h.photo ? `<img class="photo" src="${esc(h.photo)}" alt="Sue Downing">` : ''}
+<h1>Sue Downing</h1>
+<div class="soft">Founder of REAL Holistic Network · Reiki practitioner · Cranston, Rhode Island</div>
+<p>Hi, I'm Sue (Suzzanna Downing). I'm a mom of five, a Reiki Level 2 practitioner, and the founder of REAL Holistic Network.</p>
+<p>I started REAL Holistic Network so people can find holistic practitioners they trust, and so healers have a place to be found, book clients and grow their businesses. Reiki, sound healing, energy work, breathwork, coaching and more, all in one place.</p>
+<h2>Why "REAL"</h2>
+<p>The name REAL honors my late mother. The elephant you'll see on my cards, with its trunk up for good luck, is for my late father, who collected elephants.</p>
+<p>I'm also the author of <a href="https://a.co/d/0eKMIA6o" target="_blank" rel="noopener">The REAL Life Journal</a>, a 56-day daily wellness journal.</p>
+<div style="clear:both"></div>
+<h2>Find me online</h2>
+${SUE_LINKS.map(([n, u, l]) => `<div class="card"><b>${esc(n)}</b> · <a href="${esc(u)}" target="_blank" rel="me noopener">${esc(l)}</a></div>`).join('')}
+<p>${h ? `<a class="btn" href="/healer/${esc(slug)}">Book a Reiki session with me</a> ` : ''}<a class="btn" href="/join">Join as a practitioner</a></p>
+<p class="soft"><a href="/healers">See all practitioners</a> · <a href="/shops">Holistic shops</a></p>`;
+  const ld = { '@context': 'https://schema.org', '@type': 'ProfilePage', url, mainEntity: {
+    '@type': 'Person', name: 'Sue Downing', alternateName: ['Suzzanna Downing', 'SuzziD', 'suzzid111'], url,
+    jobTitle: 'Founder', knowsAbout: ['Reiki', 'Holistic wellness'],
+    worksFor: { '@type': 'Organization', name: 'REAL Holistic Network', url: BASE },
+    address: { '@type': 'PostalAddress', addressLocality: 'Cranston', addressRegion: 'RI', addressCountry: 'US' },
+    sameAs: SUE_LINKS.slice(0, 2).map(x => x[1]) } };
+  if (h && h.photo) ld.mainEntity.image = BASE + h.photo;
+  return page({ title: 'Sue Downing (Suzzanna Downing), Founder of REAL Holistic Network | Reiki, Cranston, RI',
+    desc: 'Meet Sue Downing (@suzzid111), Reiki practitioner in Cranston, Rhode Island and founder of REAL Holistic Network, where people find and book holistic practitioners.',
+    canonical: url, body, jsonld: ld });
+}
+
 async function shopsIndex(req) {
   const S = await loadShops(req);
   const by = {}; S.forEach(s => { by[s.state] = (by[s.state] || 0) + 1; });
@@ -160,7 +198,7 @@ async function sitemap(req) {
   const P = await loadHealers();
   const S = await loadShops(req);
   const sts = [...new Set(S.map(s => s.state))].sort();
-  const urls = ['/', '/healers', '/shops', '/join', ...sts.map(s => '/shops/' + s.toLowerCase()), ...P.map(p => '/healer/' + healerSlug(p))];
+  const urls = ['/', '/sue', '/healers', '/shops', '/join', ...sts.map(s => '/shops/' + s.toLowerCase()), ...P.map(p => '/healer/' + healerSlug(p))];
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
     urls.map(u => `  <url><loc>${esc(BASE + u)}</loc></url>`).join('\n') + `\n</urlset>\n`;
 }
@@ -173,6 +211,7 @@ export async function pageFingerprints(req) {
   const S = await loadShops(req);
   const fp = x => crypto.createHash('sha1').update(JSON.stringify(x)).digest('hex').slice(0, 16);
   const out = [];
+  out.push({ url: BASE + '/sue', fp: fp(['sue-v1', SUE_LINKS]) });
   out.push({ url: BASE + '/healers', fp: fp(P.map(([s, h]) => [s, h.name, h.location, h.modalities])) });
   for (const [slug, h] of P) out.push({ url: BASE + '/healer/' + slug, fp: fp([h.name, h.location, h.zip, h.bio, h.modalities, h.sessionTypes, h.photo]) });
   const sts = [...new Set(S.map(s => s.state))].sort();
@@ -191,7 +230,8 @@ export default async function handler(req, res) {
       return res.status(200).send(await sitemap(req));
     }
     let html = null;
-    if (t === 'healers') html = await healersPage();
+    if (t === 'founder') html = await founderPage();
+    else if (t === 'healers') html = await healersPage();
     else if (t === 'healer') html = await healerPage(String(q.s || '').toLowerCase().slice(0, 80));
     else if (t === 'shops' && q.st) html = await shopsState(req, String(q.st).toUpperCase().slice(0, 2));
     else if (t === 'shops') html = await shopsIndex(req);
