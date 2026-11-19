@@ -126,7 +126,9 @@ ${reviews}
 const SUE_LINKS = [
   ['Instagram', 'https://www.instagram.com/suzzid111/', '@suzzid111'],
   ['TikTok', 'https://www.tiktok.com/@suzzid9', '@suzzid9 · Get REAL with SuzziD'],
-  ['REAL Holistic Network on TikTok', 'https://www.tiktok.com/@realholisticnetwork', '@realholisticnetwork'],
+  ['Threads', 'https://www.threads.com/@suzzid111', '@suzzid111'],
+  ['Facebook', 'https://www.facebook.com/share/1CVCoQ7pRa/', 'Sue Downing'],
+  ['REAL Holistic Network on Facebook', 'https://www.facebook.com/share/1KQpW9RihL/', 'REAL Holistic Network'],
 ];
 async function founderPage() {
   let me = null;
@@ -152,7 +154,7 @@ ${SUE_LINKS.map(([n, u, l]) => `<div class="card"><b>${esc(n)}</b> · <a href="$
     jobTitle: 'Founder', knowsAbout: ['Reiki', 'Holistic wellness'],
     worksFor: { '@type': 'Organization', name: 'REAL Holistic Network', url: BASE },
     address: { '@type': 'PostalAddress', addressLocality: 'Cranston', addressRegion: 'RI', addressCountry: 'US' },
-    sameAs: SUE_LINKS.slice(0, 2).map(x => x[1]) } };
+    sameAs: SUE_LINKS.slice(0, 4).map(x => x[1]) } };
   if (h && h.photo) ld.mainEntity.image = BASE + h.photo;
   return page({ title: 'Sue Downing (Suzzanna Downing), Founder of REAL Holistic Network | Reiki, Cranston, RI',
     desc: 'Meet Sue Downing (@suzzid111), Reiki practitioner in Cranston, Rhode Island and founder of REAL Holistic Network, where people find and book holistic practitioners.',
