@@ -150,6 +150,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
     <button class="nav-btn" id="nav-mybookings" onclick="showPage('mybookings')">My Bookings</button>
     <button class="nav-btn" id="nav-join" onclick="showPage('join')">Join as Healer</button>
     <button class="nav-btn" id="nav-login" onclick="showPage('login')">Healer Login</button>
+    <button class="nav-btn" id="nav-shoppartner" onclick="showPage('shoppartner')">🏪 Become a Shop Partner</button>
     <button class="nav-btn" id="nav-admin" onclick="showPage('admin')">⚙</button>
   </div>
 </nav>
@@ -2629,7 +2630,7 @@ function exportSubscribers(){
 // send events for approval and ask for listing changes. Shops can never
 // change their own listing. Page: realholisticnetwork.com/shop-partner
 // =====================================================================
-var SHOP_TOKEN=null,SHOP_ME=null,SHOP_EVENTS=[],SHOP_VIEW="login",SHOP_RESET=null,SHOP_EV_EDIT=null,SHOP_LAST_EMAIL="";
+var SHOP_TOKEN=null,SHOP_ME=null,SHOP_EVENTS=[],SHOP_VIEW="register",SHOP_RESET=null,SHOP_EV_EDIT=null,SHOP_LAST_EMAIL="";
 async function shopApi(body){
   var j=await api("/api/shop",body,SHOP_TOKEN);
   if(j&&j.relogin){SHOP_TOKEN=null;SHOP_ME=null;SHOP_VIEW="login";renderShopPartner();}
@@ -2642,12 +2643,15 @@ function checkShopPartnerLink(){
   var q=new URLSearchParams(location.search);
   if(path!=="/shop-partner"&&q.get("page")!=="shop-partner")return;
   var t=q.get("reset");if(t&&/^[a-f0-9]{48}$/.test(t)){SHOP_RESET=t;SHOP_VIEW="reset";}
-  if(q.get("join")!==null)SHOP_VIEW="register";
+  SHOP_VIEW=q.get("join")!==null?"register":"login";
+  var t2=q.get("reset");if(t2&&/^[a-f0-9]{48}$/.test(t2))SHOP_VIEW="reset";
   showPage("shoppartner");window.scrollTo(0,0);
 }
 function shopField(id,label,attrs,hint){return '<div class="field"><label>'+label+(hint?' <span style="text-transform:none;letter-spacing:0;color:#A990C9">('+hint+')</span>':'')+'</label><input id="'+id+'" '+(attrs||'')+'></div>';}
 function shopErr(msg){var e=document.getElementById("sp-err");if(e){e.textContent=msg||"";e.style.display=msg?"block":"none";}}
+function shopNavLabel(){var b=document.getElementById("nav-shoppartner");if(b)b.textContent=SHOP_ME?"🏪 My Shop":"🏪 Become a Shop Partner";}
 function renderShopPartner(){
+  shopNavLabel();
   var el=document.getElementById("shoppartner-body");if(!el)return;
   if(SHOP_ME){renderShopDash();return;}
   var errBox='<div id="sp-err" style="color:#C4727A;font-size:13px;margin-bottom:10px;display:none"></div>';
@@ -2725,6 +2729,7 @@ async function shopReset(){
 }
 function shopLogout(){if(SHOP_TOKEN)api("/api/shop",{action:"logout"},SHOP_TOKEN);SHOP_TOKEN=null;SHOP_ME=null;SHOP_EVENTS=[];SHOP_EV_EDIT=null;shopGo("login");}
 function renderShopDash(){
+  shopNavLabel();
   var el=document.getElementById("shoppartner-body"),s=SHOP_ME,today=new Date().toISOString().slice(0,10);
   var head='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px"><div><h2 style="font-weight:normal;color:#2A1F3D;margin:0">'+escHtml(s.name)+'</h2><div class="text-soft" style="font-size:13px">Shop Partner · '+escHtml(s.town)+', '+escHtml(s.state)+'</div></div><button class="btn btn-ghost" style="font-size:11px;padding:7px 13px" onclick="shopLogout()">Log out</button></div>';
   if(s.status!=="approved"){
