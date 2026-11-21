@@ -532,4 +532,6 @@ var SHOPS=[
 {name:"Sage Organics",town:"Chesapeake",state:"VA",address:"3304 Taylor Rd, Suite F, Chesapeake, VA 23321",phone:"757-483-8934",website:"sageorganicsstore.net",sells:"Bulk herbs, sea moss, essential oils, sage, incense, candles, crystals and palo santo. Mon-Sat 10-4",lat:36.8170,lng:-76.4040},
 {name:"Botanic Providence",town:"Providence",state:"RI",address:"105 Wickenden St, Providence, RI 02903",website:"botanicpvd.com",sells:"Herbal apothecary run by a clinical herbalist: 120+ bulk herbs, custom tea blends, elixirs and plant-based skincare; workshops. Thu-Sat afternoons",lat:41.8195,lng:-71.4020},
 {name:"Farmacy Herbs",town:"Providence",state:"RI",address:"28 Cemetery St, Providence, RI 02904",phone:"(401) 270-5223",sells:"Organic bulk herbs, teas, herbal products and herbalism classes (since 2008)",lat:41.8530,lng:-71.4040},
+{name:"Mother Mystic Spiritual Apothecary",town:"Providence",state:"RI",address:"179 Dean St, Providence, RI 02903",phone:"(401) 353-3099",sells:"Spiritual apothecary: aromatherapy and herbal goods",lat:41.8180,lng:-71.4250},
+{name:"Herb Wyfe",town:"North Kingstown",state:"RI",address:"23 Brown St, Suite 104, North Kingstown, RI 02852",phone:"(401) 295-1140",sells:"Herbs and herbal products",lat:41.5700,lng:-71.4560},
 ];
