@@ -196,7 +196,7 @@ export function publicEvent(e) {
     id: e.id, healerId: e.healerId, healerName: e.healerName, healerAvatar: e.healerAvatar || '',
     title: e.title, date: e.date, start: e.start, end: e.end || '', location: e.location, description: e.description,
     spots: e.spots || 0, spotsLeft: e.spots ? Math.max(0, e.spots - taken) : null, going: taken,
-    kind: e.kind || '', paid: !!e.paid, signupUrl: e.kind === 'partner' ? (e.signupUrl || '') : ''
+    kind: e.kind || '', paid: !!e.paid, price: e.paid ? (e.price || '') : '', fromShop: !!e.shopId, signupUrl: e.kind === 'partner' ? (e.signupUrl || '') : ''
   };
 }
 // Checks and cleans an event a healer submits. Returns { error } or { event }.
@@ -216,6 +216,10 @@ export function cleanEvent(it) {
   if ([ev.title, ev.location, ev.description].some(f => LINK_RE.test(f))) return { error: "Please remove website links. People sign up right here on REAL Holistic Network, and you'll see who's coming in your dashboard." };
   return { event: ev };
 }
+
+// ---------- Shop Partner accounts (see shop.js) ----------
+export const loadShops = () => getJSON('shops', []);
+export const saveShops = S => setJSON('shops', S);
 
 // ---------- Healer photos (small JPEGs kept in the database) ----------
 export function cleanPhoto(dataUrl) {

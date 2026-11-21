@@ -1,11 +1,11 @@
 // The metaphysical shop directory. Used by the website (index.html) AND the
 // Google-friendly shop pages (/shops, /shops/ri ...). Edit shops HERE only.
 var SHOPS=[
- {name:"Botanica La Altagracia",town:"Providence",state:"RI",address:"544 Chalkstone Ave, Providence, RI 02908",sells:"Botanica and spiritual goods",lat:41.8360,lng:-71.4330},
  {name:"The Veiled Crow",town:"Cranston",state:"RI",address:"1862 Broad St, Cranston, RI",phone:"401-919-5499",website:"veiledcrow.com",sells:"Witchcraft supplies, tarot, books, candles, oils, incense",lat:41.7760,lng:-71.4050},
  {name:"White Light RI",town:"Cranston",state:"RI",address:"1464 Park Ave, Cranston, RI 02920",phone:"401-543-4357 (text)",sells:"Rhode Island's oldest metaphysical store: gemstones, jewelry, books, readings, classes and events",lat:41.7870,lng:-71.4370},
  {name:"CICI and The Moon",town:"Johnston",state:"RI",address:"620 Killingly St, Johnston, RI",website:"ciciandthemoon.com",sells:"Metaphysical shop and apothecary: herbs, plants, handmade creations",lat:41.8320,lng:-71.4790},
- {name:"Wild Witches",town:"North Providence",state:"RI",address:"1965 Smith St, North Providence, RI 02911",phone:"(401) 345-9251",sells:"Crystals, gemstones, candle magic supplies, tarot cards, readings and classes",lat:41.8610,lng:-71.4830},
+ {name:"Wild Witches",town:"West Warwick",state:"RI",address:"1243 Main St, West Warwick, RI",phone:"(401) 345-9251 (text)",website:"wildwitches.com",sells:"Crystals, gemstones, candle magic supplies, tarot cards, readings and classes",lat:41.6985,lng:-71.5195},
+ {name:"The Magickal Fae",town:"West Warwick",state:"RI",address:"1227 Main St, Ste 8, West Warwick, RI",phone:"(401) 515-5610",website:"the-magickal-fae.square.site",sells:"Metaphysical and magickal shop: in-store shopping and pickup",lat:41.6990,lng:-71.5205},
  {name:"Crystal Healing Arts",town:"Pawtucket",state:"RI",address:"Hope Artiste Village, 1005 Main St, Suite 8216, Pawtucket, RI",phone:"857-526-5021",sells:"Crystals, healings and readings",lat:41.8800,lng:-71.3960},
  {name:"Apple Valley Minerals",town:"Smithfield",state:"RI",address:"7 Homestead Ave, Smithfield, RI 02917",phone:"(860) 462-3211",sells:"Mineral, crystal and fossil specimens",lat:41.8800,lng:-71.5300},
  {name:"Bewitched of Scituate",town:"North Scituate",state:"RI",address:"618 West Greenville Rd, North Scituate, RI 02857",phone:"(401) 600-1300",website:"bewitchedofscituate.com",sells:"Handmade and vintage items, herbals, stones, classes and readings",lat:41.8700,lng:-71.6000},
@@ -13,7 +13,6 @@ var SHOPS=[
  {name:"Third Rock Emporium",town:"East Greenwich",state:"RI",address:"75 Main St, East Greenwich, RI 02818",phone:"(401) 374-1585",sells:"Crystals, minerals, fossils, jewelry, Reiki and feng shui supplies",lat:41.6620,lng:-71.4550},
  {name:"Crystals & Brews",town:"Coventry",state:"RI",address:"579 Washington St, Coventry, RI 02816",sells:"Crystals",lat:41.7000,lng:-71.5350},
  {name:"The Mystics Touch Gift Shop",town:"Coventry",state:"RI",address:"192 Pilgrim Ave, Ste 5, Coventry, RI 02816",phone:"401-996-6343",sells:"Gift shop, herbs, psychic readings",lat:41.6930,lng:-71.5300},
- {name:"The Sage Cauldron",town:"Coventry",state:"RI",address:"67 Sandy Bottom Rd, Coventry, RI 02816",phone:"(401) 615-7444",sells:"Metaphysical products, psychic and spiritual services",lat:41.6960,lng:-71.5500},
  {name:"Midnight, Moonlight & Magick",town:"North Dartmouth",state:"MA",address:"200 Dartmouth Mall, North Dartmouth, MA 02747 (inside the mall)",phone:"(774) 309-1664",sells:"Crystals and minerals, ritual supplies, metaphysical jewelry and oddities",lat:41.6440,lng:-71.0000},
  {name:"Cast a Stone",town:"Abington",state:"MA",address:"700 Brockton Ave, Abington, MA 02351",phone:"781-857-2800",sells:"Crystals and minerals, gemstone jewelry, tarot and oracle decks, singing bowls, pendulums, Reiki sets, candles, incense, oils and books",lat:42.1110,lng:-70.9560},
  {name:"Mystic Vibez",town:"Fall River",state:"MA",address:"272 South Main St, Fall River, MA 02721",sells:"Stones, sage, incense, candles, books and other metaphysical items",lat:41.6930,lng:-71.1570},

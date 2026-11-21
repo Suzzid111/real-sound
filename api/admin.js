@@ -6,7 +6,8 @@ import {
 } from './_lib.js';
 import { setBookingStatus } from './_bookings.js';
 import { loadGift, saveGift, loadGiftIndex, payHealerGifts, normGiftCode } from './_gifts.js';
-import { redis } from './_lib.js';
+import { redis, loadShops, saveShops, sendNotice } from './_lib.js';
+import { KNOWN_SHOP_EMAILS } from './_shopEmails.js';
 import { loadContent, loadEvents, saveEvents, cleanEvent, cleanPhoto, savePhoto, loadReviews, saveReviews, stripeMode, cleanServices, loadServices, cleanServiceName } from './_lib.js';
 
 export default async function handler(req, res) {
@@ -174,6 +175,13 @@ export default async function handler(req, res) {
         ev.reviewedAt = new Date().toISOString();
         await saveEvents(E);
         await logNote(`${body.status === 'approved' ? '✅ Approved' : '✗ Declined'} event "${ev.title}" by ${ev.healerName}`);
+        if (ev.shopId) {
+          const sh = (await loadShops()).find(y => y.id === ev.shopId);
+          if (sh) await sendNotice(sh.email, sh.contact || sh.name, body.status === 'approved' ? `Your event is live: ${ev.title}` : `About your event: ${ev.title}`,
+            body.status === 'approved'
+              ? `Hi ${sh.contact || sh.name},\n\nYour event "${ev.title}" is now live on the REAL Holistic Network community calendar:\nhttps://realholisticnetwork.com/?page=events\n\nThank you for sharing it with our community!\n\nSue Downing\nFounder, REAL Holistic Network`
+              : `Hi ${sh.contact || sh.name},\n\nYour event "${ev.title}" wasn't added to the calendar this time.${ev.declineReason ? '\n\nNote: ' + ev.declineReason : ''}\n\nYou can see it in your Shop Partner page: https://realholisticnetwork.com/shop-partner\n\nSue Downing\nFounder, REAL Holistic Network`);
+        }
         break;
       }
       case 'photo': {
@@ -250,11 +258,46 @@ export default async function handler(req, res) {
         await logNote(`🎁 Gift certificate ${code} turned ${g.active ? 'ON' : 'OFF'}`);
         break;
       }
+      case 'shopStatus': {
+        // Approve / decline / remove a Shop Partner account
+        const S = await loadShops();
+        const x = S.find(y => y.id === str(body.id, 40));
+        if (!x) return res.json({ ok: false, error: 'Shop not found' });
+        if (body.status === 'remove') {
+          if (!isOwner) return res.json({ ok: false, error: 'Only the owner can remove shop accounts' });
+          await saveShops(S.filter(y => y !== x));
+          const E = await loadEvents();
+          await saveEvents(E.filter(e => e.shopId !== x.id || e.status === 'approved'));
+          await logNote(`🗑 Removed Shop Partner account: ${x.name}`);
+          break;
+        }
+        if (!['approved', 'declined'].includes(body.status)) return res.json({ ok: false, error: 'Bad status' });
+        if (!x.emailVerified) return res.json({ ok: false, error: "This shop hasn't confirmed its email yet" });
+        const was = x.status;
+        x.status = body.status;
+        x.reviewedAt = new Date().toISOString();
+        await saveShops(S);
+        await logNote(`${body.status === 'approved' ? '✅ Approved' : '✗ Declined'} Shop Partner: ${x.name}`);
+        if (body.status === 'approved' && was !== 'approved') {
+          await sendNotice(x.email, x.contact || x.name, 'Your Shop Partner account is approved!',
+            `Hi ${x.contact || x.name},\n\nGood news: your REAL Holistic Network Shop Partner account for ${x.name} is approved!\n\nLog in any time to share your events with our community (we review each one before it goes on the calendar):\nhttps://realholisticnetwork.com/shop-partner\n\nIf anything about your shop's listing ever changes, use "Ask for a change" in your Shop Partner page and we'll update it.\n\nWith gratitude,\nSue Downing\nFounder, REAL Holistic Network`);
+        }
+        break;
+      }
+      case 'shopRequestDone': {
+        const S = await loadShops();
+        const x = S.find(y => y.id === str(body.id, 40));
+        const r = x && (x.requests || []).find(q => q.id === str(body.reqId, 40));
+        if (!r) return res.json({ ok: false, error: 'Request not found' });
+        r.status = 'done'; r.doneAt = new Date().toISOString();
+        await saveShops(S);
+        break;
+      }
       default:
         return res.status(400).json({ ok: false, error: 'Unknown action' });
     }
 
-    const [P, B, notes, teamActive, content, orders, E, R, SUBS, W, requireConnect] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true), loadContent(), getJSON('orders', []), loadEvents(), loadReviews(), getJSON('subscribers', []), getJSON('workplaceRequests', []), getJSON('requireConnect', false)]);
+    const [P, B, notes, teamActive, content, orders, E, R, SUBS, W, requireConnect, SH] = await Promise.all([loadHealers(), loadBookings(), getJSON('adminNotes', []), getJSON('teamAdminActive', true), loadContent(), getJSON('orders', []), loadEvents(), loadReviews(), getJSON('subscribers', []), getJSON('workplaceRequests', []), getJSON('requireConnect', false), loadShops()]);
     // Gift certificates with their current balances (newest 300)
     const GI = (await loadGiftIndex()).slice(0, 300);
     let gifts = [];
@@ -263,8 +306,22 @@ export default async function handler(req, res) {
       gifts = raw.map(r => (r ? JSON.parse(r) : null)).filter(Boolean)
         .map(g => ({ code: g.code, amount: g.amount, balance: g.balance, active: g.active !== false, mode: g.mode, buyerName: g.buyerName, buyerEmail: g.buyerEmail, recipientName: g.recipientName, recipientEmail: g.recipientEmail, delivery: g.delivery, createdAt: g.createdAt }));
     }
-    return res.json({ ok: true, role: s.role, gifts, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders, events: E, reviews: R, subscribers: SUBS.map(x => ({ email: x.email, name: x.name, source: x.source, createdAt: x.createdAt, unsub: x.token })), workplaceRequests: W, requireConnect, stripeMode: stripeMode(), services: await loadServices() });
+    return res.json({ ok: true, role: s.role, gifts, practitioners: P.map(selfHealer), bookings: B, notes, teamActive, content, orders, events: E, reviews: R, subscribers: SUBS.map(x => ({ email: x.email, name: x.name, source: x.source, createdAt: x.createdAt, unsub: x.token })), workplaceRequests: W, requireConnect, stripeMode: stripeMode(), services: await loadServices(), shops: SH.map(shopAdminView) });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Server error. Please try again.' });
   }
+}
+
+// What the admin sees about a Shop Partner (never the password hash), plus a
+// check against the shop emails Sue collected for her lead list.
+const normName = n => String(n || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\b(the|llc|inc|shop|shoppe|store|co)\b/g, ' ').replace(/\s+/g, ' ').trim();
+function shopAdminView(x) {
+  const { pwHash, ...v } = x;
+  const email = String(x.email || '').toLowerCase();
+  const emailOwners = Object.keys(KNOWN_SHOP_EMAILS).filter(n => KNOWN_SHOP_EMAILS[n].includes(email));
+  const nameHit = Object.keys(KNOWN_SHOP_EMAILS).find(n => normName(n) && normName(n) === normName(x.name));
+  v.emailCheck = emailOwners.length
+    ? { result: 'match', shops: emailOwners }
+    : nameHit ? { result: 'mismatch', listed: KNOWN_SHOP_EMAILS[nameHit], listedFor: nameHit } : { result: 'unknown' };
+  return v;
 }

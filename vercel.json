@@ -9,6 +9,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/shop-partner",
+      "destination": "/index.html"
+    },
+    {
       "source": "/sue",
       "destination": "/api/seo?t=founder"
     },

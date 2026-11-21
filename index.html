@@ -240,7 +240,8 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
   <div id="shop-msg" style="font-size:12px;color:#A990C9;margin-bottom:10px;display:none"></div>
   <div id="shop-contact" style="display:none"></div>
   <div class="healer-grid" id="shop-list"></div>
-  <p class="text-soft" style="font-size:12px;margin-top:18px;line-height:1.6">Own a shop or see one we're missing? Email <a href="mailto:bookings.realsound@gmail.com" style="color:#6B4699">bookings.realsound@gmail.com</a> and we'll add it free. Please call ahead to check hours.</p>
+  <p class="text-soft" style="font-size:12px;margin-top:18px;line-height:1.6">See a shop we're missing? Email <a href="mailto:bookings.realsound@gmail.com" style="color:#6B4699">bookings.realsound@gmail.com</a> and we'll add it free. Please call ahead to check hours.</p>
+  <div class="card card-gold" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div style="flex:1;min-width:200px"><div style="font-weight:bold;color:#2A1F3D">Own a holistic shop? 🏪</div><div class="text-soft" style="font-size:13px;line-height:1.6">Become a free Shop Partner and share your events with our community.</div></div><button class="btn btn-purple" onclick="openShopPartner('register')">Shop Partner sign-up</button></div>
 </div>
 </div>
 
@@ -248,7 +249,8 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
 <div id="page-events" class="page">
 <div class="wrap">
   <h2 style="font-weight:normal;font-size:24px;margin-bottom:6px;color:#2A1F3D">Community Events</h2>
-  <p class="text-soft" style="margin-bottom:18px;font-size:14px">Free local gatherings hosted by our healers. Tap a highlighted day to see what's happening, and save your spot.</p>
+  <p class="text-soft" style="margin-bottom:8px;font-size:14px">Local gatherings hosted by our healers, shops and community partners. Tap a highlighted day to see what's happening.</p>
+  <p style="margin-bottom:18px;font-size:13px"><span class="text-purple" style="cursor:pointer" onclick="openShopPartner()">🏪 Own a holistic shop? Share your events here →</span></p>
   <div id="events-body"></div>
 </div>
 </div>
@@ -410,6 +412,11 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
 </div>
 </div>
 
+<!-- SHOP PARTNERS -->
+<div id="page-shoppartner" class="page">
+<div class="wrap" style="max-width:640px;padding-top:50px" id="shoppartner-body"></div>
+</div>
+
 <!-- ADMIN -->
 <div id="page-admin" class="page">
 <div class="wrap" style="max-width:640px;padding-top:60px">
@@ -442,6 +449,8 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
     <div id="admin-subscribers"></div>
     <div class="section-title" style="margin-top:28px">⭐ CLIENT REVIEWS</div>
     <div id="admin-reviews"></div>
+    <div class="section-title" style="margin-top:28px">🏪 SHOP PARTNERS</div>
+    <div id="admin-shops"></div>
     <div class="section-title" style="margin-top:28px">📣 COMMUNITY EVENTS</div>
     <div id="admin-events"></div>
     <div class="section-title" style="margin-top:28px">🎁 GIFT CERTIFICATES</div>
@@ -541,6 +550,7 @@ async function api(path,body,token){
     if(j.relogin){
       if(token&&token===AUTH_TOKEN){AUTH_TOKEN=null;curUser=null;MYB=[];renderLogin();}
       if(token&&token===ADMIN_TOKEN){ADMIN_TOKEN=null;lockAdmin();}
+      if(token&&typeof SHOP_TOKEN!=="undefined"&&token===SHOP_TOKEN){SHOP_TOKEN=null;SHOP_ME=null;}
     }
     return j;
   }catch(e){return {ok:false,error:"Couldn't reach the server. Check your connection and try again."};}
@@ -564,6 +574,7 @@ async function loadFromServer(){
   checkConnectReturn();
   checkJoinLink();
   checkNewsletterLink();
+  checkShopPartnerLink();
 }
 // Direct sign-up link: realholisticnetwork.com/join (or /?page=join) opens the Join page
 function checkJoinLink(){
@@ -621,7 +632,7 @@ function showPage(p){
   var pg=document.getElementById("page-"+p);
   if(pg)pg.classList.add("active");
   var nb=document.getElementById("nav-"+p);
-  if(!nb&&p!=="workplace"&&p!=="booking")nb=document.getElementById("nav-login");
+  if(!nb&&p!=="workplace"&&p!=="booking"&&p!=="shoppartner")nb=document.getElementById("nav-login");
   if(nb)nb.classList.add("active");
   if(p==="home")renderHome();
   if(p==="find")renderFind();
@@ -633,6 +644,7 @@ function showPage(p){
   if(p==="workplace")renderWorkplace();
   if(p==="join")renderJoinPills();
   if(p==="login")renderLogin();
+  if(p==="shoppartner")renderShopPartner();
   if(p==="admin"){curAdminRole=null;editingHealerId=null;document.getElementById("admin-login").style.display="block";document.getElementById("admin-dash").style.display="none";}
 }
 
@@ -1306,6 +1318,7 @@ function renderAdmin(){
   renderAdminLearn();
   renderAdminGifts();
   renderAdminEvents();
+  renderAdminShops();
   renderAdminReviews();
   renderAdminCommunity();
 }
@@ -2064,9 +2077,9 @@ function evCard(e){
   var spots=e.type==="healer"&&e.spots?(e.spotsLeft>0?'<span class="badge-open">'+e.spotsLeft+' spot'+(e.spotsLeft===1?'':'s')+' left</span>':'<span class="badge-busy">Full</span>'):"";
   var action="";
   if(e.type==="healer")action=(e.spots&&e.spotsLeft<=0)?'':'<button class="btn btn-gold" onclick="openRsvp(\''+e.id+'\')">Save my spot</button>';
-  else{var su=safeUrl(e.signupUrl);action=su?'<a class="btn btn-gold" href="'+escHtml(su)+'" target="_blank" rel="noopener" style="text-decoration:none">'+(e.type==="partner"?'Details &amp; tickets':'Sign up')+'</a>':'';}
+  else{var su=safeUrl(e.signupUrl);action=su?'<a class="btn btn-gold" href="'+escHtml(su)+'" target="_blank" rel="noopener" style="text-decoration:none">'+(e.type==="partner"?(e.paid?'Details &amp; tickets':'Event details'):'Sign up')+'</a>':'';}
   var host=e.type==="healer"?'<span style="cursor:pointer;color:#6B4699;display:inline-flex;align-items:center;gap:6px;vertical-align:middle" onclick="openBooking(\''+e.healerId+'\')">'+avatarHtml(e,22)+escHtml(e.healerName)+'</span>':'<span style="color:#6B4699">'+escHtml(e.type==="partner"?e.healerName:"REAL Holistic Network")+'</span>';
-  return '<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="flex:1;min-width:180px"><div style="font-size:12px;color:#C9922A;font-weight:bold;letter-spacing:.05em">'+escHtml(time)+' · '+(e.type==="partner"&&e.paid?"PAID":"FREE")+'</div><div style="font-weight:bold;font-size:17px;color:#2A1F3D;margin:3px 0">'+escHtml(e.title)+'</div><div class="text-soft" style="font-size:13px">Hosted by '+host+'</div><div style="font-size:13px;color:#2A1F3D;margin-top:4px">📍 '+escHtml(e.location||"")+'</div></div>'+spots+'</div>'+(e.description?'<div class="text-soft" style="font-size:14px;line-height:1.6;margin:10px 0">'+nl2br(e.description)+'</div>':'<div style="height:10px"></div>')+(e.type==="partner"&&e.paid?'<div class="text-soft" style="font-size:12px;line-height:1.5;margin-bottom:10px">Paid event. Details, tickets and payment are handled by the host, not REAL Holistic Network.</div>':'')+action+'</div>';
+  return '<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="flex:1;min-width:180px"><div style="font-size:12px;color:#C9922A;font-weight:bold;letter-spacing:.05em">'+escHtml(time)+' · '+(e.type==="partner"&&e.paid?"PAID"+(e.price?" · "+escHtml(e.price):""):"FREE")+'</div><div style="font-weight:bold;font-size:17px;color:#2A1F3D;margin:3px 0">'+escHtml(e.title)+'</div><div class="text-soft" style="font-size:13px">Hosted by '+host+'</div><div style="font-size:13px;color:#2A1F3D;margin-top:4px">📍 '+escHtml(e.location||"")+'</div></div>'+spots+'</div>'+(e.description?'<div class="text-soft" style="font-size:14px;line-height:1.6;margin:10px 0">'+nl2br(e.description)+'</div>':'<div style="height:10px"></div>')+(e.type==="partner"&&e.paid?'<div class="text-soft" style="font-size:12px;line-height:1.5;margin-bottom:10px">Paid event. Details, tickets and payment are handled by the host, not REAL Holistic Network.</div>':'')+action+'</div>';
 }
 
 // ---------------- visitor saves a spot ----------------
@@ -2158,7 +2171,8 @@ function renderAdminEvents(){
   var live=E.filter(function(e){return e.status==="approved"&&e.date>=today;}).sort(function(a,b){return a.date.localeCompare(b.date);});
   var card=function(e,isPending){
     var count=(e.rsvps||[]).reduce(function(n,g){return n+(g.guests||1);},0);
-    return '<div class="booking-card"><div style="font-weight:bold;color:#2A1F3D">'+escHtml(e.title)+'</div><div class="text-soft" style="font-size:12px">'+escHtml(e.healerName)+' · '+evDayLabel(e.date)+' · '+evTime(e.start)+(e.end?'–'+evTime(e.end):'')+'</div><div style="font-size:13px;margin-top:4px">📍 '+escHtml(e.location)+'</div>'+(e.description?'<div class="text-soft" style="font-size:13px;margin-top:6px;line-height:1.5">'+nl2br(e.description)+'</div>':'')+(isPending?'':'<div class="text-soft" style="font-size:12px;margin-top:6px">👥 '+count+' signed up'+(e.spots?' of '+e.spots:'')+'</div>')+'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">'+(isPending?'<button class="btn btn-gold" style="padding:6px 14px;font-size:12px" onclick="admEventStatus(\''+e.id+'\',\'approved\')">✓ Approve</button><button class="btn btn-danger" style="padding:6px 14px;font-size:12px" onclick="admEventStatus(\''+e.id+'\',\'declined\')">✗ Decline</button>':'<button class="btn btn-danger" style="padding:6px 14px;font-size:12px" onclick="admEventStatus(\''+e.id+'\',\'remove\')">Remove from calendar</button>')+'</div></div>';
+    var shopInfo=e.shopId?'<div style="margin:6px 0;font-size:12px"><span class="status-proposed">🏪 Shop event</span> <strong>'+(e.paid?'PAID '+escHtml(e.price||''):'FREE')+'</strong>'+(e.proofUrl&&safeUrl(e.proofUrl)?' · <a href="'+escHtml(e.proofUrl)+'" target="_blank" rel="noopener" style="color:#6B4699;font-weight:bold">🔎 Check it\'s real</a>':'')+(e.paid&&e.ticketUrl&&safeUrl(e.ticketUrl)?' · <a href="'+escHtml(e.ticketUrl)+'" target="_blank" rel="noopener" style="color:#6B4699">Ticket link</a>':'')+'</div>':'';
+    return '<div class="booking-card"><div style="font-weight:bold;color:#2A1F3D">'+escHtml(e.title)+'</div>'+shopInfo+'<div class="text-soft" style="font-size:12px">'+escHtml(e.healerName)+' · '+evDayLabel(e.date)+' · '+evTime(e.start)+(e.end?'–'+evTime(e.end):'')+'</div><div style="font-size:13px;margin-top:4px">📍 '+escHtml(e.location)+'</div>'+(e.description?'<div class="text-soft" style="font-size:13px;margin-top:6px;line-height:1.5">'+nl2br(e.description)+'</div>':'')+(isPending?'':'<div class="text-soft" style="font-size:12px;margin-top:6px">👥 '+count+' signed up'+(e.spots?' of '+e.spots:'')+'</div>')+'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">'+(isPending?'<button class="btn btn-gold" style="padding:6px 14px;font-size:12px" onclick="admEventStatus(\''+e.id+'\',\'approved\')">✓ Approve</button><button class="btn btn-danger" style="padding:6px 14px;font-size:12px" onclick="admEventStatus(\''+e.id+'\',\'declined\')">✗ Decline</button>':'<button class="btn btn-danger" style="padding:6px 14px;font-size:12px" onclick="admEventStatus(\''+e.id+'\',\'remove\')">Remove from calendar</button>')+'</div></div>';
   };
   var addForm='<div class="card card-gold" style="margin-bottom:16px"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:4px">➕ Add an event</div><div class="text-soft" style="font-size:12px;margin-bottom:12px;line-height:1.5">For community partners, like a paid circle or workshop. It goes live on the calendar right away. People sign up on the host\'s own link.</div>'
     +'<div class="field"><label>EVENT NAME</label><input id="ae-title" maxlength="120"></div>'
@@ -2609,5 +2623,220 @@ function exportSubscribers(){
   var f=document.getElementById("footer-newsletter");if(f)f.innerHTML=newsletterBox("footer",true);
 })();
 </script>
+<script>
+// =====================================================================
+// SHOP PARTNERS: shops sign up (email confirm + Sue's approval), then
+// send events for approval and ask for listing changes. Shops can never
+// change their own listing. Page: realholisticnetwork.com/shop-partner
+// =====================================================================
+var SHOP_TOKEN=null,SHOP_ME=null,SHOP_EVENTS=[],SHOP_VIEW="login",SHOP_RESET=null,SHOP_EV_EDIT=null,SHOP_LAST_EMAIL="";
+async function shopApi(body){
+  var j=await api("/api/shop",body,SHOP_TOKEN);
+  if(j&&j.relogin){SHOP_TOKEN=null;SHOP_ME=null;SHOP_VIEW="login";renderShopPartner();}
+  return j;
+}
+function shopGo(view){SHOP_VIEW=view;renderShopPartner();window.scrollTo(0,0);}
+function openShopPartner(view){if(view)SHOP_VIEW=view;showPage("shoppartner");window.scrollTo(0,0);}
+function checkShopPartnerLink(){
+  var path=location.pathname.replace(/\/+$/,"").toLowerCase();
+  var q=new URLSearchParams(location.search);
+  if(path!=="/shop-partner"&&q.get("page")!=="shop-partner")return;
+  var t=q.get("reset");if(t&&/^[a-f0-9]{48}$/.test(t)){SHOP_RESET=t;SHOP_VIEW="reset";}
+  if(q.get("join")!==null)SHOP_VIEW="register";
+  showPage("shoppartner");window.scrollTo(0,0);
+}
+function shopField(id,label,attrs,hint){return '<div class="field"><label>'+label+(hint?' <span style="text-transform:none;letter-spacing:0;color:#A990C9">('+hint+')</span>':'')+'</label><input id="'+id+'" '+(attrs||'')+'></div>';}
+function shopErr(msg){var e=document.getElementById("sp-err");if(e){e.textContent=msg||"";e.style.display=msg?"block":"none";}}
+function renderShopPartner(){
+  var el=document.getElementById("shoppartner-body");if(!el)return;
+  if(SHOP_ME){renderShopDash();return;}
+  var errBox='<div id="sp-err" style="color:#C4727A;font-size:13px;margin-bottom:10px;display:none"></div>';
+  var intro='<div style="text-align:center;margin-bottom:22px"><div style="font-size:40px;margin-bottom:10px">🏪</div><h2 style="font-weight:normal;margin-bottom:6px;color:#2A1F3D">Shop Partners</h2><p class="text-soft" style="font-size:13px;line-height:1.7">For holistic and metaphysical shops. Share your events with the REAL Holistic Network community, free.</p></div>';
+  var h="";
+  if(SHOP_VIEW==="register"){
+    h=intro+'<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin:0 0 6px;font-size:18px">Sign up your shop</h3><p class="text-soft" style="font-size:12px;line-height:1.6;margin:0 0 14px">We\'ll email you a link to confirm your email, then we review every shop before the account opens. This keeps REAL Holistic Network safe for real shops.</p>'
+      +shopField("sp-name","SHOP NAME",'maxlength="120"')
+      +shopField("sp-contact","YOUR NAME",'maxlength="80"',"optional")
+      +shopField("sp-address","STREET ADDRESS",'maxlength="200" placeholder="e.g. 123 Main St"')
+      +'<div class="two-col">'+shopField("sp-town","TOWN / CITY",'maxlength="80"')+'<div class="two-col">'+shopField("sp-state","STATE",'maxlength="2" placeholder="RI" style="text-transform:uppercase"')+shopField("sp-zip","ZIP",'maxlength="5" inputmode="numeric"')+'</div></div>'
+      +shopField("sp-email","SHOP EMAIL",'type="email" maxlength="200" placeholder="The email your shop uses"')
+      +'<div class="text-soft" style="font-size:11px;margin:-6px 0 12px;line-height:1.5">Please use the email your shop lists publicly (on your website or Facebook). It helps us approve you faster.</div>'
+      +shopField("sp-phone","PHONE",'type="tel" maxlength="40"',"optional")
+      +shopField("sp-website","WEBSITE OR FACEBOOK PAGE",'maxlength="300" placeholder="https://..."',"optional")
+      +shopField("sp-pass","CHOOSE A PASSWORD",'type="password" maxlength="100" placeholder="At least 8 characters"')
+      +'<label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;margin:6px 0 10px;cursor:pointer;line-height:1.5"><input type="checkbox" id="sp-news" checked style="width:auto;margin-top:3px;accent-color:#6B4699">Yes, send me the monthly REAL Holistic Network shop newsletter (you can unsubscribe any time)</label>'
+      +'<label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;margin:0 0 14px;cursor:pointer;line-height:1.5"><input type="checkbox" id="sp-agree" style="width:auto;margin-top:3px;accent-color:#6B4699">I own or manage this shop. I understand every event is reviewed before it is posted, and that changes to our shop listing are made by REAL Holistic Network when I ask.</label>'
+      +errBox+'<button class="btn btn-purple full-width" id="sp-btn" style="padding:13px;font-size:15px" onclick="shopRegister()">Sign Up My Shop →</button>'
+      +'<div style="text-align:center;margin-top:12px"><span class="text-soft" style="font-size:12px">Already signed up? </span><span class="text-purple" style="cursor:pointer;font-size:12px" onclick="shopGo(\'login\')">Log in →</span></div></div>';
+  }else if(SHOP_VIEW==="sent"){
+    h=intro+'<div class="card" style="text-align:center"><div style="font-size:40px">📬</div><h3 style="font-weight:normal;color:#2A1F3D">Check your email</h3><p class="text-soft" style="font-size:14px;line-height:1.7">We sent a confirmation link to <strong>'+escHtml(SHOP_LAST_EMAIL)+'</strong>. Tap it to confirm your email. Then we\'ll review your shop, usually within a day or two, and email you when you\'re approved.</p><p class="text-soft" style="font-size:12px">Don\'t see it? Check your spam folder, or <span class="text-purple" style="cursor:pointer" onclick="shopResend()">send it again</span>.</p><button class="btn btn-outline" onclick="shopGo(\'login\')">Go to login</button></div>';
+  }else if(SHOP_VIEW==="forgot"){
+    h=intro+'<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin:0 0 10px;font-size:18px">Reset your password</h3>'+shopField("sp-femail","SHOP EMAIL",'type="email"')+errBox+'<button class="btn btn-purple full-width" id="sp-btn" onclick="shopForgot()">Email me a reset link</button><div style="text-align:center;margin-top:12px"><span class="text-purple" style="cursor:pointer;font-size:12px" onclick="shopGo(\'login\')">← Back to login</span></div></div>';
+  }else if(SHOP_VIEW==="reset"){
+    h=intro+'<div class="card"><h3 style="font-weight:normal;color:#2A1F3D;margin:0 0 10px;font-size:18px">Choose a new password</h3>'+shopField("sp-npass","NEW PASSWORD",'type="password" placeholder="At least 8 characters"')+errBox+'<button class="btn btn-purple full-width" id="sp-btn" onclick="shopReset()">Save new password</button></div>';
+  }else{
+    h=intro+'<div class="card">'+shopField("sp-lemail","SHOP EMAIL",'type="email" placeholder="your@shop.com"')+shopField("sp-lpass","PASSWORD",'type="password" onkeydown="if(event.key===\'Enter\')shopLogin()"')+errBox
+      +'<div id="sp-unconf" style="display:none;margin-bottom:10px"><button class="btn btn-ghost full-width" style="font-size:12px" onclick="shopResend(true)">Send the confirmation email again</button></div>'
+      +'<button class="btn btn-purple full-width" id="sp-btn" style="padding:13px;font-size:15px;margin-bottom:12px" onclick="shopLogin()">Log In →</button>'
+      +'<div style="text-align:center;margin-bottom:10px"><span class="text-purple" style="cursor:pointer;font-size:12px" onclick="shopGo(\'forgot\')">Forgot your password?</span></div>'
+      +'<div style="text-align:center"><span class="text-soft" style="font-size:12px">New here? </span><span class="text-purple" style="cursor:pointer;font-size:12px" onclick="shopGo(\'register\')">Sign up your shop →</span></div></div>'
+      +'<p class="text-soft" style="font-size:12px;text-align:center;margin-top:14px;line-height:1.6">Are you a healer or practitioner? <span class="text-purple" style="cursor:pointer" onclick="showPage(\'login\')">Healer login is here.</span></p>';
+  }
+  el.innerHTML=h;
+}
+function spv(id){var e=document.getElementById(id);return e?e.value.trim():"";}
+async function shopRegister(){
+  shopErr("");
+  var site=spv("sp-website");if(site&&!/^https?:\/\//i.test(site))site="https://"+site;
+  var body={action:"register",name:spv("sp-name"),contact:spv("sp-contact"),address:spv("sp-address"),town:spv("sp-town"),state:spv("sp-state").toUpperCase(),zip:spv("sp-zip"),email:spv("sp-email"),phone:spv("sp-phone"),website:site,password:document.getElementById("sp-pass").value,newsletter:document.getElementById("sp-news").checked,agree:document.getElementById("sp-agree").checked};
+  if(!body.agree){shopErr("Please check the box to agree to the Shop Partner terms");return;}
+  var btn=document.getElementById("sp-btn");btn.disabled=true;
+  var j=await shopApi(body);
+  btn.disabled=false;
+  if(!j.ok){shopErr(j.error);return;}
+  SHOP_LAST_EMAIL=j.email||body.email;shopGo("sent");
+  if(!j.sent)toast("We couldn't send the email just now. Tap \"send it again\" in a minute.","#C4727A");
+}
+async function shopResend(fromLogin){
+  var e=fromLogin?spv("sp-lemail"):SHOP_LAST_EMAIL;if(!e)return;
+  await shopApi({action:"resend",email:e});
+  toast("If that email is waiting to be confirmed, we sent the link again ✓","#4A9B8E");
+}
+async function shopLogin(){
+  shopErr("");var u=document.getElementById("sp-unconf");if(u)u.style.display="none";
+  var btn=document.getElementById("sp-btn");btn.disabled=true;
+  var j=await shopApi({action:"login",email:spv("sp-lemail"),password:document.getElementById("sp-lpass").value});
+  btn.disabled=false;
+  if(!j.ok){shopErr(j.error);if(j.unconfirmed&&u)u.style.display="block";return;}
+  SHOP_TOKEN=j.token;SHOP_ME=j.shop;SHOP_EVENTS=j.events||[];renderShopPartner();window.scrollTo(0,0);
+}
+async function shopForgot(){
+  shopErr("");var btn=document.getElementById("sp-btn");btn.disabled=true;
+  var j=await shopApi({action:"forgot",email:spv("sp-femail")});btn.disabled=false;
+  if(!j.ok){shopErr(j.error);return;}
+  toast(j.message||"Check your email ✓","#4A9B8E");shopGo("login");
+}
+async function shopReset(){
+  shopErr("");var btn=document.getElementById("sp-btn");btn.disabled=true;
+  var j=await shopApi({action:"reset",token:SHOP_RESET,password:document.getElementById("sp-npass").value});btn.disabled=false;
+  if(!j.ok){shopErr(j.error);return;}
+  try{history.replaceState(null,"","/shop-partner");}catch(e){}
+  SHOP_RESET=null;SHOP_TOKEN=j.token;SHOP_ME=j.shop;SHOP_EVENTS=j.events||[];toast("Password saved ✓","#4A9B8E");renderShopPartner();
+}
+function shopLogout(){if(SHOP_TOKEN)api("/api/shop",{action:"logout"},SHOP_TOKEN);SHOP_TOKEN=null;SHOP_ME=null;SHOP_EVENTS=[];SHOP_EV_EDIT=null;shopGo("login");}
+function renderShopDash(){
+  var el=document.getElementById("shoppartner-body"),s=SHOP_ME,today=new Date().toISOString().slice(0,10);
+  var head='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px"><div><h2 style="font-weight:normal;color:#2A1F3D;margin:0">'+escHtml(s.name)+'</h2><div class="text-soft" style="font-size:13px">Shop Partner · '+escHtml(s.town)+', '+escHtml(s.state)+'</div></div><button class="btn btn-ghost" style="font-size:11px;padding:7px 13px" onclick="shopLogout()">Log out</button></div>';
+  if(s.status!=="approved"){
+    el.innerHTML=head+'<div class="card card-gold" style="text-align:center"><div style="font-size:36px">⏳</div><h3 style="font-weight:normal;color:#2A1F3D">Waiting for approval</h3><p class="text-soft" style="font-size:14px;line-height:1.7">Thank you for confirming your email! We review every shop before the account opens, usually within a day or two. We\'ll email <strong>'+escHtml(s.email)+'</strong> as soon as you\'re approved. Then you can share your events here.</p></div>';
+    return;
+  }
+  var x=SHOP_EV_EDIT||{},paid=x.id?!!x.paid:false;
+  var form='<div class="card card-gold" style="margin-bottom:20px"><h3 style="font-weight:normal;font-size:18px;color:#2A1F3D;margin:0 0 6px">'+(x.id?'Edit your event':'➕ Add an event')+'</h3><p class="text-soft" style="font-size:13px;margin:0 0 14px;line-height:1.6">Workshops, readings, classes, sound baths, circles and more. Every event is reviewed before it goes on the public calendar, usually within a day'+(x.id?'. Editing sends it back for a quick review.':'.')+'</p>'
+    +'<div class="field"><label>EVENT NAME</label><input id="se-title" maxlength="120" value="'+v(x.title)+'" placeholder="e.g. Full Moon Sound Bath"></div>'
+    +'<div class="field"><label>DATE</label><input id="se-date" type="date" min="'+today+'" value="'+v(x.date)+'"></div>'
+    +'<div class="two-col"><div class="field"><label>STARTS</label><input id="se-start" type="time" value="'+v(x.start)+'"></div><div class="field"><label>ENDS <span style="text-transform:none;letter-spacing:0;color:#A990C9">(optional)</span></label><input id="se-end" type="time" value="'+v(x.end)+'"></div></div>'
+    +'<div class="field"><label>WHERE</label><input id="se-location" maxlength="200" value="'+v(x.location||(s.address+", "+s.town+", "+s.state))+'"></div>'
+    +'<div class="field"><label>ABOUT THIS EVENT <span style="text-transform:none;letter-spacing:0;color:#A990C9">(no links here)</span></label><textarea id="se-desc" rows="4" maxlength="3000" placeholder="What to expect, who is leading it, what to bring…">'+v(x.description)+'</textarea></div>'
+    +'<div class="field"><label>IS IT FREE OR PAID?</label><div style="display:flex;gap:16px;font-size:14px"><label style="display:flex;gap:6px;align-items:center;cursor:pointer;text-transform:none;letter-spacing:0;color:#2A1F3D"><input type="radio" name="se-paid" value="free" '+(paid?'':'checked')+' onchange="shopPaidToggle()" style="width:auto;accent-color:#6B4699"> Free</label><label style="display:flex;gap:6px;align-items:center;cursor:pointer;text-transform:none;letter-spacing:0;color:#2A1F3D"><input type="radio" name="se-paid" value="paid" '+(paid?'checked':'')+' onchange="shopPaidToggle()" style="width:auto;accent-color:#6B4699"> Paid</label></div></div>'
+    +'<div id="se-paidbox" style="display:'+(paid?'block':'none')+'"><div class="field"><label>PRICE</label><input id="se-price" maxlength="40" value="'+v(x.price)+'" placeholder="e.g. $25, or $30 / 15 min"></div><div class="field"><label>WHERE PEOPLE BUY TICKETS OR PAY</label><input id="se-ticket" type="url" maxlength="500" value="'+v(x.ticketUrl)+'" placeholder="https://... (Eventbrite, your website, Square, Venmo...)"></div><div class="text-soft" style="font-size:11px;margin:-6px 0 12px">People pay you directly. REAL Holistic Network never handles payment for shop events.</div></div>'
+    +'<div class="field"><label>LINK TO THIS EVENT</label><input id="se-proof" type="url" maxlength="500" value="'+v(x.proofUrl)+'" placeholder="https://... your Facebook, Instagram, Eventbrite or website post"></div>'
+    +'<div class="text-soft" style="font-size:11px;margin:-6px 0 12px;line-height:1.5">Required. We use it to check the event before approving it'+(paid?'':', and people tap it for details')+'.</div>'
+    +'<div style="display:flex;gap:10px">'+(x.id?'<button class="btn btn-ghost" style="flex:1" onclick="SHOP_EV_EDIT=null;renderShopDash()">Cancel</button>':'')+'<button class="btn btn-purple" style="flex:2" id="se-save" onclick="shopSaveEvent()">'+(x.id?'Save changes':'Send for approval')+'</button></div></div>';
+  var mine=SHOP_EVENTS.slice().sort(function(a,b){return (a.date+a.start).localeCompare(b.date+b.start);});
+  var up=mine.filter(function(e){return e.date>=today;}),past=mine.filter(function(e){return e.date<today;});
+  var row=function(e){return '<div class="booking-card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="flex:1;min-width:180px"><div style="font-weight:bold;color:#2A1F3D">'+escHtml(e.title)+'</div><div class="text-soft" style="font-size:12px">'+evDayLabel(e.date)+' · '+evTime(e.start)+(e.end?'–'+evTime(e.end):'')+' · '+(e.paid?escHtml(e.price||"Paid"):"Free")+'</div><div style="margin-top:6px">'+evStatusBadge(e)+'</div>'+(e.status==="declined"&&e.declineReason?'<div class="text-soft" style="font-size:12px;margin-top:4px">Note: '+escHtml(e.declineReason)+'</div>':'')+'</div><div style="display:flex;gap:6px">'+(e.date>=today?'<button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="shopEditEvent(\''+e.id+'\')">Edit</button>':'')+'<button class="btn btn-danger" style="padding:6px 12px;font-size:12px" onclick="shopDeleteEvent(\''+e.id+'\')">Remove</button></div></div></div>';};
+  var reqs=(s.requests||[]).slice().reverse();
+  var listing='<div class="card" style="margin-top:22px"><h3 style="font-weight:normal;font-size:17px;color:#2A1F3D;margin:0 0 8px">Your shop listing</h3><div style="font-size:14px;line-height:1.7">📍 '+escHtml(s.address)+', '+escHtml(s.town)+', '+escHtml(s.state)+' '+escHtml(s.zip||"")+(s.phone?'<br>📞 '+escHtml(s.phone):'')+(s.website?'<br>🔗 '+escHtml(s.website):'')+'<br>✉️ '+escHtml(s.email)+'</div>'
+    +'<div class="text-soft" style="font-size:12px;margin:10px 0;line-height:1.6">Did your address, hours, phone or anything else change? Tell us here and we\'ll update your listing for you.</div>'
+    +'<textarea id="sr-msg" rows="3" maxlength="1500" placeholder="e.g. We moved to 45 Elm St on Dec 1. New hours: Tue–Sat 11–6."></textarea>'
+    +'<button class="btn btn-gold full-width" style="margin-top:8px" id="sr-btn" onclick="shopChangeRequest()">Ask for a change</button>'
+    +(reqs.length?'<div style="margin-top:12px;font-size:12px;line-height:1.6">'+reqs.slice(0,5).map(function(r){return '<div style="padding:6px 0;border-top:1px solid rgba(107,70,153,.08)">'+(r.status==="done"?'<span class="status-confirmed">Done</span>':'<span class="status-pending">Sent</span>')+' <span class="text-soft">'+new Date(r.at).toLocaleDateString()+'</span><br>'+escHtml(r.message)+'</div>';}).join("")+'</div>':'')
+    +'<label style="display:flex;gap:8px;align-items:center;font-size:13px;margin-top:14px;cursor:pointer"><input type="checkbox" '+(s.newsletter?'checked':'')+' onchange="shopNewsletter(this.checked)" style="width:auto;accent-color:#6B4699">Send me the monthly shop newsletter</label></div>';
+  el.innerHTML=head+'<div style="max-width:620px">'+form+'<div class="section-title">YOUR UPCOMING EVENTS ('+up.length+')</div>'+(up.length?up.map(row).join(""):'<div class="text-soft" style="font-size:13px;margin-bottom:16px">None yet.</div>')+(past.length?'<div class="section-title" style="margin-top:18px">PAST EVENTS</div>'+past.slice(-10).reverse().map(row).join(""):'')+listing+'</div>';
+}
+function shopPaidToggle(){var p=document.querySelector('input[name="se-paid"]:checked');document.getElementById("se-paidbox").style.display=p&&p.value==="paid"?"block":"none";}
+function shopEditEvent(id){SHOP_EV_EDIT=SHOP_EVENTS.find(function(e){return e.id===id;})||null;renderShopDash();window.scrollTo({top:0,behavior:"smooth"});}
+function shopFix(u){u=(u||"").trim();if(u&&!/^https?:\/\//i.test(u))u="https://"+u;return u.replace(/^http:\/\//i,"https://");}
+async function shopSaveEvent(){
+  var g=function(id){return document.getElementById(id).value;};
+  var pd=document.querySelector('input[name="se-paid"]:checked'),paid=!!(pd&&pd.value==="paid");
+  var ev={id:(SHOP_EV_EDIT||{}).id,title:g("se-title"),date:g("se-date"),start:g("se-start"),end:g("se-end"),location:g("se-location"),description:g("se-desc"),paid:paid,price:paid?g("se-price"):"",ticketUrl:paid?shopFix(g("se-ticket")):"",proofUrl:shopFix(g("se-proof"))};
+  if(blockedFieldsCheck([ev.title,ev.location,ev.description]))return;
+  var btn=document.getElementById("se-save");btn.disabled=true;
+  var j=await shopApi({action:"eventSave",event:ev});
+  btn.disabled=false;
+  if(!j.ok){toast(j.error,"#C4727A");return;}
+  SHOP_ME=j.shop;SHOP_EVENTS=j.events||[];SHOP_EV_EDIT=null;
+  toast("Sent for approval ✓ We'll email you when it's live","#4A9B8E");renderShopDash();window.scrollTo({top:0,behavior:"smooth"});
+}
+async function shopDeleteEvent(id){
+  if(!confirm("Remove this event?"))return;
+  var j=await shopApi({action:"eventDelete",id:id});
+  if(!j.ok){toast(j.error,"#C4727A");return;}
+  SHOP_ME=j.shop;SHOP_EVENTS=j.events||[];toast("Event removed");renderShopDash();refreshPublic();
+}
+async function shopChangeRequest(){
+  var m=document.getElementById("sr-msg").value.trim();if(!m){toast("Please tell us what should change","#C4727A");return;}
+  var btn=document.getElementById("sr-btn");btn.disabled=true;
+  var j=await shopApi({action:"changeRequest",message:m});btn.disabled=false;
+  if(!j.ok){toast(j.error,"#C4727A");return;}
+  SHOP_ME=j.shop;SHOP_EVENTS=j.events||[];toast("Sent ✓ We'll update your listing","#4A9B8E");renderShopDash();
+}
+async function shopNewsletter(on){var j=await shopApi({action:"newsletter",on:on});if(j.ok){SHOP_ME=j.shop;toast(on?"You're on the shop newsletter ✓":"Removed from the shop newsletter","#4A9B8E");}}
+
+// =====================================================================
+// ADMIN: Shop Partners
+// =====================================================================
+function shopEmailCheck(s){
+  var c=s.emailCheck||{};
+  if(c.result==="match")return '<div style="font-size:12px;color:#2d8a50;margin-top:4px">✅ Email matches your lead list'+(c.shops&&c.shops.length?' ('+escHtml(c.shops.join(", "))+')':'')+'</div>';
+  if(c.result==="mismatch")return '<div style="font-size:12px;color:#B8860B;margin-top:4px">⚠️ Email does NOT match your lead list. You have '+escHtml((c.listed||[]).join(", "))+' for '+escHtml(c.listedFor||"")+'. Check before approving.</div>';
+  return '<div style="font-size:12px;color:#7A6E8A;margin-top:4px">❔ This shop isn\'t on your lead list yet, so there\'s no email to compare. Check their website or Facebook before approving.</div>';
+}
+function shopInDirectory(s){
+  var n=function(x){return String(x||"").toLowerCase().replace(/[^a-z0-9]+/g," ").replace(/\b(the|llc|inc|shop|shoppe|store|co)\b/g," ").replace(/\s+/g," ").trim();};
+  var hit=(window.SHOPS||[]).some(function(x){return n(x.name)===n(s.name);});
+  return hit?'<span class="status-confirmed">On the Shops page</span>':'<span class="status-proposed">Not on the Shops page yet</span>';
+}
+function renderAdminShops(){
+  var el=document.getElementById("admin-shops");if(!el||!ADMIN_DATA)return;
+  var S=(ADMIN_DATA.shops||[]).slice().sort(function(a,b){return String(b.createdAt).localeCompare(String(a.createdAt));});
+  var isOwner=curAdminRole==="owner";
+  var card=function(s,mode){
+    var reqs=(s.requests||[]).filter(function(r){return r.status!=="done";});
+    return '<div class="booking-card"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><div style="font-weight:bold;color:#2A1F3D">'+escHtml(s.name)+'</div>'+shopInDirectory(s)+'</div>'
+      +'<div style="font-size:13px;line-height:1.7;margin-top:4px">📍 '+escHtml(s.address)+', '+escHtml(s.town)+', '+escHtml(s.state)+' '+escHtml(s.zip||"")+'<br>✉️ '+escHtml(s.email)+(s.emailVerified?' <span class="text-soft" style="font-size:11px">(confirmed)</span>':' <span style="font-size:11px;color:#C4727A">(not confirmed yet)</span>')+(s.contact?'<br>👤 '+escHtml(s.contact):'')+(s.phone?'<br>📞 '+escHtml(s.phone):'')+(s.website?'<br>🔗 '+(safeUrl(s.website)?'<a href="'+escHtml(s.website)+'" target="_blank" rel="noopener" style="color:#6B4699">'+escHtml(s.website)+'</a>':escHtml(s.website)):'')+'<br><span class="text-soft" style="font-size:11px">Signed up '+new Date(s.createdAt).toLocaleDateString()+' · Newsletter: '+(s.newsletter?'yes':'no')+'</span></div>'
+      +shopEmailCheck(s)
+      +(reqs.length?'<div style="margin-top:8px;background:#FFF4DC;border-radius:8px;padding:8px 10px;font-size:13px"><strong>Change requests:</strong>'+reqs.map(function(r){return '<div style="margin-top:6px">'+escHtml(r.message)+' <span class="text-soft" style="font-size:11px">('+new Date(r.at).toLocaleDateString()+')</span> <button class="btn btn-ghost" style="padding:2px 8px;font-size:11px" onclick="admShopReqDone(\''+s.id+'\',\''+r.id+'\')">Mark done</button></div>';}).join("")+'</div>':'')
+      +'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">'
+      +(mode==="pending"?'<button class="btn btn-gold" style="padding:6px 14px;font-size:12px" onclick="admShopStatus(\''+s.id+'\',\'approved\')">✓ Approve</button><button class="btn btn-danger" style="padding:6px 14px;font-size:12px" onclick="admShopStatus(\''+s.id+'\',\'declined\')">✗ Decline</button>':'')
+      +(mode==="declined"?'<button class="btn btn-ghost" style="padding:6px 14px;font-size:12px" onclick="admShopStatus(\''+s.id+'\',\'approved\')">Approve after all</button>':'')
+      +(mode==="approved"?'<button class="btn btn-ghost" style="padding:6px 14px;font-size:12px" onclick="admShopStatus(\''+s.id+'\',\'declined\')">Turn off account</button>':'')
+      +(isOwner?'<button class="btn btn-danger" style="padding:6px 14px;font-size:12px" onclick="admShopStatus(\''+s.id+'\',\'remove\')">Delete</button>':'')+'</div></div>';
+  };
+  var pend=S.filter(function(s){return s.status==="pending";}),appr=S.filter(function(s){return s.status==="approved";}),unconf=S.filter(function(s){return s.status==="unconfirmed";}),decl=S.filter(function(s){return s.status==="declined";});
+  var newsCount=S.filter(function(s){return s.newsletter&&s.emailVerified&&s.status!=="declined";}).length;
+  el.innerHTML='<div class="booking-card" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><div style="font-size:24px;color:#6B4699">'+appr.length+'</div><div class="text-soft" style="font-size:12px">approved shops · '+newsCount+' want the shop newsletter</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-ghost" style="font-size:12px;padding:6px 12px" onclick="copyShopLink()">🔗 Copy sign-up link</button>'+(isOwner&&newsCount?'<button class="btn btn-ghost" style="font-size:12px;padding:6px 12px" onclick="exportShopNewsletter()">⬇ Shop newsletter list (CSV)</button>':'')+'</div></div>'
+    +(pend.length?'<div style="font-size:13px;color:#C9922A;font-weight:bold;margin:10px 0 6px">⏳ WAITING FOR YOUR APPROVAL ('+pend.length+')</div>'+pend.map(function(s){return card(s,"pending");}).join(""):'<div class="text-soft" style="font-size:13px;margin:10px 0">No shops waiting for approval.</div>')
+    +(appr.length?'<details open><summary style="cursor:pointer;font-size:13px;color:#6B4699;font-weight:bold;margin:12px 0 6px">APPROVED SHOPS ('+appr.length+')</summary>'+appr.map(function(s){return card(s,"approved");}).join("")+'</details>':'')
+    +(unconf.length?'<details><summary style="cursor:pointer;font-size:13px;color:#7A6E8A;margin:12px 0 6px">Haven\'t confirmed their email yet ('+unconf.length+')</summary>'+unconf.map(function(s){return card(s,"unconfirmed");}).join("")+'</details>':'')
+    +(decl.length?'<details><summary style="cursor:pointer;font-size:13px;color:#7A6E8A;margin:12px 0 6px">Declined or turned off ('+decl.length+')</summary>'+decl.map(function(s){return card(s,"declined");}).join("")+'</details>':'');
+}
+async function admShopStatus(id,status){
+  var msg={approved:"Approve this shop? They'll get an email that they can start adding events.",declined:"Decline / turn off this shop account? They won't be able to log in.",remove:"Delete this shop account for good? Their waiting events are removed too."}[status];
+  if(!confirm(msg))return;
+  if(await adminCall({action:"shopStatus",id:id,status:status})){toast(status==="approved"?"Approved ✓ We emailed them":status==="declined"?"Done":"Deleted",status==="approved"?"#4A9B8E":"#6B4699");renderAdmin();}
+}
+async function admShopReqDone(id,reqId){if(await adminCall({action:"shopRequestDone",id:id,reqId:reqId})){toast("Marked done ✓","#4A9B8E");renderAdmin();}}
+function copyShopLink(){var l=location.origin+"/shop-partner?join";if(navigator.clipboard)navigator.clipboard.writeText(l).then(function(){toast("Copied ✓ "+l,"#4A9B8E");},function(){prompt("Copy this link:",l);});else prompt("Copy this link:",l);}
+function exportShopNewsletter(){
+  var S=(ADMIN_DATA.shops||[]).filter(function(s){return s.newsletter&&s.emailVerified&&s.status!=="declined";});
+  var rows=[["Shop","Contact","Email","Town","State","Status","Signed up"]].concat(S.map(function(s){return [s.name,s.contact||"",s.email,s.town,s.state,s.status,new Date(s.createdAt).toLocaleDateString()];}));
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c||"").replace(/"/g,'""')+'"';}).join(",");}).join("\n");
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="real-holistic-network-shop-newsletter.csv";a.click();
+}
+</script>
+
 </body>
 </html>
