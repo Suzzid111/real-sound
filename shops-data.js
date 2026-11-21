@@ -547,4 +547,5 @@ var SHOPS=[
 {name:"Botanica San Miguel (Providence)",town:"Providence",state:"RI",address:"1372 Broad St, Providence, RI 02905",phone:"(401) 383-5593",sells:"Botanica: spiritual and religious goods",lat:41.7850,lng:-71.4110},
 {name:"Santa Botanica",town:"Providence",state:"RI",address:"302 Pocasset Ave, Providence, RI 02909",phone:"(401) 383-8938",sells:"Botanica: spiritual and religious goods",lat:41.8180,lng:-71.4600},
 {name:"St Michael's Botanica El Viejo",town:"Providence",state:"RI",address:"754 Branch Ave, Providence, RI 02904",phone:"(401) 533-9863",sells:"Botanica: spiritual and religious goods",lat:41.8530,lng:-71.4180},
+{name:"Brown & Hopkins Country Store",town:"Chepachet",state:"RI",address:"1179 Putnam Pike (Route 44), Chepachet, RI 02814",phone:"(401) 568-4830",website:"shopbrownandhopkins.com",sells:"America's oldest continuously running general store (since 1809): all-natural soaps and natural products, candles, gifts and homemade fudge",lat:41.9170,lng:-71.6720},
 ];
