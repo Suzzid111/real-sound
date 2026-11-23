@@ -117,5 +117,380 @@ export const KNOWN_SHOP_EMAILS = {
  ],
  "The Moon Crystal": [
   "info@themooncrystal.com"
+ ],
+ "Gaia Emporium": [
+  "sunlove.herbalremedies@gmail.com"
+ ],
+ "Namaste For Life": [
+  "info@namasteforlife.com"
+ ],
+ "Natural Seven Crystal Revelations": [
+  "naturalseven@yahoo.com"
+ ],
+ "Sand N Stones": [
+  "michele@sandnstones.com"
+ ],
+ "Botanica Almacenes INSHE Miami": [
+  "info@inshemiami.com"
+ ],
+ "Botanica INSHE Miami - Calle 8": [
+  "info@inshemiami.com"
+ ],
+ "Botanica INSHE Miami - Miami Gardens": [
+  "info@inshemiami.com"
+ ],
+ "Psychic YBOR Crystal Shop": [
+  "readings@psychicybor.com"
+ ],
+ "Fairy Dust Crystals & Such": [
+  "fairydustcrystals2024@gmail.com"
+ ],
+ "Mystically Enlightened": [
+  "mysticallyenlightenedshoppe@gmail.com"
+ ],
+ "Essential Elements Wellness": [
+  "eewshop1010@gmail.com"
+ ],
+ "Metaphysically Me": [
+  "hello@metaphysically.me"
+ ],
+ "Tierra Bella Gallery Crystal Shop": [
+  "tierrabellagallery@aol.com"
+ ],
+ "Kween's Labyrinth & Apothecary": [
+  "kween@kweenslabyrinth.com"
+ ],
+ "The M Cave": [
+  "info@themcave.com"
+ ],
+ "Arcane Moon": [
+  "arcane.spiritx@gmail.com"
+ ],
+ "The Bohemian Den": [
+  "scott@thebohemianden.com"
+ ],
+ "Peaceful Warrior Apothecary": [
+  "peacefulwarriorapothecary@gmail.com"
+ ],
+ "Wild Nourish Earth Apothecary": [
+  "sarahdawn@wildnourishearth.com"
+ ],
+ "Healing Leaf Apothecary": [
+  "info@healingleafapothecary.net"
+ ],
+ "Shaddow Domain": [
+  "freaks@shaddowdomain.com"
+ ],
+ "Crystals EnLight": [
+  "crystalsenlight@gmail.com"
+ ],
+ "Silent Warrior Super Herbs": [
+  "hello@swherbs.com"
+ ],
+ "Yellowstone Gem World": [
+  "yellowstonegemworld@gmail.com"
+ ],
+ "Esmeralda's Special Place & Apothecary": [
+  "esmeraldasspecial@sbcglobal.net"
+ ],
+ "Natural Collective": [
+  "info@naturalcollectivellc.com"
+ ],
+ "Thyme 'n Again Apothecary": [
+  "thymenagainapothecary@gmail.com"
+ ],
+ "Crystal Wand Creations": [
+  "crystalwand99@yahoo.com"
+ ],
+ "Catalpa Tree Shops": [
+  "catalpatree@att.net"
+ ],
+ "Crystal Intentions": [
+  "customerservice@crystal-intentions.com"
+ ],
+ "Twisted Twigs House of Earthen Goods": [
+  "twisted.twigs.earthen.goods@gmail.com"
+ ],
+ "Oak & Amethyst": [
+  "mark.mcdaniel@oakandamethystboutique.com"
+ ],
+ "ReAlive Metaphysical Shop": [
+  "nicki@realivemetaphysical.com"
+ ],
+ "Enchanted Mystical Boutique": [
+  "enchanted.dsm@gmail.com"
+ ],
+ "Purple Moon's Magical Emporium": [
+  "purplemoonsdsm@gmail.com"
+ ],
+ "Wundercraeft Emporium & Apothecary": [
+  "wundercraftemporium@gmail.com"
+ ],
+ "The Expansion Center / Crystal Shoppe": [
+  "connect@expansion-center.com"
+ ],
+ "Enlightened KC": [
+  "info@enlightenedkc.store"
+ ],
+ "Haven Wellness + Spa & Shop": [
+  "katie.havenwellness@gmail.com"
+ ],
+ "Enchanted Gifts": [
+  "enchanted-gifts@att.net"
+ ],
+ "Kansas Notions": [
+  "tracy@kansasnotions.com"
+ ],
+ "Leaf & Stone Apothecary": [
+  "landsapothecary@gmail.com"
+ ],
+ "Flourish Herbals & Aromatherapy": [
+  "shop@flourish-herbals.com"
+ ],
+ "Moonbow Apothecary & Emporium": [
+  "moonbowapothecary@gmail.com"
+ ],
+ "Earth Alchemy": [
+  "earthalchemyky@yahoo.com"
+ ],
+ "Green Oaks Apothecary": [
+  "greenoaksapothecary@yahoo.com"
+ ],
+ "Coyote Moon Crystals and Gifts": [
+  "info@coyotemoonbr.com"
+ ],
+ "Path of Awakenings": [
+  "hello@pathofawakenings.com"
+ ],
+ "Sassy Magick": [
+  "sassy.magick@gmail.com"
+ ],
+ "Sassy Magick Noir": [
+  "sassy.magick@gmail.com"
+ ],
+ "Sassy Magick Boutique": [
+  "sassy.magick@gmail.com"
+ ],
+ "Mystic Resource Center": [
+  "mysticbycm@gmail.com"
+ ],
+ "Mountain of Spirit": [
+  "mountainofspirit1804@gmail.com"
+ ],
+ "Arcana": [
+  "knowledge@arcanamaine.com"
+ ],
+ "Dragon Star Creations": [
+  "info@dragonstarcreationsonline.com"
+ ],
+ "Crystals, Candles & Cauldrons": [
+  "ccc.baltimore@gmail.com"
+ ],
+ "Earthly Elements": [
+  "rb4@comcast.net"
+ ],
+ "The Twisted Bead and Rock Shop": [
+  "thetwistedbead@gmail.com"
+ ],
+ "Happy & Zen Crystals": [
+  "happynzen@gmail.com"
+ ],
+ "Dusk + Willow Designs": [
+  "duskandwillowdesigns@gmail.com"
+ ],
+ "STROB Apothecary": [
+  "hello@strobapothecary.com"
+ ],
+ "Easthampton Crystal & Mineral": [
+  "easthamptoncrystal@gmail.com"
+ ],
+ "Declan's Mining Co.": [
+  "support@declansminingco.com"
+ ],
+ "Downtown Tarot Company": [
+  "info@downtowntarot.com"
+ ],
+ "Dragonfly Earth Essentials": [
+  "dragonfly.earth@dragonflyearth.com"
+ ],
+ "World of Rocks": [
+  "gail@worldofrocks.com"
+ ],
+ "Awakenings - Gifts and Guidance for the Soul": [
+  "info@awakeningsmn.com"
+ ],
+ "Collective Dimensions": [
+  "admin@collectivedimensions.com"
+ ],
+ "Divine Echoes Esoterica": [
+  "divineechoesllc@gmail.com"
+ ],
+ "Pegasus Pizzazz Crystals & Mystical Boutique": [
+  "pegasuspizzazz@gmail.com"
+ ],
+ "Clary and Sage Apothecary": [
+  "csapothecaryorders@gmail.com"
+ ],
+ "Pathways New Age Books Music Jewelry and Crystals": [
+  "sales@pathwaysstl.com"
+ ],
+ "Crafty Claw Creations": [
+  "craftyclawcreations@gmail.com"
+ ],
+ "Eclectic Treasures and Gallery": [
+  "etandg.store@gmail.com"
+ ],
+ "Ashley Fay Crystals": [
+  "ashleyfay@ashleyfaycrystals.com"
+ ],
+ "Windy Way Rock Shop": [
+  "windywayrockshop@gmail.com"
+ ],
+ "Next Millennium Books & Gifts": [
+  "cindy@magicalomaha.com"
+ ],
+ "Enchanted Forest Reiki Center": [
+  "debbiev@enchantedforestreiki.com"
+ ],
+ "Earthe Energe": [
+  "eartheenerge@gmail.com"
+ ],
+ "Deep Earth Arts": [
+  "care@deepeartharts.com"
+ ],
+ "Santerre's Stones 'n Stuff": [
+  "info@santerresstones.com"
+ ],
+ "Soul of Nature Botanica": [
+  "info@snbotanica.com"
+ ],
+ "Within Spirit": [
+  "withinspiritnj@gmail.com"
+ ],
+ "A Year and a Day Mystical Shoppe": [
+  "ayearandadaymysticalshoppe@yahoo.com"
+ ],
+ "The Venus Moon Crystal Warehouse": [
+  "venus@thevenusmoon.com"
+ ],
+ "Cheerful Dreams": [
+  "elaine@cheerfuldreams.com"
+ ],
+ "Mystical Blossoms": [
+  "hello@mysticalblossoms.com"
+ ],
+ "Crone & Crow": [
+  "cronecrowtaos@gmail.com"
+ ],
+ "Indigo Mermaid": [
+  "indigomermaidllc@gmail.com"
+ ],
+ "HealinGifts Herbs and Healing": [
+  "support@healingifts.com"
+ ],
+ "Rock Star Crystals": [
+  "info@rockstarcrystals.com"
+ ],
+ "Mythic Treasures": [
+  "mythictreasures@gmail.com"
+ ],
+ "The Temperamental Goddess": [
+  "thetemperamentalgoddess@gmail.com"
+ ],
+ "Wandering Nyx": [
+  "amy@wanderingnyx.com"
+ ],
+ "Covet Metaphysical": [
+  "covetmetaphysical@gmail.com"
+ ],
+ "Envision Crystal": [
+  "envision@envisioncrystal.com"
+ ],
+ "Crystals of Quartz": [
+  "sydney.hetrick@yahoo.com"
+ ],
+ "Sacred Corner Gemstone Gift Shop": [
+  "sacredcorner1111@gmail.com"
+ ],
+ "3rd Eye Gifts": [
+  "thirdeyegifts@gmail.com"
+ ],
+ "Dancing Moon Books & Gifts": [
+  "store@dancingmoonraleigh.com"
+ ],
+ "New Earth Energies": [
+  "info@newearthenergies.love"
+ ],
+ "Crystal Connection": [
+  "info@crystalconnectionnc.com"
+ ],
+ "Asheville Raven & Crone": [
+  "ashevilleravenandcrone@gmail.com"
+ ],
+ "Instant Karma (Downtown)": [
+  "instantkarmaasheville@gmail.com"
+ ],
+ "Instant Karma (West Asheville)": [
+  "instantkarmaasheville@gmail.com"
+ ],
+ "Alchemy & Aura": [
+  "order@alchemyandaura.com"
+ ],
+ "Oak Tree Herbal Remedies": [
+  "info@oaktreeherbal.com"
+ ],
+ "Handled Healing": [
+  "handledhealing@gmail.com"
+ ],
+ "Pearls of Wisdom": [
+  "orders@pearlsofwisdominc.com"
+ ],
+ "Gypsy Grace & The Vintage Goat": [
+  "gypsygrace.vintagegoat@gmail.com"
+ ],
+ "Goddess Elite": [
+  "info@goddesselite.com"
+ ],
+ "Luna DreamCatcher": [
+  "lunadreamcatcherllc@gmail.com"
+ ],
+ "Tink's Crystals and More": [
+  "tinkscrystalsandmore@gmail.com"
+ ],
+ "The Celestial Black Cat Apothecary Crystal & Metaphysical Shop": [
+  "horselady35@hotmail.com"
+ ],
+ "Dublin Rocks & Minerals": [
+  "sales@dublinrocksandminerals.com"
+ ],
+ "The Lavender Hour": [
+  "info@thelavenderhour.com"
+ ],
+ "Sage Intentions": [
+  "joshua@sageintention.com"
+ ],
+ "Enchanted Mystic Arts House of Intuitions": [
+  "enchantedmystic1@gmail.com"
+ ],
+ "Spiritual Rose": [
+  "spiritualrosestore@gmail.com"
+ ],
+ "Oak Ash and Thorn Metaphysical Shop": [
+  "treetrilogylore@gmail.com"
+ ],
+ "Crystal Cactus Metaphysical Shop": [
+  "crystalcactusok@gmail.com"
+ ],
+ "The Raven's Wing Magical Co-Op": [
+  "info@theravenswing.com"
+ ],
+ "Mystic Bay": [
+  "info@mysticbay.biz"
+ ],
+ "Rebel Emporium": [
+  "rebelrocksoregon@outlook.com"
+ ],
+ "Tree of Life Shoppe": [
+  "treeoflifeshoppe@gmail.com"
  ]
 };
