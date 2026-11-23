@@ -165,12 +165,12 @@ async function shopsIndex(req) {
   const S = await loadShops(req);
   const by = {}; S.forEach(s => { by[s.state] = (by[s.state] || 0) + 1; });
   const sts = Object.keys(by).sort((a, b) => (STATES[a] || a).localeCompare(STATES[b] || b));
-  const body = `<h1>Holistic &amp; Metaphysical Shops by State</h1>
+  const body = `<h1>Holistic, Metaphysical &amp; Apothecary Shops by State</h1>
 <p>Crystal shops, metaphysical stores, botanicas, apothecaries and holistic boutiques. Pick a state to see every shop, town by town. Want the ones closest to you? <a href="/?page=shops">Search by ZIP code</a>.</p>
 ${sts.map(st => `<div class="card"><a href="/shops/${st.toLowerCase()}" style="font-size:18px">${esc(STATES[st] || st)}</a> <span class="soft">· ${by[st]} shops</span></div>`).join('')}
 <p class="soft">Know a shop we missed? Tell us on social media @realholisticnetwork.</p>`;
-  return page({ title: 'Holistic, Crystal & Metaphysical Shops by State | REAL Holistic Network',
-    desc: `Find crystal shops, metaphysical stores and holistic boutiques near you in ${listJoin(sts.map(s => STATES[s] || s))}.`,
+  return page({ title: 'Holistic, Metaphysical & Apothecary Shops by State | REAL Holistic Network',
+    desc: `Find crystal shops, metaphysical stores, apothecaries and holistic boutiques near you in ${listJoin(sts.map(s => STATES[s] || s))}.`,
     canonical: BASE + '/shops', body });
 }
 
@@ -181,18 +181,18 @@ async function shopsState(req, st) {
   const towns = {}; S.forEach(s => { const t = String(s.town || '').trim() || 'Other'; (towns[t] = towns[t] || []).push(s); });
   const tnames = Object.keys(towns).sort();
   const site = w => { const u = /^https?:\/\//i.test(w) ? w : 'https://' + w; return `<a href="${esc(u)}" rel="nofollow noopener" target="_blank">${esc(w.replace(/^https?:\/\//i, '').replace(/\/$/, ''))}</a>`; };
-  const body = `<h1>Holistic &amp; Metaphysical Shops in ${esc(name)}</h1>
-<p>${S.length} crystal, metaphysical and holistic shops in ${esc(name)}, by town. <a href="/?page=shops">Search by ZIP code</a> to see how far each one is from you.</p>
+  const body = `<h1>Holistic, Metaphysical &amp; Apothecary Shops in ${esc(name)}</h1>
+<p>${S.length} crystal, metaphysical, apothecary and holistic shops in ${esc(name)}, by town. <a href="/?page=shops">Search by ZIP code</a> to see how far each one is from you.</p>
 <p class="soft">Towns: ${tnames.map(t => `<a href="#${esc(t.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}">${esc(t)}</a>`).join(' · ')}</p>
 ${tnames.map(t => `<h2 id="${esc(t.toLowerCase().replace(/[^a-z0-9]+/g, '-'))}">${esc(t)}</h2>` + towns[t].map(s => `<div class="card"><b>${esc(s.name)}</b>
 <div class="soft">${esc(s.address || '')}</div>${s.sells ? `<div>${esc(s.sells)}</div>` : ''}
 <div class="soft">${[s.phone ? esc(s.phone) : '', s.website ? site(s.website) : ''].filter(Boolean).join(' · ')}</div></div>`).join('')).join('')}
 <p><a href="/shops">← All states</a></p>`;
-  const ld = { '@context': 'https://schema.org', '@type': 'ItemList', name: `Holistic and metaphysical shops in ${name}`,
+  const ld = { '@context': 'https://schema.org', '@type': 'ItemList', name: `Holistic, metaphysical and apothecary shops in ${name}`,
     itemListElement: S.map((s, i) => ({ '@type': 'ListItem', position: i + 1, item: { '@type': 'Store', name: s.name,
       address: s.address || undefined, telephone: s.phone || undefined, description: s.sells || undefined } })) };
-  return page({ title: `Crystal & Metaphysical Shops in ${name} (${S.length}) | REAL Holistic Network`,
-    desc: `${S.length} crystal shops, metaphysical stores and holistic boutiques in ${name}: ${listJoin(tnames.slice(0, 6))} and more. Addresses, phone numbers and what each sells.`,
+  return page({ title: `Crystal, Metaphysical & Apothecary Shops in ${name} (${S.length}) | REAL Holistic Network`,
+    desc: `${S.length} crystal shops, metaphysical stores, apothecaries and holistic boutiques in ${name}: ${listJoin(tnames.slice(0, 6))} and more. Addresses, phone numbers and what each sells.`,
     canonical: BASE + '/shops/' + st.toLowerCase(), body, jsonld: ld });
 }
 
