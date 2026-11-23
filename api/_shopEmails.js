@@ -492,5 +492,8 @@ export const KNOWN_SHOP_EMAILS = {
  ],
  "Tree of Life Shoppe": [
   "treeoflifeshoppe@gmail.com"
+ ],
+ "Luna Eclipse Botanica": [
+  "thereallunaeclipse@gmail.com"
  ]
 };
