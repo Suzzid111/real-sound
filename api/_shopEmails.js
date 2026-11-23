@@ -495,5 +495,146 @@ export const KNOWN_SHOP_EMAILS = {
  ],
  "Luna Eclipse Botanica": [
   "thereallunaeclipse@gmail.com"
+ ],
+ "The Sacred Chakra": [
+  "info@thesacredchakra.com"
+ ],
+ "SV Crystals": [
+  "store@svcrystals.com"
+ ],
+ "Infinity Energy Spa & Crystal Shop": [
+  "relax@infinityenergyspa.com"
+ ],
+ "Solomon's Temple": [
+  "info@solomonshealinggarden.com"
+ ],
+ "Healing Moon Crystal and Candle Shop": [
+  "healingmoonshop@gmail.com"
+ ],
+ "Labyrinth Walking": [
+  "info@labyrinthwalking.net"
+ ],
+ "Baldflower Apothecary": [
+  "herbs@baldflowerapothecaryllc.com"
+ ],
+ "Pennies & Feathers Gemstones": [
+  "pfgemstones@gmail.com"
+ ],
+ "Almanac Supply Co.": [
+  "hello@almanacsupplyco.com"
+ ],
+ "Chattanooga Crystal Store": [
+  "badilli@chattanoogacrystalstore.com"
+ ],
+ "Stardust Spiritual Shoppe - Chattanooga": [
+  "rebecca.stardust@gmail.com"
+ ],
+ "Stardust Spiritual Shoppe - Cleveland": [
+  "rebecca.stardust@gmail.com"
+ ],
+ "Curiosities Shop + Apothecary": [
+  "shop.curiosities@yahoo.com"
+ ],
+ "New Moon Rising Gifts and Goods": [
+  "newmoonrisinggiftsandgood@gmail.com"
+ ],
+ "Earth's Core": [
+  "darlene@earths-core.com"
+ ],
+ "The Broom Closet": [
+  "omma+new@thebroomclosetmemphis.com"
+ ],
+ "Stonekeepers": [
+  "sales@stonekeepers.com"
+ ],
+ "7 Crows": [
+  "7crowstn@gmail.com"
+ ],
+ "aromaG's Botanica": [
+  "info@aromagregory.com"
+ ],
+ "Cosmic Connections": [
+  "orders@yourcosmicconnections.com"
+ ],
+ "East West Herbal Apothecary": [
+  "eastwestherbalapothecary@gmail.com"
+ ],
+ "Sapphire & Sage": [
+  "hello@sapphiresagebtq.com"
+ ],
+ "Rocio's Spiritual Botanica": [
+  "rocios.botanica@gmail.com"
+ ],
+ "Synergy Herbal Works - Sparta": [
+  "hello@synergyherbalworks.com"
+ ],
+ "Synergy Herbal Works - Cookeville": [
+  "hello@synergyherbalworks.com"
+ ],
+ "Nature's Treasures Texas": [
+  "rocks@ntrocks.com"
+ ],
+ "The Herb Bar": [
+  "hello@theherbbar.com"
+ ],
+ "Savage Mana": [
+  "customerservice@savagemana.com"
+ ],
+ "The Metaphysical Way": [
+  "info@themetaphysicalway.com"
+ ],
+ "Deja Vu Esoterica": [
+  "info@dejavuesoterica.com"
+ ],
+ "The Eagle's Nest": [
+  "theeaglesnestsa@gmail.com"
+ ],
+ "Colette's Crystals": [
+  "colettescrystals@yahoo.com"
+ ],
+ "Bloom & Stone": [
+  "crystals@bloomshopflowers.com"
+ ],
+ "Enchanted Forest Metaphysical Shoppe": [
+  "info@eforeststore.com"
+ ],
+ "Thorn & Moon Apothecary": [
+  "thornandmoon@gmail.com"
+ ],
+ "Body Mind & Soul": [
+  "info@bmshouston.com"
+ ],
+ "Crystal & Luck Boutique": [
+  "crystalandluckgalleria@gmail.com"
+ ],
+ "Crystal Rock Shop": [
+  "crystalrockshoptx@gmail.com"
+ ],
+ "Chakra Shop": [
+  "chakrashopads@gmail.com"
+ ],
+ "Arkady's Body Adornment": [
+  "theladyarkady@gmail.com"
+ ],
+ "Arkady's Body Adornment - T-Anchor Flea Market": [
+  "theladyarkady@gmail.com"
+ ],
+ "Crystals & More A Metaphysical Store": [
+  "lola@thehealthut.com"
+ ],
+ "The Conjuring Tree": [
+  "Service@TheConjuringTree.com"
+ ],
+ "Golden Braid Books": [
+  "info@goldenbraidslc.com"
+ ],
+ "Treasures N Creations": [
+  "treasuresncreations@gmail.com"
+ ],
+ "Sammi's Spot": [
+  "sammis.spot1111@gmail.com"
+ ],
+ "Vibez Mind Body Spirit": [
+  "vibezogden@gmail.com"
  ]
 };
