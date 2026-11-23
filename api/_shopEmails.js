@@ -636,5 +636,108 @@ export const KNOWN_SHOP_EMAILS = {
  ],
  "Vibez Mind Body Spirit": [
   "vibezogden@gmail.com"
+ ],
+ "Paula's Rock Shop & Weaving Workshop": [
+  "paulasrockshop@gmail.com"
+ ],
+ "Aquarian Bookshop": [
+  "shop@aquarianbookshop.com"
+ ],
+ "The Green Cauldron (Charlottesville)": [
+  "greencauldronapothecary@gmail.com"
+ ],
+ "The Green Cauldron (Williamsburg)": [
+  "greencauldronapothecary@gmail.com"
+ ],
+ "Velvet Witch": [
+  "hello@velvetwitch.com"
+ ],
+ "Wild Willow Metaphysical & Consignment": [
+  "thewildwillowwv@gmail.com"
+ ],
+ "Crystal Clarity Co": [
+  "Team@thecrystalclarityco.com"
+ ],
+ "Stone + Sage": [
+  "stoneandsagewi@gmail.com"
+ ],
+ "Angelic Roots": [
+  "info@angelicroots.com"
+ ],
+ "Burnie's Rock Shop": [
+  "burniesrockshop@gmail.com"
+ ],
+ "Burnie's On Park": [
+  "burniesrockshop@gmail.com"
+ ],
+ "Ascended Gifts": [
+  "spiritualadvisorserelle@gmail.com"
+ ],
+ "Remedy Within": [
+  "store@remedywithin.com"
+ ],
+ "The Sacred Journey": [
+  "info@sacredjourneyshop.com"
+ ],
+ "DragonMarsh Apothecary & Teas": [
+  "dragonmarsh@gmail.com"
+ ],
+ "Sage Spirits": [
+  "info@sagespirits.com"
+ ],
+ "Crystal Cave": [
+  "karen@crystal-cave.com",
+  "barbara@crystal-cave.com"
+ ],
+ "Bliss Crystals": [
+  "info@blisscrystals.com"
+ ],
+ "The Dragon and The Rose": [
+  "k.estremo@thedragonandtherose.com"
+ ],
+ "Nevada Mineral & Book Company": [
+  "minbooks@aol.com"
+ ],
+ "Stones of Enchantment": [
+  "theschwartzz@yahoo.com"
+ ],
+ "Frey's Hermetic Supplies": [
+  "freyshermeticsupplies@gmail.com"
+ ],
+ "Juniper Moon": [
+  "laurie@junipermoononline.com"
+ ],
+ "The Cave of Wonders": [
+  "ContactUs@TheCaveOfWonders.com"
+ ],
+ "Crystal Visions Rock Shop": [
+  "CrystalVisionsOB@gmail.com"
+ ],
+ "Blackbird Apotheca": [
+  "blackbirdlamesa@gmail.com"
+ ],
+ "Moon Kissed": [
+  "info@moonkissed.biz"
+ ],
+ "The Altar Room": [
+  "TheHighAltar@gmail.com"
+ ],
+ "Stones Throw Gifts": [
+  "info@stonesthrowgifts.com"
+ ],
+ "Inner Light Crystals": [
+  "InnerLightCrystalShop@gmail.com"
+ ],
+ "The Hidden Gem Rock Shop": [
+  "hello@thehiddengemloomis.com"
+ ],
+ "The Rock Shop (Consolidated Rock & Mineral Shop)": [
+  "info@vacavillerockshop.com"
+ ],
+ "The Sacred Well": [
+  "info@sacredwell.com"
+ ],
+ "Intrinsic Elements": [
+  "info@intrinsicelements.com"
  ]
 };
