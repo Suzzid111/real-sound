@@ -242,6 +242,29 @@ export function reviewStats(R, healerId) {
   return { rating: avg, reviewCount: count, recentReviews: recent };
 }
 
+// ---------- Profile completeness (search order + healer dashboard checklist) ----------
+// Same six checks the healer sees on their dashboard (index.html profileChecks).
+export function profileChecks(p) {
+  const tiers = Array.isArray(p.sessionTypes) ? p.sessionTypes : [];
+  return {
+    photo: !!p.photoV,
+    bio: String(p.bio || '').trim().length >= 80,
+    services: normalizeServices(p.modalities).length > 0,
+    prices: tiers.some(t => Number(t.price) > 0),
+    location: !!String(p.zip || '').trim() && !!String(p.location || '').trim(),
+    stripe: !!payAccount(p)
+  };
+}
+// Search order, like Heallist: complete profiles first, then reviews, then
+// sessions completed through RHN. Only this number is public, never the details.
+// Each finished profile item (20 pts) outweighs ALL review/booking points
+// (max 15), so a brand-new healer with a complete profile is never pushed
+// below an established healer with a less complete one. Nobody is hidden.
+export function searchRank(p, stats, completed) {
+  const done = Object.values(profileChecks(p)).filter(Boolean).length;
+  return done * 20 + Math.min((stats && stats.reviewCount) || 0, 5) * 2 + Math.min(completed || 0, 5);
+}
+
 // ---------- Shareable healer links: realholisticnetwork.com/h/tricia-4821 ----------
 export function healerSlug(p) {
   const base = String(p.name || 'healer').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'healer';

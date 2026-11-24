@@ -755,7 +755,7 @@ function renderHome(){
   var hs=P.length>=SHOW_HEALERS_AT?'<div class="stat"><div class="stat-num">'+P.length+'</div><div class="stat-label">Verified healers</div></div>':'<div class="stat"><div class="stat-num">🇺🇸</div><div class="stat-label">Healers nationwide</div></div>';
   var bs=B.length>=SHOW_BOOKINGS_AT?'<div class="stat"><div class="stat-num">'+B.length+'</div><div class="stat-label">Sessions booked</div></div>':'<div class="stat"><div class="stat-num">🔒</div><div class="stat-label">Secure payments by Stripe</div></div>';
   document.getElementById("home-stats").innerHTML=hs+bs+'<div class="stat"><div class="stat-num">15%</div><div class="stat-label">Platform fee only</div></div>';
-  var avail=P.filter(function(p){return p.available;}).slice(0,3);
+  var avail=P.filter(function(p){return p.available;}).sort(function(a,b){return (b.rank||0)-(a.rank||0)||fairTie(a)-fairTie(b);}).slice(0,3);
   document.getElementById("featured").innerHTML=avail.map(function(p){return healerCard(p,true);}).join("");
 }
 
@@ -770,6 +770,9 @@ function healerCard(p,mini){
   return '<div class="healer-card"><div class="healer-top">'+avatarHtml(p,46)+'<div style="flex:1"><div class="healer-name">'+p.name+'</div><div class="healer-loc">📍 '+p.location+'</div></div><span class="'+(p.available?"badge-open":"badge-busy")+'">'+(p.available?"● Open":"○ Busy")+'</span></div><div class="healer-body"><div class="mod-tags">'+tags+'</div><p style="font-size:13px;color:#5E4785;margin:0 0 10px;line-height:1.5">'+escHtml(p.bio||'')+'</p>'+sessionPriceList(p)+'<div style="display:flex;align-items:center;justify-content:space-between"><div><span style="font-size:20px;font-weight:bold;color:#2A1F3D">'+priceLabel(p)+'</span><span class="text-soft" style="font-size:12px">'+(getTiers(p).length>1?"":"/session")+'</span><div style="font-size:12px;margin-top:2px">'+ratingHtml(p)+'</div></div>'+(p.available?'<button class="btn btn-gold" onclick="openBooking(\''+p.id+'\')">Book →</button>':'<button class="btn btn-ghost" disabled>Unavailable</button>')+'</div></div></div>';
 }
 
+// Healers with the same score take turns at the top: the order among them
+// changes every day, so new healers get a fair chance to be seen.
+function fairTie(p){var k=String(p.id)+new Date().toISOString().slice(0,10),h=0;for(var i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))|0;return h;}
 function renderFind(){
   document.getElementById("venue-pills").innerHTML=VENUES.map(function(v){return '<button class="pill'+(vFilter===v?" pill-purple":"")+'" onclick="vFilter=\''+v+'\';renderFind()">'+v+'</button>';}).join("");
   // "Healing service" dropdown: only the official list, so nothing shows up twice
@@ -786,6 +789,8 @@ function renderFind(){
     var nOk=!nameFilter||nameFilter.split(/[\s,]+/).filter(Boolean).every(function(w){return ((p.name||"")+" "+(p.location||"")).toLowerCase().indexOf(w)>-1;});
     return vOk&&mOk&&zOk&&nOk;
   });
+  // Complete profiles, reviews and completed sessions show first (like Heallist).
+  f.sort(function(a,b){return (b.rank||0)-(a.rank||0)||fairTie(a)-fairTie(b);});
   document.getElementById("healer-list").innerHTML=f.length?f.map(function(p){return healerCard(p,false);}).join(""):'<div style="text-align:center;padding:60px 0;color:#A990C9"><div style="font-size:40px;margin-bottom:12px">🔍</div>No practitioners found for this filter.</div>';
 }
 
@@ -1067,9 +1072,29 @@ async function checkConnectReturn(){
 
 function renderOverview(){
   var mb=myB(),pend=mb.filter(function(b){return b.status==="pending";}),conf=mb.filter(function(b){return b.status==="confirmed";});
-  document.getElementById("ptab-overview").innerHTML='<div id="pay-card"></div><div id="share-card"></div><div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#6B4699">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+escHtml(b.venueName)+'</div><div class="text-soft" style="font-size:12px">'+bookingSubline(b)+'</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div>'+refBadge(b)+bookingExtrasHtml(b)+'</div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div><div style="margin-top:10px"><button class="btn btn-ghost" style="padding:7px 12px;font-size:12px" onclick="openPropose(\''+b.id+'\')">📅 Can\'t make it? Suggest a new time</button><div id="prop-'+b.id+'"></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No pending requests yet.</div>');
+  document.getElementById("ptab-overview").innerHTML='<div id="pay-card"></div><div id="profile-check"></div><div id="share-card"></div><div class="dash-grid"><div class="stat"><div class="stat-num" style="color:#6B4699">'+pend.length+'</div><div class="stat-label">PENDING</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">'+conf.length+'</div><div class="stat-label">CONFIRMED</div></div><div class="stat"><div class="stat-num" style="color:#4A9B8E">$'+myEarned()+'</div><div class="stat-label">EARNED</div></div><div class="stat"><div class="stat-num">'+mb.length+'</div><div class="stat-label">TOTAL</div></div></div><div class="section-title">PENDING REQUESTS ('+pend.length+')</div>'+(pend.length?pend.map(function(b){return '<div class="booking-card"><div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1"><div style="font-weight:bold;color:#2A1F3D;margin-bottom:3px">'+escHtml(b.venueName)+'</div><div class="text-soft" style="font-size:12px">'+bookingSubline(b)+'</div><div class="text-teal" style="font-size:13px;margin-top:4px;font-weight:bold">You earn: $'+b.fee+'</div>'+refBadge(b)+bookingExtrasHtml(b)+'</div><div style="display:flex;gap:8px"><button class="btn btn-teal" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'confirmed\')">✓ Accept</button><button class="btn btn-danger" style="padding:8px 14px;font-size:12px" onclick="respond(\''+b.id+'\',\'declined\')">✗ Decline</button></div></div><div style="margin-top:10px"><button class="btn btn-ghost" style="padding:7px 12px;font-size:12px" onclick="openPropose(\''+b.id+'\')">📅 Can\'t make it? Suggest a new time</button><div id="prop-'+b.id+'"></div></div></div>';}).join(""):'<div class="card" style="text-align:center;color:#A990C9;padding:28px">No pending requests yet.</div>');
   renderPayCard();
+  renderProfileCheck();
   renderShareCard();
+}
+
+// Profile checklist: the same six checks that decide search order (api/_lib.js profileChecks).
+function profileChecks(p){
+  var tiers=Array.isArray(p.sessionTypes)?p.sessionTypes:[];
+  return [
+    {ok:!!p.photoV,label:"Add a clear, friendly photo of you"},
+    {ok:String(p.bio||"").trim().length>=80,label:"Write a bio of at least 3–4 sentences (what you do, who you help)"},
+    {ok:(p.modalities||[]).length>0,label:"Choose the healing services you offer"},
+    {ok:tiers.some(function(t){return Number(t.price)>0;}),label:"Add your session types with exact prices"},
+    {ok:!!String(p.zip||"").trim()&&!!String(p.location||"").trim(),label:"Add your town and ZIP code so local clients find you"},
+    {ok:!!(p.payStatus&&p.payStatus.charges),label:"Connect Stripe so clients can book and pay you online"}
+  ];
+}
+function renderProfileCheck(){
+  var el=document.getElementById("profile-check");if(!el||!curUser)return;
+  var c=profileChecks(curUser),done=c.filter(function(x){return x.ok;}).length;
+  if(done===c.length){el.innerHTML='<div class="card" style="margin-bottom:18px;text-align:center;color:#4A9B8E;font-weight:bold">✓ Your profile is complete. Complete profiles show first when clients search!</div>';return;}
+  el.innerHTML='<div class="card card-gold" style="margin-bottom:18px"><div class="section-title">YOUR PROFILE: '+done+' OF '+c.length+' DONE</div><p style="font-size:13px;color:#5E4785;margin:0 0 10px;line-height:1.5">Complete profiles show <b>first</b> when clients search. Finish these to get found:</p>'+c.map(function(x){return '<div style="font-size:14px;padding:4px 0;color:'+(x.ok?'#A990C9;text-decoration:line-through':'#2A1F3D')+'">'+(x.ok?'✓ ':'☐ ')+escHtml(x.label)+'</div>';}).join("")+'<button class="btn btn-outline" style="margin-top:12px;padding:8px 14px;font-size:13px" onclick="setPTab(\'profile\',document.querySelectorAll(\'.ptab\')[3])">✏️ Finish my profile</button></div>';
 }
 
 // ----- Healer suggests a different time instead of declining -----

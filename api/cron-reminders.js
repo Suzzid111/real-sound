@@ -1,9 +1,9 @@
 // api/cron-reminders.js — runs once a day (see "crons" in vercel.json).
 // Emails the client and the healer the day before each confirmed session.
-import { loadBookings, saveBookings, loadHealers, sendNotice, sessionWhen, logNote, todayET, releaseSlot } from './_lib.js';
+import { loadBookings, saveBookings, loadHealers, sendNotice, sessionWhen, logNote, todayET, releaseSlot, newToken } from './_lib.js';
 import { stripe } from './_bookings.js';
 import { releaseBookingGifts, giftBackLine } from './_gifts.js';
-import { ensureKeys, manageLink, clientWhen } from './_manage.js';
+import { ensureKeys, manageLink, clientWhen, sessionEnd, SITE } from './_manage.js';
 import { pingIndexNow } from './_indexnow.js';
 
 export default async function handler(req, res) {
@@ -34,6 +34,25 @@ export default async function handler(req, res) {
       sent++;
     }
     if (sent) { await saveBookings(B); await logNote(`⏰ Sent ${sent} session reminder${sent > 1 ? 's' : ''} for tomorrow`); }
+    // After a session, automatically ask the client for a review (once).
+    // Only paid, confirmed RHN bookings can be reviewed, so reviews stay real.
+    let asked = 0;
+    for (const b of B) {
+      // confirmed = the client's card was charged (or paid by gift certificate);
+      // cancelled, declined, refunded and unpaid bookings never get asked.
+      if (b.status !== 'confirmed' || b.reviewed || b.reviewAskSent || !b.email) continue;
+      if (b.refunded || b.refundId) continue;
+      if (!(Number(b.total) > 0 || Number(b.giftTotal) > 0 || b.paymentIntentId)) continue;
+      const end = sessionEnd(b);
+      // only once the session time is fully over (2+ hours after it ends), and not for old sessions
+      if (!end || Date.now() < end + 2 * 3600000 || Date.now() - end > 14 * 86400000) continue;
+      if (!b.reviewKey) b.reviewKey = newToken().slice(0, 24);
+      await sendNotice(b.email, b.venueName, `How was your session with ${b.practitionerName}?`,
+        `Thank you for booking your ${b.sessionType || 'session'} with ${b.practitionerName} through REAL Holistic Network!\n\nWe'd love to hear how it went. Your review takes about a minute and helps others find the right healer:\n${SITE()}/?review=${b.id}.${b.reviewKey}\n\nWith gratitude,\nREAL Holistic Network`);
+      b.reviewAskSent = new Date().toISOString();
+      asked++;
+    }
+    if (asked) { await saveBookings(B); await logNote(`⭐ Asked ${asked} client${asked > 1 ? 's' : ''} for a review`); }
     // Suggested new times nobody answered before the card hold ran out: close them.
     let closed = 0;
     for (const b of B) {
@@ -50,7 +69,7 @@ export default async function handler(req, res) {
     // Tell Bing about new or changed healer and shop pages (never blocks the reminders).
     let indexed = 0;
     try { indexed = await pingIndexNow(req); } catch (e) { await logNote('IndexNow ping failed: ' + e.message).catch(() => {}); }
-    return res.json({ ok: true, sent, indexed });
+    return res.json({ ok: true, sent, asked, indexed });
   } catch (err) {
     return res.status(500).json({ ok: false, error: err.message });
   }
