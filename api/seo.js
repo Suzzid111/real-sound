@@ -34,6 +34,7 @@ function page({ title, desc, canonical, body, jsonld }) {
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${esc(canonical)}">
+<script defer src="/_vercel/insights/script.js"></script>
 <meta property="og:type" content="website"><meta property="og:site_name" content="REAL Holistic Network">
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${esc(canonical)}">
 ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, '\\u003c')}</script>` : ''}
