@@ -150,7 +150,10 @@ async function register(req, res, b) {
   }
   await saveShops(S);
   const sent = await sendConfirm(req, shop);
-  await logNote(`🏪 New Shop Partner sign-up (email not confirmed yet): ${shop.name}, ${shop.town} ${shop.state}${sent ? '' : ' — ⚠️ confirm email could not be sent'}`);
+  await alertOwner(`🏪 New Shop Partner sign-up (email not confirmed yet): ${shop.name}, ${shop.town} ${shop.state}${sent ? '' : ' — ⚠️ confirm email could not be sent'}`, [
+    `Shop: ${shop.name}`, `Contact: ${shop.contact || '—'}`, `Email: ${shop.email}`, `Phone: ${shop.phone || '—'}`,
+    `Address: ${[shop.address, shop.town, shop.state].filter(Boolean).join(', ') || '—'}`, `Website/Facebook: ${shop.website || '—'}`,
+    'You\'ll get a second email when they confirm their email and are ready for your approval.']);
   return res.json({ ok: true, sent, email: shop.email });
 }
 
