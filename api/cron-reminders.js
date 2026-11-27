@@ -66,18 +66,23 @@ export default async function handler(req, res) {
       closed++;
     }
     if (closed) { await saveBookings(B); await logNote(`⌛ Closed ${closed} unanswered new-time request${closed > 1 ? 's' : ''} (client not charged)`); }
-    // New healers: welcome email (once), then Stripe reminders after 3 and 7 days if still not connected.
+    // New healers: welcome email (once), then Stripe reminders (3 days after joining, then 4 days later) to anyone not connected.
     let healerMails = 0;
     try {
       const H = await loadHealers();
       let changed = false;
       for (const h of H) {
-        if (!h.email || !h.joinedAt || h.joinedAt.slice(0, 10) < NEW_HEALER_EMAILS_SINCE) continue;
-        const days = (Date.now() - Date.parse(h.joinedAt)) / 86400000;
+        if (!h.email) continue;
+        // Welcome: only healers who joined since NEW_HEALER_EMAILS_SINCE.
+        // Stripe reminders: every healer not connected yet (older ones too),
+        // first reminder 3+ days after joining, second 4+ days after the first.
+        const isNew = !!h.joinedAt && h.joinedAt.slice(0, 10) >= NEW_HEALER_EMAILS_SINCE;
+        const days = h.joinedAt ? (Date.now() - Date.parse(h.joinedAt)) / 86400000 : 999;
+        const since1 = h.stripeNudge1 ? (Date.now() - Date.parse(h.stripeNudge1)) / 86400000 : 0;
         let mail = null, mark = null;
-        if (!h.welcomeSent) { mail = healerWelcomeEmail(h); mark = 'welcomeSent'; }
-        else if (!payAccount(h) && days >= 7 && !h.stripeNudge2) { mail = healerStripeReminderEmail(h, 2); mark = 'stripeNudge2'; if (!h.stripeNudge1) h.stripeNudge1 = 'skipped'; }
+        if (isNew && !h.welcomeSent) { mail = healerWelcomeEmail(h); mark = 'welcomeSent'; }
         else if (!payAccount(h) && days >= 3 && !h.stripeNudge1) { mail = healerStripeReminderEmail(h, 1); mark = 'stripeNudge1'; }
+        else if (!payAccount(h) && h.stripeNudge1 && since1 >= 4 && !h.stripeNudge2) { mail = healerStripeReminderEmail(h, 2); mark = 'stripeNudge2'; }
         if (!mail) continue;
         if (await sendNotice(h.email, h.name, mail.subject, mail.text)) { h[mark] = new Date().toISOString(); changed = true; healerMails++; }
       }

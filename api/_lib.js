@@ -433,9 +433,9 @@ export function tierName(service, details) { return details ? `${service} · ${d
 
 // ---------- Emails to new healers (welcome + Stripe reminders) ----------
 // Sent automatically: the welcome right after sign-up, then (only if Stripe
-// still isn't connected) a gentle reminder after 3 days and one more after 7.
-// Healers who joined before this started (Nov 20, 2026) are left alone,
-// except the welcome, which the daily job sends once to anyone since Nov 20.
+// still isn't connected) a gentle reminder after 3 days and one more 4 days after that.
+// The welcome goes once to healers who joined since Nov 20, 2026; the Stripe
+// reminders go to every healer who hasn't connected Stripe, older ones included.
 export const NEW_HEALER_EMAILS_SINCE = '2026-11-20';
 const STRIPE_SAFE = 'About Stripe: it is the same secure payment system used by Amazon, Shopify and millions of small businesses, and a Stripe account is free. Stripe asks for your ID and bank details because the law requires it to confirm who you are before it can send you money. REAL Holistic Network never sees your full Social Security number or bank account number. Stripe keeps them safe and pays you directly.';
 const SIGNOFF = '\n\nQuestions? Email us at bookings.realsound@gmail.com.\n\nWith gratitude,\nSue\nFounder, REAL Holistic Network\nFind. Book. Heal.';
