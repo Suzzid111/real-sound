@@ -1,6 +1,6 @@
 // api/cron-reminders.js — runs once a day (see "crons" in vercel.json).
 // Emails the client and the healer the day before each confirmed session.
-import { loadBookings, saveBookings, loadHealers, sendNotice, sessionWhen, logNote, todayET, releaseSlot, newToken } from './_lib.js';
+import { loadBookings, saveBookings, loadHealers, saveHealers, payAccount, healerWelcomeEmail, healerStripeReminderEmail, NEW_HEALER_EMAILS_SINCE, sendNotice, sessionWhen, logNote, todayET, releaseSlot, newToken } from './_lib.js';
 import { stripe } from './_bookings.js';
 import { releaseBookingGifts, giftBackLine } from './_gifts.js';
 import { ensureKeys, manageLink, clientWhen, sessionEnd, SITE } from './_manage.js';
@@ -66,10 +66,27 @@ export default async function handler(req, res) {
       closed++;
     }
     if (closed) { await saveBookings(B); await logNote(`⌛ Closed ${closed} unanswered new-time request${closed > 1 ? 's' : ''} (client not charged)`); }
+    // New healers: welcome email (once), then Stripe reminders after 3 and 7 days if still not connected.
+    let healerMails = 0;
+    try {
+      const H = await loadHealers();
+      let changed = false;
+      for (const h of H) {
+        if (!h.email || !h.joinedAt || h.joinedAt.slice(0, 10) < NEW_HEALER_EMAILS_SINCE) continue;
+        const days = (Date.now() - Date.parse(h.joinedAt)) / 86400000;
+        let mail = null, mark = null;
+        if (!h.welcomeSent) { mail = healerWelcomeEmail(h); mark = 'welcomeSent'; }
+        else if (!payAccount(h) && days >= 7 && !h.stripeNudge2) { mail = healerStripeReminderEmail(h, 2); mark = 'stripeNudge2'; if (!h.stripeNudge1) h.stripeNudge1 = 'skipped'; }
+        else if (!payAccount(h) && days >= 3 && !h.stripeNudge1) { mail = healerStripeReminderEmail(h, 1); mark = 'stripeNudge1'; }
+        if (!mail) continue;
+        if (await sendNotice(h.email, h.name, mail.subject, mail.text)) { h[mark] = new Date().toISOString(); changed = true; healerMails++; }
+      }
+      if (changed) { await saveHealers(H); await logNote(`💌 Sent ${healerMails} welcome/Stripe reminder email${healerMails > 1 ? 's' : ''} to new healers`); }
+    } catch (e) { await logNote('New-healer emails failed: ' + e.message).catch(() => {}); }
     // Tell Bing about new or changed healer and shop pages (never blocks the reminders).
     let indexed = 0;
     try { indexed = await pingIndexNow(req); } catch (e) { await logNote('IndexNow ping failed: ' + e.message).catch(() => {}); }
-    return res.json({ ok: true, sent, asked, indexed });
+    return res.json({ ok: true, sent, asked, indexed, healerMails });
   } catch (err) {
     return res.status(500).json({ ok: false, error: err.message });
   }

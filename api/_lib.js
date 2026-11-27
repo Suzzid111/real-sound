@@ -430,3 +430,28 @@ export function tierView(t) {
   return { id: t.id, name: t.name, price: t.price, service, details, online: !!t.online };
 }
 export function tierName(service, details) { return details ? `${service} · ${details}` : service; }
+
+// ---------- Emails to new healers (welcome + Stripe reminders) ----------
+// Sent automatically: the welcome right after sign-up, then (only if Stripe
+// still isn't connected) a gentle reminder after 3 days and one more after 7.
+// Healers who joined before this started (Nov 20, 2026) are left alone,
+// except the welcome, which the daily job sends once to anyone since Nov 20.
+export const NEW_HEALER_EMAILS_SINCE = '2026-11-20';
+const STRIPE_SAFE = 'About Stripe: it is the same secure payment system used by Amazon, Shopify and millions of small businesses, and a Stripe account is free. Stripe asks for your ID and bank details because the law requires it to confirm who you are before it can send you money. REAL Holistic Network never sees your full Social Security number or bank account number. Stripe keeps them safe and pays you directly.';
+const SIGNOFF = '\n\nQuestions? Email us at bookings.realsound@gmail.com.\n\nWith gratitude,\nSue\nFounder, REAL Holistic Network\nFind. Book. Heal.';
+const firstName = p => String(p.name || '').trim().split(/\s+/)[0] || 'there';
+export function healerWelcomeEmail(p) {
+  return {
+    subject: `Welcome to REAL Holistic Network, ${firstName(p)}! 🌿`,
+    text: `Hi ${firstName(p)},\n\nWelcome to REAL Holistic Network! I'm so happy you're here. As one of our Founding Healers, you pay no monthly subscription fee for a full year.\n\nHere's how to get the most out of your listing:\n\n1. Finish your profile. Add a photo and a bio. Complete profiles show up first in search.\n2. Connect Stripe. This lets clients book and pay you online. You keep 85% of every booking.\n3. Set your availability so clients can pick a time that works for you.\n4. Share your own link. Clients who book through your personal link count as yours, and you keep 90% for 12 months.\n\n${STRIPE_SAFE}\n\nLog in anytime at https://realholisticnetwork.com (tap "Healer Login").${SIGNOFF}`
+  };
+}
+export function healerStripeReminderEmail(p, n) {
+  return n === 1 ? {
+    subject: `${firstName(p)}, one quick step so clients can book you 💳`,
+    text: `Hi ${firstName(p)},\n\nThank you again for joining REAL Holistic Network! I noticed your Stripe setup isn't finished yet. Until it is, clients can see your profile but can't book and pay you online.\n\nIt takes about 10 minutes. Log in at https://realholisticnetwork.com (tap "Healer Login") and tap "Connect my bank with Stripe" at the top of your dashboard.\n\n${STRIPE_SAFE}${SIGNOFF}`
+  } : {
+    subject: `Still here to help you get booked, ${firstName(p)} 🌿`,
+    text: `Hi ${firstName(p)},\n\nJust a gentle reminder: your Stripe setup still isn't finished, so clients can't book you online yet. If anything about it felt confusing or worrying, just reply or email us at bookings.realsound@gmail.com and we'll help.\n\nWhen you're ready: log in at https://realholisticnetwork.com (tap "Healer Login") and tap "Connect my bank with Stripe."\n\n${STRIPE_SAFE}${SIGNOFF}`
+  };
+}

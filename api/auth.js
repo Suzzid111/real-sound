@@ -3,7 +3,7 @@
 import {
   redis, getJSON, loadHealers, saveHealers, loadBookings, findByEmail, selfHealer,
   hashPassword, checkPassword, safeEqual, createSession, getSession, endSession,
-  tooManyTries, clientIp, logNote, alertOwner, newToken, sendEmail, siteUrl, str, LINK_RE, NOTICE_TEMPLATE, esc, normalizeServices, loadServices, currentServices, tierName
+  tooManyTries, clientIp, logNote, alertOwner, newToken, sendEmail, siteUrl, str, LINK_RE, NOTICE_TEMPLATE, esc, normalizeServices, loadServices, currentServices, tierName, sendNotice, healerWelcomeEmail
 } from './_lib.js';
 
 const RESET_SECONDS = 60 * 60; // reset links work for 1 hour
@@ -80,6 +80,10 @@ async function signup(req, res, b) {
   P.push(p);
   await saveHealers(P);
   await alertOwner(`🌟 New healer signed up: ${name} (${location})`, [`Name: ${name}`, `Email: ${email}`, `Location: ${location}`, `Healing services: ${p.modalities.join(', ') || '—'}`, `Sessions: ${tiers.map(t => `${t.name} ($${t.price})`).join(', ')}`, `Found us through: ${p.source}`, `Heard about us: ${heardFrom}${heardOther ? ' — ' + heardOther : ''}`]);
+  try {
+    const w = healerWelcomeEmail(p);
+    if (await sendNotice(email, name, w.subject, w.text)) { p.welcomeSent = new Date().toISOString(); await saveHealers(P); }
+  } catch (e) {}
   const token = await createSession({ role: 'healer', id: p.id });
   return res.json({ ok: true, token, healer: selfHealer(p), bookings: [] });
 }
