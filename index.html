@@ -451,6 +451,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px">
       <div class="section-title" style="margin-bottom:0">PRACTITIONERS</div>
       <button id="admin-export-btn" class="btn btn-ghost" style="font-size:11px;padding:6px 12px;display:none" onclick="exportHealerEmails()">⬇ Export emails (CSV)</button>
+      <button id="admin-copy-emails-btn" class="btn btn-purple" style="font-size:11px;padding:6px 12px;display:none" onclick="copyHealerEmails()">📋 Copy all healer emails</button>
     </div>
     <div id="admin-practitioners"></div>
     <div class="section-title" style="margin-top:28px">🏢 GROUP & WORKPLACE REQUESTS</div>
@@ -1320,6 +1321,14 @@ function exportHealerEmails(){
   a.click();
 }
 
+// One tap: every healer email, separated by commas, ready to paste into BCC.
+function copyHealerEmails(){
+  var seen={},list=[];
+  (ADMIN_DATA&&ADMIN_DATA.practitioners||[]).forEach(function(p){var e=String(p.email||"").trim();if(e&&!seen[e.toLowerCase()]){seen[e.toLowerCase()]=1;list.push(e);}});
+  if(!list.length){toast("No healer emails found","#C4727A");return;}
+  var t=list.join(", ");
+  if(navigator.clipboard)navigator.clipboard.writeText(t).then(function(){toast("Copied "+list.length+" emails ✓ Paste them into BCC","#4A9B8E");},function(){prompt("Copy these:",t);});else prompt("Copy these:",t);
+}
 function stripeBadge(p){var c=p.payStatus||{};return '<div style="font-size:11px;color:'+(c.charges?'#4A9B8E':c.id?'#C9922A':'#A990C9')+'">💳 '+(c.charges?'Stripe connected, can take payments'+(c.payouts?'':' (no bank for payouts yet)'):c.id?'Stripe setup started, not finished':'Stripe not connected yet')+'</div>';}
 // ----- Owner: the official list of healing services -----
 function adminServicesCard(){
@@ -1345,6 +1354,7 @@ function renderAdmin(){
   var isOwner=curAdminRole==="owner";
   document.getElementById("admin-role-badge").textContent=isOwner?"(Owner)":"(Team)";
   document.getElementById("admin-export-btn").style.display=isOwner?"inline-block":"none";
+  document.getElementById("admin-copy-emails-btn").style.display=isOwner?"inline-block":"none";
   document.getElementById("admin-owner-controls").style.display=isOwner?"block":"none";
   if(isOwner){
     document.getElementById("admin-owner-controls").innerHTML='<div class="card card-purple" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px"><div><div style="font-weight:bold;color:#2A1F3D;font-size:13px">Team Admin Access</div><div class="text-soft" style="font-size:11px">Team code is currently '+(TEAM_ADMIN_ACTIVE?"ON — helpers can log in":"OFF — helper code is locked out")+'</div></div><div style="display:flex;gap:8px"><button class="btn '+(TEAM_ADMIN_ACTIVE?"btn-danger":"btn-teal")+'" style="font-size:12px;padding:7px 14px" onclick="toggleTeamAccess()">Turn '+(TEAM_ADMIN_ACTIVE?"OFF":"ON")+'</button><button class="btn btn-ghost" style="font-size:12px;padding:7px 14px" onclick="sendTestEmail()">✉ Send test email</button></div></div>'+'<div class="card card-gold" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:12px"><div><div style="font-weight:bold;color:#2A1F3D;font-size:13px">Require Stripe for online booking'+(ADMIN_DATA.stripeMode==="test"?' (sandbox)':'')+'</div><div class="text-soft" style="font-size:11px">'+(ADMIN_DATA.requireConnect?"ON: only healers who connected Stripe can be booked online. Their money goes straight to them.":"OFF: healers without Stripe can still be booked, and their payments come to YOUR Stripe account (you would pay them yourself).")+'</div></div><button class="btn '+(ADMIN_DATA.requireConnect?"btn-ghost":"btn-gold")+'" style="font-size:12px;padding:7px 14px" onclick="toggleRequireConnect()">Turn '+(ADMIN_DATA.requireConnect?"OFF":"ON")+'</button></div>'+adminServicesCard();
