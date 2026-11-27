@@ -366,13 +366,18 @@ export async function saveReferralClaim(p, email, claim, bookingId) {
 // One official list, so search never shows the same service three different ways.
 // Anything a healer typed that clearly means one of these is matched to it.
 // Massage therapy is never offered on REAL Holistic Network (it needs a state license).
-export const DEFAULT_SERVICES = ['Sound Bath & Gong Bath', 'Reiki & Crystal Healing', 'Breathwork', 'Meditation', 'Art Therapy', 'Herbalist', 'Life Coach', 'Astrology & Birth Charts', 'Tarot'];
+export const DEFAULT_SERVICES = ['Sound Bath & Gong Bath', 'Reiki & Crystal Healing', 'Breathwork', 'Meditation', 'Creative Art Healing', 'Herbalist', 'Life Coach', 'Astrology & Birth Charts', 'Tarot'];
 // The live list is kept in the database so the owner can add services from the admin page.
 let SERVICES = DEFAULT_SERVICES.slice();
 export const currentServices = () => SERVICES;
+// Services that were renamed: old name -> new name (so healers who picked the old one keep it).
+// "Art Therapy" is a licensed title in some states, so it is now "Creative Art Healing" (Nov 27, 2026).
+const RENAMED_SERVICES = { 'art therapy': 'Creative Art Healing' };
+const renamedService = m => RENAMED_SERVICES[String(m || '').trim().toLowerCase()] || m;
 export async function loadServices() {
   const list = await getJSON('services', null);
   SERVICES = Array.isArray(list) && list.length ? list : DEFAULT_SERVICES.slice();
+  SERVICES = SERVICES.map(renamedService).filter((x, i, a) => a.findIndex(y => y.toLowerCase() === x.toLowerCase()) === i);
   return SERVICES;
 }
 export function cleanServiceName(m) {
@@ -390,12 +395,12 @@ const SERVICE_MATCH = [
   [/sound|gong|singing bowl/i, 'Sound Bath & Gong Bath'],
   [/breath/i, 'Breathwork'],
   [/meditat/i, 'Meditation'],
-  [/art\s*therap/i, 'Art Therapy'],
+  [/art\s*therap|creative\s*art|expressive\s*art/i, 'Creative Art Healing'],
   [/herb/i, 'Herbalist'],
   [/coach/i, 'Life Coach']
 ];
 export function officialService(m) {
-  const t = str(m, 80);
+  const t = renamedService(str(m, 80));
   const exact = SERVICES.find(x => x.toLowerCase() === t.toLowerCase());
   if (exact) return exact;
   const hit = SERVICE_MATCH.find(([re, name]) => re.test(t) && SERVICES.includes(name));
@@ -419,7 +424,8 @@ export function cleanServices(list) {
 // A session type is tied to one official healing service, plus optional details (like "30 min").
 // Older sessions only had a typed name: we work out their service from it where we can.
 export function tierView(t) {
-  let service = t.service && SERVICES.includes(t.service) ? t.service : '';
+  const svc = t.service ? renamedService(t.service) : '';
+  let service = svc && SERVICES.includes(svc) ? svc : '';
   if (!service) { const g = officialService(t.name || ''); if (SERVICES.includes(g)) service = g; }
   let details = t.service ? (t.details || '') : (t.name === service ? '' : (t.name || ''));
   if (!t.service && service && details) {
