@@ -5,11 +5,13 @@
 //   /healer/<name>-<1234>    one practitioner's profile (Book button opens the real booking page)
 //   /shops                   shop directory: list of states
 //   /shops/<state>           every shop in that state, grouped by town
+//   /services                every healing service on RHN
+//   /services/<service>      one service: what it is + every practitioner who offers it
 //   /sitemap.xml             the list of all these pages, for Google and Bing
 import fs from 'fs';
 import crypto from 'crypto';
 import path from 'path';
-import { loadHealers, publicHealer, healerSlug, esc, loadReviews, reviewStats, loadServices } from './_lib.js';
+import { loadHealers, publicHealer, healerSlug, esc, loadReviews, reviewStats, loadServices, currentServices } from './_lib.js';
 
 const BASE = 'https://www.realholisticnetwork.com';
 const STATES = { AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',CO:'Colorado',CT:'Connecticut',DE:'Delaware',DC:'Washington, DC',FL:'Florida',GA:'Georgia',HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming' };
@@ -28,12 +30,12 @@ async function loadShops(req) {
 }
 
 // ---------- page frame (gold & purple) ----------
-function page({ title, desc, canonical, body, jsonld }) {
+function page({ title, desc, canonical, body, jsonld, noindex }) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(desc)}">
-<link rel="canonical" href="${esc(canonical)}">
+<link rel="canonical" href="${esc(canonical)}">${noindex ? '\n<meta name="robots" content="noindex, follow">' : ''}
 <script defer src="/_vercel/insights/script.js"></script>
 <meta property="og:type" content="website"><meta property="og:site_name" content="REAL Holistic Network">
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${esc(canonical)}">
@@ -52,7 +54,7 @@ footer{text-align:center;font-size:13px;color:#7A6A92;padding:20px}
 </style></head><body>
 <header><a href="/">◉ REAL HOLISTIC NETWORK</a></header>
 <main>${body}</main>
-<footer><a href="/">Home</a> · <a href="/healers">Practitioners</a> · <a href="/shops">Holistic shops</a> · <a href="/join">Join as a practitioner</a> · <a href="/sue">About the founder</a><br>REAL Holistic Network: find holistic practitioners near you, or online.</footer>
+<footer><a href="/">Home</a> · <a href="/healers">Practitioners</a> · <a href="/services">Healing services</a> · <a href="/shops">Holistic shops</a> · <a href="/join">Join as a practitioner</a> · <a href="/sue">About the founder</a><br>REAL Holistic Network: find holistic practitioners near you, or online.</footer>
 </body></html>`;
 }
 
@@ -106,7 +108,7 @@ async function healerPage(slug) {
   const body = `${img ? `<img class="photo" src="${esc(h.photo)}" alt="${esc(h.name)}">` : ''}
 <h1>${esc(h.name)}</h1>
 <div class="soft">${esc(where || 'Online sessions')}</div>
-<div style="margin:8px 0">${mods.map(m => `<span class="tag">${esc(m)}</span>`).join('')}</div>
+<div style="margin:8px 0">${mods.map(m => `<a class="tag" href="/services/${esc(serviceSlug(m))}" style="text-decoration:none">${esc(m)}</a>`).join('')}</div>
 <a class="btn" href="/?book=${esc(slug)}">Book a session with ${esc(h.name)}</a>
 <div style="clear:both"></div>
 ${h.bio ? `<h2>About</h2><p>${esc(h.bio).replace(/\n/g, '<br>')}</p>` : ''}
@@ -162,6 +164,83 @@ ${SUE_LINKS.map(([n, u, l]) => `<div class="card"><b>${esc(n)}</b> · <a href="$
     canonical: url, body, jsonld: ld });
 }
 
+
+// ---------- /services and /services/<service> — one page per healing service ----------
+// Each page aims at one search phrase ("reiki practitioner", "sound bath near me"...).
+// Built from the live service list, so a service Sue adds in admin gets its own page.
+// Plain descriptions only: what it is and what a session is like. No health claims.
+const serviceSlug = name => String(name || '').toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/&/g, ' ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+const SERVICE_INFO = {
+  'sound bath & gong bath': ['sound bath', 'A sound bath is a deeply relaxing session where you rest, lying down or seated, while the practitioner plays gongs, crystal or Tibetan singing bowls, chimes and other instruments. People come for rest, calm and a quiet mind. Sessions can be one-on-one or in a group.'],
+  'reiki & crystal healing': ['Reiki practitioner', 'Reiki is a gentle Japanese energy practice. You rest fully clothed while the practitioner places their hands lightly on or just above you. Many practitioners also work with crystals, placing stones on or around you during the session. Most people describe it as deeply calming.'],
+  'breathwork': ['breathwork session', 'Breathwork is guided, intentional breathing. A practitioner leads you through breathing patterns, from slow and calming to more active and energizing, to help you relax, release stress and feel more present. Sessions can be in person or online.'],
+  'meditation': ['meditation teacher', 'Meditation is the practice of training your attention, often by focusing on the breath, a word, a sound or a guided journey. A teacher can show you simple techniques you can use every day, one-on-one or in a group, in person or online.'],
+  'creative art healing': ['creative art healing', 'Creative art healing uses painting, drawing, collage, journaling and other creative activities as a way to relax, reflect and express yourself. No art skills are needed. The focus is on the process, not on making something perfect.'],
+  'herbalist': ['herbalist', 'An herbalist works with plants, such as teas, tinctures, salves and blends, drawing on traditions that go back thousands of years. Sessions may include learning about herbs, custom blends or classes. Always tell your doctor about herbs you take.'],
+  'life coach': ['life coach', 'A life coach helps you get clear on what you want and make a plan to get there, whether that is a career change, better habits, confidence or balance. Coaching looks forward: goals, next steps and accountability. Sessions are often online.'],
+  'astrology & birth charts': ['astrologer', 'An astrologer reads your birth chart, a map of where the sun, moon and planets were at the moment you were born. A reading can cover personality, relationships, timing and the year ahead. You usually need your birth date, time and place.'],
+  'tarot': ['tarot reader', 'A tarot reader uses a deck of 78 cards to explore your question, whether it is about love, work, a decision or your path. Many people use tarot for reflection and insight. Readings can be in person, by phone or by video.'],
+  'pilates instructor': ['Pilates instructor', 'Pilates is a low-impact exercise method that builds core strength, posture, balance and flexibility. An instructor guides you through mat or equipment work, private or in small groups, at your own level.'],
+  'tai chi & qigong': ['tai chi and qigong', 'Tai chi and qigong are ancient Chinese movement practices: slow, flowing movements paired with breathing and focus. They are gentle on the body and suit almost any age or fitness level.'],
+  'health & wellness coach': ['health and wellness coach', 'A health and wellness coach helps you build everyday habits around food, movement, sleep and stress, with steady support and accountability. Coaches work alongside, not in place of, your doctor.'],
+  'psychic & medium': ['psychic medium', 'A psychic offers intuitive readings about your life and path. A medium focuses on connecting with loved ones who have passed. Readings can be in person, by phone or by video.'],
+  'energy healing': ['energy healer', 'Energy healing is a family of practices that work with the body\'s energy, using light touch or no touch at all. Sessions are usually quiet and restful, and you stay fully clothed.'],
+  'shamanic healing': ['shamanic healer', 'Shamanic healing draws on very old traditions from cultures around the world. A practitioner may use drumming, rattles, guided journeys and ceremony. Sessions are usually quiet and reflective.'],
+  'eft / tapping': ['EFT tapping', 'EFT (Emotional Freedom Techniques), or tapping, means gently tapping on certain points on the face and body while talking about what is on your mind. A practitioner guides you, and you can learn to use it on your own too.'],
+  'aromatherapy': ['aromatherapy', 'Aromatherapy uses essential oils from plants, through scent, diffusers, baths or custom blends, to create a calming, uplifting experience. A practitioner can help you choose oils and use them safely.'],
+  'spiritual coach': ['spiritual coach', 'A spiritual coach supports you in exploring meaning, purpose, intuition and your spiritual path, with no one belief system required. Sessions are conversations with practices you can take home.'],
+};
+const NOT_MEDICAL = 'Practitioners on REAL Holistic Network are independent. Holistic sessions are not medical care and do not replace care from your doctor or other licensed provider.';
+function serviceInfo(name) {
+  const i = SERVICE_INFO[String(name).toLowerCase()];
+  return i ? { phrase: i[0], about: i[1] } : { phrase: String(name).toLowerCase(), about: `Find independent ${name} practitioners on REAL Holistic Network. See their sessions and prices, and book online.` };
+}
+async function servicesData() {
+  await loadServices();
+  const P = (await loadHealers()).filter(p => p.available !== false).map(p => [healerSlug(p), publicHealer(p)]);
+  return currentServices().map(name => ({ name, slug: serviceSlug(name), healers: P.filter(([, h]) => (h.modalities || []).includes(name)) })).filter(x => x.slug);
+}
+async function servicesIndex() {
+  const L = await servicesData();
+  const body = `<h1>Holistic Healing Services</h1>
+<p>Every healing service on REAL Holistic Network. Tap one to learn what it is and see the practitioners who offer it, in person or online.</p>
+${L.map(x => `<div class="card"><a href="/services/${esc(x.slug)}" style="font-size:18px">${esc(x.name)}</a> <span class="soft">· ${x.healers.length ? x.healers.length + ' practitioner' + (x.healers.length > 1 ? 's' : '') : 'new'}</span></div>`).join('')}
+<p><a class="btn" href="/join">Are you a practitioner? Join REAL Holistic Network</a></p>`;
+  return page({ title: 'Holistic Healing Services: Reiki, Sound Baths, Breathwork, Tarot & More | REAL Holistic Network',
+    desc: `Explore ${L.length} holistic healing services and book independent practitioners: ${listJoin(L.slice(0, 6).map(x => x.name))} and more.`,
+    canonical: BASE + '/services', body,
+    jsonld: { '@context': 'https://schema.org', '@type': 'ItemList', name: 'Holistic healing services on REAL Holistic Network',
+      itemListElement: L.map((x, i) => ({ '@type': 'ListItem', position: i + 1, url: BASE + '/services/' + x.slug, name: x.name })) } });
+}
+async function servicePage(slug) {
+  const L = await servicesData();
+  const x = L.find(v => v.slug === slug);
+  if (!x) return null;
+  const { phrase, about } = serviceInfo(x.name);
+  const n = x.healers.length;
+  const sts = [...new Set(x.healers.map(([, h]) => stateOf(h.location)).filter(Boolean))].map(st => STATES[st] || st);
+  const others = L.filter(v => v !== x && v.healers.length).slice(0, 8);
+  const body = `<h1>${esc(x.name)} Practitioners</h1>
+<p class="soft">${n ? `${n} practitioner${n > 1 ? 's' : ''}${sts.length ? ' in ' + esc(listJoin(sts)) : ''}, plus online sessions` : 'New on REAL Holistic Network'}</p>
+<h2>What is ${esc(x.name)}?</h2>
+<p>${esc(about)}</p>
+<h2>Book a ${esc(phrase)}</h2>
+${n ? x.healers.map(([, h]) => healerCard(h)).join('') : `<p>Practitioners for ${esc(x.name)} are joining now. In the meantime, <a href="/healers">browse all practitioners</a>.</p>`}
+<p><a class="btn" href="/join">Do you offer ${esc(x.name)}? Join REAL Holistic Network</a></p>
+<p class="soft">Looking for crystals, herbs, oils or tools? <a href="/shops">Find a holistic shop near you</a>.</p>
+${others.length ? `<h2>Other healing services</h2><p>${others.map(v => `<a class="tag" href="/services/${esc(v.slug)}" style="text-decoration:none">${esc(v.name)}</a>`).join('')} <a href="/services">See all</a></p>` : ''}
+<p class="soft" style="font-size:12px">${esc(NOT_MEDICAL)}</p>`;
+  const url = BASE + '/services/' + x.slug;
+  return page({
+    title: `${x.name} Practitioners: Book a ${phrase.charAt(0).toUpperCase() + phrase.slice(1)} Near You or Online | REAL Holistic Network`,
+    desc: `${about.split('. ')[0]}. Book ${x.name.toLowerCase()} with independent practitioners${sts.length ? ' in ' + listJoin(sts) : ''}, in person or online.`.slice(0, 300),
+    canonical: url, body, noindex: !n,
+    jsonld: { '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${x.name} practitioners`, url, description: about,
+      isPartOf: { '@type': 'WebSite', name: 'REAL Holistic Network', url: BASE },
+      mainEntity: { '@type': 'ItemList', itemListElement: x.healers.map(([s, h], i) => ({ '@type': 'ListItem', position: i + 1, url: BASE + '/healer/' + s, name: h.name })) } }
+  });
+}
+
 async function shopsIndex(req) {
   const S = await loadShops(req);
   const by = {}; S.forEach(s => { by[s.state] = (by[s.state] || 0) + 1; });
@@ -201,7 +280,8 @@ async function sitemap(req) {
   const P = await loadHealers();
   const S = await loadShops(req);
   const sts = [...new Set(S.map(s => s.state))].sort();
-  const urls = ['/', '/sue', '/healers', '/shops', '/join', ...sts.map(s => '/shops/' + s.toLowerCase()), ...P.map(p => '/healer/' + healerSlug(p))];
+  const SV = (await servicesData()).filter(x => x.healers.length);
+  const urls = ['/', '/sue', '/healers', '/services', '/shops', '/join', ...SV.map(x => '/services/' + x.slug), ...sts.map(s => '/shops/' + s.toLowerCase()), ...P.map(p => '/healer/' + healerSlug(p))];
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
     urls.map(u => `  <url><loc>${esc(BASE + u)}</loc></url>`).join('\n') + `\n</urlset>\n`;
 }
@@ -217,6 +297,9 @@ export async function pageFingerprints(req) {
   out.push({ url: BASE + '/sue', fp: fp(['sue-v1', SUE_LINKS]) });
   out.push({ url: BASE + '/healers', fp: fp(P.map(([s, h]) => [s, h.name, h.location, h.modalities])) });
   for (const [slug, h] of P) out.push({ url: BASE + '/healer/' + slug, fp: fp([h.name, h.location, h.zip, h.bio, h.modalities, h.sessionTypes, h.photo]) });
+  const SV = await servicesData();
+  out.push({ url: BASE + '/services', fp: fp(['svc-v1', SV.map(x => [x.slug, x.healers.length])]) });
+  for (const x of SV) if (x.healers.length) out.push({ url: BASE + '/services/' + x.slug, fp: fp(['svc-v1', x.name, x.healers.map(([sl, h]) => [sl, h.name, h.location])]) });
   const sts = [...new Set(S.map(s => s.state))].sort();
   out.push({ url: BASE + '/shops', fp: fp(sts.map(st => [st, S.filter(s => s.state === st).length])) });
   for (const st of sts) out.push({ url: BASE + '/shops/' + st.toLowerCase(), fp: fp(S.filter(s => s.state === st)) });
@@ -236,6 +319,8 @@ export default async function handler(req, res) {
     if (t === 'founder') html = await founderPage();
     else if (t === 'healers') html = await healersPage();
     else if (t === 'healer') html = await healerPage(String(q.s || '').toLowerCase().slice(0, 80));
+    else if (t === 'services' && q.s) html = await servicePage(String(q.s).toLowerCase().slice(0, 80));
+    else if (t === 'services') html = await servicesIndex();
     else if (t === 'shops' && q.st) html = await shopsState(req, String(q.st).toUpperCase().slice(0, 2));
     else if (t === 'shops') html = await shopsIndex(req);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');

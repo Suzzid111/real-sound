@@ -39,6 +39,14 @@
     {
       "source": "/shops/:st",
       "destination": "/api/seo?t=shops&st=:st"
+    },
+    {
+      "source": "/services",
+      "destination": "/api/seo?t=services"
+    },
+    {
+      "source": "/services/:s",
+      "destination": "/api/seo?t=services&s=:s"
     }
   ],
   "crons": [
