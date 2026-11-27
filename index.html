@@ -372,6 +372,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
       <div style="font-size:52px;margin-bottom:16px">🌟</div>
       <h2 class="text-purple" style="font-weight:normal;margin-bottom:10px">You're live!</h2>
       <p class="text-soft" style="margin-bottom:24px;line-height:1.7;font-size:14px">Your profile is now visible to clients on REAL Holistic Network.</p>
+      <div id="join-share" style="text-align:left;margin-bottom:22px"></div>
       <button class="btn btn-teal" onclick="showPage('login')">Go to My Dashboard →</button>
     </div>
   </div>
@@ -931,6 +932,7 @@ function showJoin(n){
   document.getElementById("join1").style.display=n===1?"block":"none";
   document.getElementById("join2").style.display=n===2?"block":"none";
   if(n===1){renderJoinPills();var pt=document.getElementById("j-payterms");if(pt)pt.innerHTML=payTermsHtml();}
+  if(n===2)renderJoinShare();
 }
 
 async function submitJoin(){
@@ -1100,8 +1102,16 @@ function profileChecks(p){
 function renderProfileCheck(){
   var el=document.getElementById("profile-check");if(!el||!curUser)return;
   var c=profileChecks(curUser),done=c.filter(function(x){return x.ok;}).length;
-  if(done===c.length){el.innerHTML='<div class="card" style="margin-bottom:18px;text-align:center;color:#4A9B8E;font-weight:bold">✓ Your profile is complete. Complete profiles show first when clients search!</div>';return;}
-  el.innerHTML='<div class="card card-gold" style="margin-bottom:18px"><div class="section-title">YOUR PROFILE: '+done+' OF '+c.length+' DONE</div><p style="font-size:13px;color:#5E4785;margin:0 0 10px;line-height:1.5">Complete profiles show <b>first</b> when clients search. Finish these to get found:</p>'+c.map(function(x){return '<div style="font-size:14px;padding:4px 0;color:'+(x.ok?'#A990C9;text-decoration:line-through':'#2A1F3D')+'">'+(x.ok?'✓ ':'☐ ')+escHtml(x.label)+'</div>';}).join("")+'<button class="btn btn-outline" style="margin-top:12px;padding:8px 14px;font-size:13px" onclick="setPTab(\'profile\',document.querySelectorAll(\'.ptab\')[3])">✏️ Finish my profile</button></div>';
+  var bonus=linkSharedLine();
+  if(done===c.length){el.innerHTML='<div class="card" style="margin-bottom:18px;text-align:center;color:#4A9B8E;font-weight:bold">✓ Your profile is complete. Complete profiles show first when clients search!'+(bonus?'<div style="text-align:left;font-weight:normal;margin-top:10px">'+bonus+'</div>':'')+'</div>';return;}
+  el.innerHTML='<div class="card card-gold" style="margin-bottom:18px"><div class="section-title">YOUR PROFILE: '+done+' OF '+c.length+' DONE</div><p style="font-size:13px;color:#5E4785;margin:0 0 10px;line-height:1.5">Complete profiles show <b>first</b> when clients search. Finish these to get found:</p>'+c.map(function(x){return '<div style="font-size:14px;padding:4px 0;color:'+(x.ok?'#A990C9;text-decoration:line-through':'#2A1F3D')+'">'+(x.ok?'✓ ':'☐ ')+escHtml(x.label)+'</div>';}).join("")+bonus+'<button class="btn btn-outline" style="margin-top:12px;padding:8px 14px;font-size:13px" onclick="setPTab(\'profile\',document.querySelectorAll(\'.ptab\')[3])">✏️ Finish my profile</button></div>';
+}
+// Bonus (optional) checklist item. The healer ticks it themselves, so it never
+// changes search order and nobody is hidden for skipping it.
+function linkSharedLine(){
+  if(!curUser)return "";
+  if(curUser.linkSharedAt)return '<div style="font-size:14px;padding:4px 0;color:#A990C9;text-decoration:line-through">✓ ⭐ Bonus: Add your RHN link to your website or bio</div>';
+  return '<div style="font-size:14px;padding:6px 0 2px;color:#2A1F3D;border-top:1px dashed rgba(201,146,42,.45);margin-top:6px">☐ ⭐ Bonus (optional): Add your RHN link to your website, Linktree or Instagram bio <a href="#share-card" style="color:#6B4699;font-size:13px" onclick="var e=document.getElementById(\'share-card\');if(e)e.scrollIntoView({behavior:\'smooth\'});return false">Show me how ↓</a></div>';
 }
 
 // ----- Healer suggests a different time instead of declining -----
@@ -2510,7 +2520,7 @@ function shareCaption(p){
 async function renderShareCard(){
   var el=document.getElementById("share-card");if(!el||!curUser)return;
   var p=curUser,url=shareUrlFor(p);
-  el.innerHTML='<div class="card card-gold" style="margin-bottom:18px"><div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center"><div id="share-qr" style="width:128px;height:128px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="text-soft" style="font-size:11px">Loading…</span></div><div style="flex:1;min-width:200px"><div style="font-weight:bold;font-size:17px;color:#2A1F3D;margin-bottom:4px">📣 Share your booking page</div><div class="text-soft" style="font-size:13px;line-height:1.6;margin-bottom:10px">Post this link on your social media, website or business card. Anyone who taps it goes straight to your booking page.</div>'+referralNote(p)+'<input readonly value="'+escHtml(url)+'" onclick="this.select()" style="max-width:none;font-size:13px;margin-bottom:10px"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-purple" style="padding:8px 14px;font-size:13px" onclick="copyText(\''+url+'\')">Copy link</button>'+(navigator.share?'<button class="btn btn-outline" style="padding:8px 14px;font-size:13px" onclick="nativeShareLink()">Share…</button>':'')+'<button class="btn btn-gold" style="padding:8px 14px;font-size:13px" onclick="makeShareImage()">⬇ Image for social media</button></div></div></div><details style="margin-top:14px"><summary style="cursor:pointer;font-size:13px;color:#6B4699">✍️ Ready-made post you can copy</summary><textarea id="share-caption" rows="7" style="margin-top:8px;font-size:13px">'+escHtml(shareCaption(p))+'</textarea><button class="btn btn-ghost" style="margin-top:6px;padding:6px 12px;font-size:12px" onclick="copyText(document.getElementById(\'share-caption\').value)">Copy post</button></details></div>';
+  el.innerHTML='<div class="card card-gold" style="margin-bottom:18px"><div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center"><div id="share-qr" style="width:128px;height:128px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span class="text-soft" style="font-size:11px">Loading…</span></div><div style="flex:1;min-width:200px"><div style="font-weight:bold;font-size:17px;color:#2A1F3D;margin-bottom:4px">📣 Share your booking page</div><div class="text-soft" style="font-size:13px;line-height:1.6;margin-bottom:10px">Post this link on your social media, website or business card. Anyone who taps it goes straight to your booking page.</div>'+referralNote(p)+'<input readonly value="'+escHtml(url)+'" onclick="this.select()" style="max-width:none;font-size:13px;margin-bottom:10px"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-purple" style="padding:8px 14px;font-size:13px" onclick="copyText(\''+url+'\')">Copy link</button>'+(navigator.share?'<button class="btn btn-outline" style="padding:8px 14px;font-size:13px" onclick="nativeShareLink()">Share…</button>':'')+'<button class="btn btn-gold" style="padding:8px 14px;font-size:13px" onclick="makeShareImage()">⬇ Image for social media</button></div></div></div><details style="margin-top:14px"><summary style="cursor:pointer;font-size:13px;color:#6B4699">✍️ Ready-made post you can copy</summary><textarea id="share-caption" rows="7" style="margin-top:8px;font-size:13px">'+escHtml(shareCaption(p))+'</textarea><button class="btn btn-ghost" style="margin-top:6px;padding:6px 12px;font-size:12px" onclick="copyText(document.getElementById(\'share-caption\').value)">Copy post</button></details>'+websiteBadgeHtml(p)+'</div>';
   try{
     await loadQr();
     var c=document.createElement("canvas");c.width=c.height=240;var g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,240,240);
@@ -2571,6 +2581,51 @@ function downloadBlob(blob,name){
   var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
   setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1500);
   toast("Image saved ✓ Post it with your link!","#4A9B8E");
+}
+// ----- "Find me on REAL Holistic Network": healers link back to their RHN page -----
+// Every healer website that links here helps RHN (and the healer) show up on Google,
+// and clients who come through the link count as the healer's own (keep 90%).
+function badgeCode(p){
+  return '<a href="'+shareUrlFor(p)+'" target="_blank" rel="noopener"><img src="'+location.origin+'/badge.svg" alt="Find me on REAL Holistic Network" width="220" height="60"></a>';
+}
+var LINK_SPOTS="your website, Linktree, Instagram or TikTok bio, or Facebook page";
+function bioLine(p){return "Book with me on REAL Holistic Network 💜 "+shareUrlFor(p);}
+function linkDoneBtn(){
+  if(curUser&&curUser.linkSharedAt)return '<div style="font-size:13px;color:#4A9B8E;font-weight:bold;margin-top:10px">✓ Thank you for linking to your RHN page!</div>';
+  return '<button class="btn btn-teal" style="margin-top:10px;padding:8px 14px;font-size:13px" onclick="markLinkShared()">✓ I added my link</button>';
+}
+function websiteBadgeHtml(p){
+  return '<details style="margin-top:10px"><summary style="cursor:pointer;font-size:13px;color:#6B4699">🌐 Put your link on your website or bio (Google loves this!)</summary><div style="margin-top:10px;font-size:13px;line-height:1.6;color:#4A3F5C">'
+    +'<strong>For your bio</strong> (Linktree, Instagram, TikTok, Facebook), copy this line:'
+    +'<input readonly value="'+escHtml(bioLine(p))+'" onclick="this.select()" style="max-width:none;font-size:12px;margin:6px 0"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="copyText(bioLine(curUser))">Copy bio line</button>'
+    +'<div style="margin-top:14px"><strong>For your website</strong>, add this button. Tapping it takes people to your booking page:</div>'
+    +'<img src="/badge.svg" alt="Find me on REAL Holistic Network" width="220" height="60" style="display:block;margin:8px 0">'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-purple" style="padding:6px 12px;font-size:12px" onclick="copyText(badgeCode(curUser))">Copy website code</button><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="downloadBadge()">⬇ Download button image</button></div>'
+    +'<div class="text-soft" style="font-size:12px;margin-top:6px">Wix, Squarespace or WordPress: paste the code into an "Embed" or "HTML" box. Or upload the button image and link it to your booking link above.</div>'
+    +linkDoneBtn()+'</div></details>';
+}
+function downloadBadge(){
+  loadImg("/badge.svg").then(function(img){
+    if(!img){toast("Couldn't load the image. Please try again.","#C4727A");return;}
+    var c=document.createElement("canvas");c.width=880;c.height=240;c.getContext("2d").drawImage(img,0,0,880,240);
+    c.toBlob(function(b){downloadBlob(b,"find-me-on-real-holistic-network.png");},"image/png");
+  });
+}
+async function markLinkShared(){
+  var j=await api("/api/healer",{action:"linkShared"},AUTH_TOKEN);
+  if(!j.ok){toast(j.error||"Couldn't save. Please try again.","#C4727A");return;}
+  curUser=j.healer;MYB=j.bookings||MYB;
+  toast("Thank you! 💜","#4A9B8E");renderProfileCheck();renderShareCard();
+}
+// Shown right after sign-up ("You're live!")
+function renderJoinShare(){
+  var el=document.getElementById("join-share");if(!el||!curUser)return;
+  var p=curUser,url=shareUrlFor(p);
+  el.innerHTML='<div class="card card-gold" style="padding:18px"><div style="font-weight:bold;font-size:16px;color:#2A1F3D;margin-bottom:4px">📣 One last step: share your page</div>'
+    +'<div class="text-soft" style="font-size:13px;line-height:1.6;margin-bottom:10px">This is your own booking link. Put it on '+LINK_SPOTS+'.'+(refEligible(p)?' <strong style="color:#6B4699">New clients who book through it count as yours, and you keep 90%</strong> (instead of 85%) for 12 months.':'')+'</div>'
+    +'<input readonly value="'+escHtml(url)+'" onclick="this.select()" style="max-width:none;font-size:13px;margin-bottom:8px"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-purple" style="padding:8px 14px;font-size:13px" onclick="copyText(shareUrlFor(curUser))">Copy my link</button><button class="btn btn-ghost" style="padding:8px 14px;font-size:13px" onclick="copyText(bioLine(curUser))">Copy bio line</button></div>'
+    +'<div class="text-soft" style="font-size:12px;margin-top:8px">Bio line: “'+escHtml(bioLine(p))+'”</div>'
+    +'<div class="text-soft" style="font-size:12px;margin-top:6px">Have a website? Your dashboard has a “Find me on REAL Holistic Network” button you can add.</div></div>';
 }
 </script>
 <script>

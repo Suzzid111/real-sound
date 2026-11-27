@@ -163,6 +163,12 @@ export default async function handler(req, res) {
       if (!ev) return res.json({ ok: false, error: 'Event not found' });
       await saveEvents(E.filter(x => x !== ev));
       await logNote(`🗑 ${ev.healerName} removed their event "${ev.title}"`);
+    } else if (body.action === 'linkShared') {
+      // optional bonus checklist item: the healer says they linked to their RHN page
+      const P = await loadHealers();
+      const p = P.find(x => x.id === s.id);
+      if (!p) return res.status(401).json({ ok: false, error: 'Account not found', relogin: true });
+      if (!p.linkSharedAt) { p.linkSharedAt = new Date().toISOString(); await saveHealers(P); await logNote(`🔗 ${p.name} added their RHN link to their website or bio`); }
     } else if (body.action !== 'me') {
       return res.status(400).json({ ok: false, error: 'Unknown action' });
     }

@@ -8,8 +8,15 @@ export default async function handler(req, res) {
   const host = req.headers['x-forwarded-host'] || req.headers.host || 'realholisticnetwork.com';
   const site = 'https://' + host;
   let p = null;
-  try { p = (await loadHealers()).find(x => healerSlug(x) === slug); } catch (e) {}
+  try {
+    const P = await loadHealers();
+    p = P.find(x => healerSlug(x) === slug);
+    // If the healer later changed their name, old links (and website buttons)
+    // still work: match on the last 4 characters, which come from their id.
+    if (!p) { const end = (slug.match(/-([a-z0-9]{4})$/) || [])[1]; const m = end ? P.filter(x => String(x.id).slice(-4).toLowerCase() === end) : []; if (m.length === 1) p = m[0]; }
+  } catch (e) {}
   if (!p) { res.setHeader('Location', '/'); return res.status(302).send(''); }
+  if (healerSlug(p) !== slug) { res.setHeader('Location', '/h/' + healerSlug(p)); return res.status(301).send(''); }
   const target = '/?book=' + encodeURIComponent(slug) + '&src=share';
   const title = `Book a session with ${p.name} on REAL Holistic Network`;
   const mods = (p.modalities || []).slice(0, 3).join(' · ');
