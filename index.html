@@ -52,6 +52,12 @@ nav{background:#fff;border-bottom:1px solid rgba(107,70,153,.12);padding:0 20px;
 .grid-item:hover{border-color:#6B4699;box-shadow:0 4px 16px rgba(107,70,153,.15);transform:translateY(-2px)}
 .grid-icon{font-size:26px}
 .grid-label{font-size:12px;color:#2A1F3D;margin-top:8px}
+.svc-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px}
+.svc-chip{font-family:inherit;display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid rgba(107,70,153,.18);border-radius:999px;padding:8px 14px;font-size:14px;color:#2A1F3D;cursor:pointer;transition:all .2s}
+.svc-chip:hover{border-color:#6B4699;background:#F7F3FC}
+.svc-chip-ic{font-size:17px;line-height:1}
+.svc-more{background:#6B4699;color:#fff;border-color:#6B4699}
+.svc-more:hover{background:#5A3A84;color:#fff}
 
 .healer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
 .healer-card{background:#fff;border-radius:20px;border:1px solid rgba(107,70,153,.12);overflow:hidden;box-shadow:0 2px 12px rgba(107,70,153,.06);transition:all .2s}
@@ -173,7 +179,7 @@ input[type=date],input[type=time]{min-width:0;max-width:100%;box-sizing:border-b
 <div class="wrap">
   <div class="stats" id="home-stats"></div>
   <div class="section-title">WHAT WE OFFER</div>
-  <div class="grid6" id="home-services">
+  <div class="svc-chips" id="home-services">
   </div>
   <div class="section-title">WHO IT'S FOR</div>
   <div class="grid6">
@@ -535,9 +541,9 @@ function blockedFieldsCheck(fields){
 }
 
 var VENUES=["All","Yoga Studios","Martial Arts Studios","Corporate","Retreats","Nursing Homes","Private Events","Hotels & Spas"];
-var SVC_ICONS={"Sound Bath & Gong Bath":"🎵","Reiki & Crystal Healing":"🙌","Breathwork":"🌬️","Meditation":"🧘","Creative Art Healing":"🎨","Art Therapy":"🎨","Herbalist":"🌿","Life Coach":"✨","Astrology & Birth Charts":"🌙","Tarot":"🔮"};
+var SVC_ICONS={"Sound Bath & Gong Bath":"🎵","Reiki & Crystal Healing":"🙌","Breathwork":"🌬️","Meditation":"🕉️","Creative Art Healing":"🎨","Art Therapy":"🎨","Herbalist":"🌿","Life Coach":"✨","Astrology & Birth Charts":"🌙","Tarot":"🔮","Hypnotherapy":"🌀","Childbirth Education":"🤰","Birth Doula":"👶","Death Doula":"🕊️","Ayurvedic Wellness Coach":"🪷","Yoga Instructor":"🧘","Pilates Instructor":"🤸","Tai Chi & Qigong":"☯️","Health & Wellness Coach":"🍎","Psychic & Medium":"👁️","Energy Healing":"💫","Shamanic Healing":"🪶","EFT / Tapping":"👆","Aromatherapy":"🌸","Spiritual Coach":"🙏"};
 // The official healing services list comes from the server (the owner edits it on the admin page).
-function renderHomeServices(){var el=document.getElementById("home-services");if(!el)return;el.innerHTML=MODS.map(function(m,i){return '<button type="button" class="grid-item" style="font-family:inherit;width:100%" onclick="filterMod(MODS['+i+']);showPage(\'find\')"><div class="grid-icon">'+(SVC_ICONS[m]||"💜")+'</div><div class="grid-label">'+escHtml(m)+'</div></button>';}).join("");}
+var SVC_SHOW_ALL=false;function renderHomeServices(){var el=document.getElementById("home-services");if(!el)return;var LIMIT=10,list=SVC_SHOW_ALL?MODS:MODS.slice(0,LIMIT);var h=list.map(function(m){var i=MODS.indexOf(m);return '<button type="button" class="svc-chip" onclick="filterMod(MODS['+i+']);showPage(\'find\')"><span class="svc-chip-ic">'+(SVC_ICONS[m]||"💜")+'</span>'+escHtml(m)+'</button>';}).join("");if(MODS.length>LIMIT)h+='<button type="button" class="svc-chip svc-more" onclick="SVC_SHOW_ALL=!SVC_SHOW_ALL;renderHomeServices()">'+(SVC_SHOW_ALL?"Show less ▴":"+ "+(MODS.length-LIMIT)+" more ▾")+'</button>';el.innerHTML=h;}
 var MODS=["Sound Bath & Gong Bath","Reiki & Crystal Healing","Breathwork","Meditation","Creative Art Healing","Herbalist","Life Coach","Astrology & Birth Charts","Tarot"];
 var INSTR=["Crystal Bowls","Gong","Tibetan Bowls","Tuning Forks","Chimes","Voice","Steel Tongue Drum","Rain Drum","Drums"];
 var zipFilter="";var nameFilter="";

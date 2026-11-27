@@ -372,12 +372,20 @@ let SERVICES = DEFAULT_SERVICES.slice();
 export const currentServices = () => SERVICES;
 // Services that were renamed: old name -> new name (so healers who picked the old one keep it).
 // "Art Therapy" is a licensed title in some states, so it is now "Creative Art Healing" (Nov 27, 2026).
+const ADDED_SERVICES = ['Pilates Instructor', 'Tai Chi & Qigong', 'Health & Wellness Coach', 'Psychic & Medium', 'Energy Healing', 'Shamanic Healing', 'EFT / Tapping', 'Aromatherapy', 'Spiritual Coach'];
+const ADDED_SERVICES_KEY = 'services_added_2026_11_27';
 const RENAMED_SERVICES = { 'art therapy': 'Creative Art Healing' };
 const renamedService = m => RENAMED_SERVICES[String(m || '').trim().toLowerCase()] || m;
 export async function loadServices() {
   const list = await getJSON('services', null);
   SERVICES = Array.isArray(list) && list.length ? list : DEFAULT_SERVICES.slice();
   SERVICES = SERVICES.map(renamedService).filter((x, i, a) => a.findIndex(y => y.toLowerCase() === x.toLowerCase()) === i);
+  // One time only: add the services Sue asked for on Nov 27, 2026 (she can still remove them later from admin).
+  if (!(await getJSON(ADDED_SERVICES_KEY, null))) {
+    for (const x of ADDED_SERVICES) if (!SERVICES.some(y => y.toLowerCase() === x.toLowerCase())) SERVICES.push(x);
+    await setJSON('services', SERVICES);
+    await setJSON(ADDED_SERVICES_KEY, true);
+  }
   return SERVICES;
 }
 export function cleanServiceName(m) {
@@ -396,6 +404,18 @@ const SERVICE_MATCH = [
   [/breath/i, 'Breathwork'],
   [/meditat/i, 'Meditation'],
   [/art\s*therap|creative\s*art|expressive\s*art/i, 'Creative Art Healing'],
+  [/pilates/i, 'Pilates Instructor'],
+  [/tai\s*chi|qi\s*gong|chi\s*kung/i, 'Tai Chi & Qigong'],
+  [/yoga/i, 'Yoga Instructor'],
+  [/hypno/i, 'Hypnotherapy'],
+  [/psychic|medium/i, 'Psychic & Medium'],
+  [/shaman/i, 'Shamanic Healing'],
+  [/\beft\b|tapping/i, 'EFT / Tapping'],
+  [/aromather|essential\s*oil/i, 'Aromatherapy'],
+  [/energy\s*(heal|work)/i, 'Energy Healing'],
+  [/ayurved/i, 'Ayurvedic Wellness Coach'],
+  [/spiritual\s*coach/i, 'Spiritual Coach'],
+  [/health\s*coach|wellness\s*coach/i, 'Health & Wellness Coach'],
   [/herb/i, 'Herbalist'],
   [/coach/i, 'Life Coach']
 ];
