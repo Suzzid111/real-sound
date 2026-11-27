@@ -1,9 +1,10 @@
 // api/community.js — things any visitor can send in:
 //   newsletter sign-up / unsubscribe, and workplace & group wellness requests.
 // Everything is stored privately; only the admin can see it.
-import { getJSON, setJSON, logNote, alertOwner, newToken, str, tooManyTries, clientIp } from './_lib.js';
+import { getJSON, setJSON, logNote, alertOwner, newToken, str, tooManyTries, clientIp, sendNotice } from './_lib.js';
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const GUIDE_URL = 'https://www.realholisticnetwork.com/which-healing-service.pdf';
 
 export default async function handler(req, res) {
   try {
@@ -27,11 +28,18 @@ export default async function handler(req, res) {
       const email = str(b.email, 200).toLowerCase(), name = str(b.name, 60);
       if (!EMAIL_RE.test(email)) return res.json({ ok: false, error: 'Please enter a valid email' });
       const S = await getJSON('subscribers', []);
-      if (S.some(s => s.email === email)) return res.json({ ok: true, already: true });
+      const isGuide = b.source === 'guide';
+      // Free guide sign-up: email the guide every time (even to people already on the list).
+      if (isGuide) {
+        const first = (name || '').split(/\s+/)[0] || 'there';
+        await sendNotice(email, name, 'Your free guide: Which healing service is right for me? 💜',
+          `Hi ${first},\n\nThank you for joining the REAL Holistic Network community! Here's your free guide:\n\n${GUIDE_URL}\n\nTap a service in the guide to learn more and meet the practitioners who offer it, in person or online.\n\nWith love,\nSue\nFounder, REAL Holistic Network\nFind. Book. Heal.`);
+      }
+      if (S.some(s => s.email === email)) return res.json({ ok: true, already: true, guideUrl: isGuide ? GUIDE_URL : undefined });
       S.push({ email, name, source: str(b.source, 40) || 'website', createdAt: new Date().toISOString(), token: newToken() });
       await setJSON('subscribers', S);
-      await alertOwner(`💌 New newsletter subscriber${name ? ': ' + name : ''} (${S.length} total)`, [`Name: ${name || '—'}`, `Email: ${email}`, `Signed up from: ${str(b.source, 40) || 'website'}`]);
-      return res.json({ ok: true });
+      await alertOwner(`💌 New newsletter subscriber${name ? ': ' + name : ''}${isGuide ? ' (free guide)' : ''} (${S.length} total)`, [`Name: ${name || '—'}`, `Email: ${email}`, `Signed up from: ${isGuide ? 'Free guide: Which healing service is right for me?' : (str(b.source, 40) || 'website')}`]);
+      return res.json({ ok: true, guideUrl: isGuide ? GUIDE_URL : undefined });
     }
 
     if (b.action === 'workplace') {

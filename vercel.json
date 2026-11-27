@@ -9,6 +9,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/guide",
+      "destination": "/index.html"
+    },
+    {
       "source": "/shop-partner",
       "destination": "/index.html"
     },

@@ -598,8 +598,8 @@ function checkJoinLink(){
 // opens the home page and jumps to the newsletter sign-up box
 function checkNewsletterLink(){
   var path=location.pathname.replace(/\/+$/,"").toLowerCase();
-  var q=/[?&]page=newsletter\b/i.test(location.search);
-  if(path!=="/newsletter"&&!q)return;
+  var q=/[?&]page=(newsletter|guide)\b/i.test(location.search);
+  if(path!=="/newsletter"&&path!=="/guide"&&!q)return;
   showPage("home");
   setTimeout(function(){
     var box=document.getElementById("nl-home");if(!box)return;
@@ -2651,13 +2651,19 @@ function newsletterBox(source,compact){
   if(compact)return '<div id="'+id+'" style="max-width:420px;margin:14px auto 0"><div style="color:#F3D58A;font-size:13px;margin-bottom:8px">💌 Join our community for healing tips, events &amp; offers</div><div style="display:flex;gap:6px"><input id="'+id+'-email" type="email" placeholder="Your email" style="flex:1;max-width:none;font-size:13px"><button class="btn btn-gold" style="padding:8px 14px;font-size:13px" onclick="joinNewsletter(\''+source+'\')">Join</button></div><div style="color:#A990C9;font-size:10px;margin-top:6px">No spam, ever. Unsubscribe anytime.</div></div>';
   return '<div id="'+id+'" class="card card-gold" style="margin:28px 0;text-align:center"><div style="font-size:28px;margin-bottom:6px">💌</div><div style="font-size:20px;color:#2A1F3D;margin-bottom:6px">Join the REAL Holistic Network community</div><div class="text-soft" style="font-size:14px;line-height:1.6;margin:0 auto 14px;max-width:460px">Gentle healing tips, free community events, new healers near you, and first access to our journals and meditations.</div><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:460px;margin:0 auto"><input id="'+id+'-name" placeholder="First name" style="flex:1 1 130px;max-width:none"><input id="'+id+'-email" type="email" placeholder="Your email" style="flex:2 1 200px;max-width:none"><button class="btn btn-gold" style="flex:1 1 100%" onclick="joinNewsletter(\''+source+'\')">Join the community</button></div><div class="text-soft" style="font-size:11px;margin-top:8px">No spam, ever. Unsubscribe anytime.</div></div>';
 }
-async function joinNewsletter(source){
+// Free guide sign-up on the home page (also reached by realholisticnetwork.com/guide).
+// Joins the community newsletter and emails the guide.
+function guideBox(){
+  return '<div id="nl-home" class="card card-gold" style="margin:28px 0;text-align:center"><div style="font-size:11px;letter-spacing:.14em;color:#C9922A;font-weight:bold;margin-bottom:6px">🎁 FREE GUIDE</div><div style="font-size:21px;color:#2A1F3D;margin-bottom:6px">Which healing service is right for me?</div><div class="text-soft" style="font-size:14px;line-height:1.6;margin:0 auto 14px;max-width:460px">Feeling anxious, can\'t sleep, stressed at work, or ready to manifest more? This one-page guide matches what you\'re feeling with the healing services that fit. Free, and it\'s yours instantly.</div><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:460px;margin:0 auto"><input id="nl-home-name" placeholder="First name" style="flex:1 1 130px;max-width:none"><input id="nl-home-email" type="email" placeholder="Your email" style="flex:2 1 200px;max-width:none"><button class="btn btn-gold" style="flex:1 1 100%" onclick="joinNewsletter(\'home\',true)">Send me the free guide</button></div><div class="text-soft" style="font-size:11px;margin-top:8px">You\'ll also get our community newsletter. No spam, ever. Unsubscribe anytime.</div></div>';
+}
+async function joinNewsletter(source,guide){
   var id="nl-"+source,em=document.getElementById(id+"-email"),nm=document.getElementById(id+"-name");
   var email=(em&&em.value||"").trim();
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){toast("Please enter your email","#C4727A");return;}
-  var j=await api("/api/community",{action:"subscribe",email:email,name:nm?nm.value:"",source:source});
+  var j=await api("/api/community",{action:"subscribe",email:email,name:nm?nm.value:"",source:guide?"guide":source});
   if(!j.ok){toast(j.error,"#C4727A");return;}
   var box=document.getElementById(id);
+  if(guide&&box){box.innerHTML='<div style="text-align:center;padding:10px;color:#2A1F3D"><div style="font-size:28px">🌸</div><div style="font-size:17px;margin:4px 0 10px">Your guide is ready!</div><a class="btn btn-gold" href="/which-healing-service.pdf" target="_blank" rel="noopener" style="text-decoration:none">⬇ Open my free guide</a><div class="text-soft" style="font-size:12px;margin-top:10px">We also emailed it to '+escHtml(email)+'.'+(j.already?'':' Welcome to the community!')+'</div></div>';return;}
   if(box)box.innerHTML='<div style="text-align:center;padding:10px;color:'+(source==="footer"?'#F3D58A':'#2A1F3D')+'"><div style="font-size:24px">🌸</div>'+(j.already?"You're already part of our community. Thank you!":"Welcome to the community! We're so glad you're here.")+'</div>';
 }
 
@@ -2721,7 +2727,7 @@ function exportSubscribers(){
 }
 // fill the sign-up boxes once the page is ready
 (function(){
-  var h=document.getElementById("home-newsletter");if(h)h.innerHTML=newsletterBox("home");
+  var h=document.getElementById("home-newsletter");if(h)h.innerHTML=guideBox();
   var l=document.getElementById("learn-newsletter");if(l)l.innerHTML=newsletterBox("learn");
   var f=document.getElementById("footer-newsletter");if(f)f.innerHTML=newsletterBox("footer",true);
 })();
