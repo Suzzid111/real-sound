@@ -1111,7 +1111,11 @@ function renderProfileCheck(){
 function linkSharedLine(){
   if(!curUser)return "";
   if(curUser.linkSharedAt)return '<div style="font-size:14px;padding:4px 0;color:#A990C9;text-decoration:line-through">✓ ⭐ Bonus: Add your RHN link to your website or bio</div>';
-  return '<div style="font-size:14px;padding:6px 0 2px;color:#2A1F3D;border-top:1px dashed rgba(201,146,42,.45);margin-top:6px">☐ ⭐ Bonus (optional): Add your RHN link to your website, Linktree or Instagram bio <a href="#share-card" style="color:#6B4699;font-size:13px" onclick="var e=document.getElementById(\'share-card\');if(e)e.scrollIntoView({behavior:\'smooth\'});return false">Show me how ↓</a></div>';
+  return '<div style="font-size:14px;padding:6px 0 2px;color:#2A1F3D;border-top:1px dashed rgba(201,146,42,.45);margin-top:6px"><label style="cursor:pointer;display:flex;gap:8px;align-items:flex-start"><input type="checkbox" onchange="if(this.checked)markLinkShared()" style="width:20px;height:20px;margin-top:2px;flex-shrink:0;accent-color:#6B4699"><span>⭐ Bonus (optional): Add your RHN link to your website, Linktree or Instagram bio. Tick the box when it\'s done.</span></label><a href="#" style="color:#6B4699;font-size:13px;display:inline-block;margin:6px 0 0 28px" onclick="showBadgeHelp();return false">Show me how ↓</a></div>';
+}
+function showBadgeHelp(){
+  var d=document.getElementById("badge-details");if(!d)return;
+  d.open=true;d.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
 // ----- Healer suggests a different time instead of declining -----
@@ -2595,7 +2599,7 @@ function linkDoneBtn(){
   return '<button class="btn btn-teal" style="margin-top:10px;padding:8px 14px;font-size:13px" onclick="markLinkShared()">✓ I added my link</button>';
 }
 function websiteBadgeHtml(p){
-  return '<details style="margin-top:10px"><summary style="cursor:pointer;font-size:13px;color:#6B4699">🌐 Put your link on your website or bio (Google loves this!)</summary><div style="margin-top:10px;font-size:13px;line-height:1.6;color:#4A3F5C">'
+  return '<details id="badge-details" style="margin-top:10px;scroll-margin-top:90px"><summary style="cursor:pointer;font-size:13px;color:#6B4699">🌐 Put your link on your website or bio (Google loves this!)</summary><div style="margin-top:10px;font-size:13px;line-height:1.6;color:#4A3F5C">'
     +'<strong>For your bio</strong> (Linktree, Instagram, TikTok, Facebook), copy this line:'
     +'<input readonly value="'+escHtml(bioLine(p))+'" onclick="this.select()" style="max-width:none;font-size:12px;margin:6px 0"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="copyText(bioLine(curUser))">Copy bio line</button>'
     +'<div style="margin-top:14px"><strong>For your website</strong>, add this button. Tapping it takes people to your booking page:</div>'
